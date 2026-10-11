@@ -61,8 +61,8 @@ const usageBrief = `Usage: agentbrief [brief] [PATH] [-C DIR] [--json] [--all]
 
 Print the facts block an agent needs: toolchain, package manager, the best
 command per task (install, build, test, ...), workspace layout, and files not
-to edit. With PATH, scope it to the project that owns PATH (its own commands
-first, then root commands that still apply).
+to edit. With PATH (a file or directory), scope it to the project that owns
+PATH: its own commands first, then root commands that still apply.
 
   --json    structured output (schema agentbrief/brief/v1)
   --all     with --json, print the full repository model instead
@@ -307,6 +307,9 @@ func runBrief(args []string, stdout, stderr io.Writer) int {
 	scope := "."
 	if len(pos) == 1 {
 		if scope, err = resolveScope(root, base, pos[0]); err != nil {
+			if isBareWord(pos[0]) {
+				return fail(stderr, fmt.Errorf("%q is neither a command nor an existing path (commands: brief, sync, check, version, help)", pos[0]))
+			}
 			return fail(stderr, err)
 		}
 	}
@@ -439,9 +442,12 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 		}
 		switch {
 		case len(findings) == 0:
-			fmt.Fprintf(stdout, "ok: %d instruction file(s) checked, no problems found\n", len(repo.Instructions))
+			fmt.Fprintf(stdout, "ok: %s checked, no problems found\n", plural(len(repo.Instructions), "instruction file"))
 		default:
 			fmt.Fprintf(stdout, "%s, %s\n", plural(out.Errors, "error"), plural(out.Warnings, "warning"))
+		}
+		if !out.ManagedBlock {
+			fmt.Fprintln(stdout, "note: AGENTS.md has no AgentBrief block, so only hand-written instructions were checked; run `agentbrief sync` to add one")
 		}
 	}
 	if out.Errors > 0 || (*strict && out.Warnings > 0) {
@@ -455,4 +461,17 @@ func plural(n int, w string) string {
 		return fmt.Sprintf("1 %s", w)
 	}
 	return fmt.Sprintf("%d %ss", n, w)
+}
+
+// isBareWord reports whether s looks like a mistyped subcommand rather than a path.
+func isBareWord(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r == '-') {
+			return false
+		}
+	}
+	return true
 }

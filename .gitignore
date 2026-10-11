@@ -4,3 +4,4 @@
 *.test
 *.out
 coverage.txt
+__pycache__/

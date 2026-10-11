@@ -1,6 +1,7 @@
 package brief
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -19,11 +20,16 @@ const MaxLines = 40
 
 // JSON renders the brief with 2-space indentation and a trailing newline.
 func (b Brief) JSON() ([]byte, error) {
-	out, err := json.MarshalIndent(b, "", "  ")
-	if err != nil {
+	// Encoder rather than MarshalIndent so `<file>` placeholders in commands
+	// are not escaped to \u003cfile\u003e, which agents read poorly.
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(b); err != nil {
 		return nil, err
 	}
-	return append(out, '\n'), nil
+	return buf.Bytes(), nil
 }
 
 // Markdown returns the managed block, markers included, without a trailing newline.

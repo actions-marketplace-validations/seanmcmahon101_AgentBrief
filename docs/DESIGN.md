@@ -134,8 +134,8 @@ The rules:
 | Rule | Severity | What it means |
 |---|---|---|
 | `stale-block` | error | The managed block differs from what `sync` would write now. |
-| `unknown-script` | error | An instruction file tells agents to run `npm run X` / `pnpm X` / `yarn X` / `make X` / `just X` / `task X` / `mise run X` / `composer X` / … and no such script/target exists in the relevant directory. |
-| `missing-path` | error for Markdown links, warning for code spans | A referenced repo path does not exist on disk. |
+| `unknown-script` | error | An instruction file tells agents to run a script, target or task that does not exist: `npm run X` / `pnpm X` / `yarn X` / `bun run X`, `make X` (including `make -C dir X`), `just X`, `task X`, `mise run X`, `composer X`, `poe X`, `tox -e X`, `nox -s X`, `cargo … -p X` (workspace crates), `docker compose up X` (services). Warning instead of error when the inventory may be incomplete. |
+| `missing-path` | error for Markdown links and paths inside commands; warning for code spans and prose | A referenced repository path does not exist: Markdown links, code spans that look like paths, and path arguments of commands such as `pytest tests/x.py`, `python scripts/x.py`, `bash scripts/x.sh`, `go test ./pkg/...`. |
 | `wrong-package-manager` | warning | The instructions use one JS/Python package manager but the lockfile says another. |
 | `agents-md-not-loaded` | warning | Root `CLAUDE.md` exists and `AGENTS.md` exists, but `CLAUDE.md` doesn't import it. Claude Code will not read `AGENTS.md`. The same applies to `GEMINI.md`. |
 | `oversized` | warning | The file is over 32 KiB (Codex's default cap) or `CLAUDE.md` is over 200 lines (Anthropic's guidance). |
