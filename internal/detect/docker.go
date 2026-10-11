@@ -23,12 +23,6 @@ func detectDocker(r *scan.Repo, f *Facts) {
 			f.AddNote(model.Note{Text: note, Source: at(p, line)})
 		}
 	}
-	for _, p := range []string{".devcontainer/devcontainer.json", ".devcontainer.json"} {
-		if r.Has(p) {
-			f.AddNote(model.Note{Text: "dev container configuration present (" + p + ")", Source: at(p, 1)})
-			break
-		}
-	}
 }
 
 // composeServices summarises service names and images only; environment,

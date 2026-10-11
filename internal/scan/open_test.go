@@ -79,3 +79,15 @@ func TestHeadReadsPrefixOnly(t *testing.T) {
 		t.Errorf("Head(missing) err = %v", err)
 	}
 }
+
+func TestSize(t *testing.T) {
+	root := t.TempDir()
+	write(t, root, "a.txt", "0123456789")
+	r, _ := Open(root, Options{})
+	if r.Size("a.txt") != 10 || r.Size("nope") != 0 {
+		t.Errorf("size = %d", r.Size("a.txt"))
+	}
+	if FromMap(map[string]string{"x": "abc"}).Size("x") != 3 {
+		t.Error("mem size")
+	}
+}

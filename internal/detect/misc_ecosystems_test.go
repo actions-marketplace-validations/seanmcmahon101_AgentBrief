@@ -137,7 +137,7 @@ func TestDockerCompose(t *testing.T) {
 	if !strings.Contains(joined, "docker compose services: db (postgres:16), redis (redis:7), web") {
 		t.Errorf("notes: %s", joined)
 	}
-	if strings.Contains(joined, "hunter2") || !strings.Contains(joined, ".devcontainer/devcontainer.json") {
+	if strings.Contains(joined, "hunter2") || strings.Contains(joined, "devcontainer") {
 		t.Errorf("notes: %s", joined)
 	}
 	if f.Notes[0].Source.Path == "" || f.Notes[0].Source.Line != 1 {

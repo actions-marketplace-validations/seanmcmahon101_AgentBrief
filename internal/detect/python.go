@@ -565,6 +565,15 @@ func toxEnvs(r *scan.Repo, f *Facts, d *pyDir) {
 			}
 		}
 	}
+	if text != "" || tget(d.toml, "tool", "tox") != nil {
+		// tox config means the project's own test entry point is tox.
+		run := "tox"
+		if p := d.prefix(); p != "" && d.tool != "hatch" {
+			run = p + "tox"
+		}
+		f.AddCommand(model.Command{Kind: model.KindTest, Run: run, Dir: d.dir, Evidence: []string{model.EvidenceDeclared},
+			Source: model.Source{Path: file, Line: line0}, Note: "runs the tox envs"})
+	}
 	keys := make([]string, 0, len(names))
 	for n := range names {
 		keys = append(keys, n)

@@ -42,6 +42,8 @@ type Brief struct {
 	// InstructionFiles lists other agent-instruction files (never the root AGENTS.md).
 	InstructionFiles []string `json:"instruction_files"`
 	Notes            []string `json:"notes"`
+	// OtherBuildTool names a second JVM build tool present alongside the chosen one.
+	OtherBuildTool *Alt `json:"other_build_tool,omitempty"`
 }
 
 // ProjectRef names a project.
@@ -76,8 +78,19 @@ type Command struct {
 	Label    string   `json:"source"` // short provenance label, e.g. "package.json, CI"
 	Evidence []string `json:"evidence"`
 	// Verified is true when the command is declared in the repo or run in CI.
-	Verified bool   `json:"verified"`
-	Note     string `json:"note,omitempty"`
+	Verified bool `json:"verified"`
+	// Adapted is true when Run was rewritten for the scoped project (e.g. cargo -p).
+	Adapted bool `json:"adapted,omitempty"`
+	// Alternate is a second declared command of another runner for the same kind.
+	Alternate *Alt   `json:"alternate,omitempty"`
+	Note      string `json:"note,omitempty"`
+}
+
+// Alt is an alternative command or build tool.
+type Alt struct {
+	Tool  string `json:"tool,omitempty"`
+	Run   string `json:"run"`
+	Label string `json:"source"`
 }
 
 // Workspace summarises sub-projects.
@@ -85,6 +98,7 @@ type Workspace struct {
 	Kind    string         `json:"kind"` // "workspace" or "projects"
 	Manager string         `json:"manager,omitempty"`
 	Count   int            `json:"count"`
+	Capped  bool           `json:"count_capped,omitempty"` // detection stopped at its member limit
 	Members []ProjectRef   `json:"members"`
 	Omitted int            `json:"omitted"`
 	Extra   map[string]int `json:"-"`
@@ -171,7 +185,7 @@ func Build(repo *model.Repo, scope string) Brief {
 
 	b.Toolchain = buildToolchain(repo, pdir)
 	b.PackageManagers = buildPMs(repo, pdir, b.Toolchain)
-	b.Commands = buildCommands(repo, pdir)
+	b.Commands, b.OtherBuildTool = buildCommands(repo, pdir)
 	b.Ecosystems = rootEcosystems(repo, pdir)
 	b.Workspace = buildWorkspace(repo, pdir)
 	b.DoNotEdit = buildDoNotEdit(repo, pdir)
@@ -256,21 +270,18 @@ func buildToolchain(repo *model.Repo, pdir string) []Tool {
 		byName[t.Name] = append(byName[t.Name], t)
 	}
 	sort.Strings(names)
-	ecos := map[string]bool{}
-	for _, p := range repo.Projects {
-		ecos[p.Ecosystem] = true
-	}
 	primary := primaryDirs(repo)
 	var out []Tool
 	for _, n := range names {
 		cands := byName[n]
-		onlyCI := true
+		var nonCI []model.Toolchain
 		for _, t := range cands {
 			if !isCIPath(t.Source.Path) {
-				onlyCI = false
+				nonCI = append(nonCI, t)
 			}
 		}
-		if onlyCI && !ecos[n] {
+		cands = nonCI
+		if len(cands) == 0 {
 			continue
 		}
 		// File-sourced pins beat CI-workflow pins.
@@ -288,9 +299,6 @@ func buildToolchain(repo *model.Repo, pdir string) []Tool {
 		var applicable []model.Toolchain
 		for _, t := range cands {
 			d := path.Dir(t.Source.Path)
-			if isCIPath(t.Source.Path) {
-				d = "."
-			}
 			if pdir == "." {
 				if primary[d] {
 					applicable = append(applicable, t)
@@ -390,6 +398,9 @@ func buildPMs(repo *model.Repo, pdir string, tools []Tool) []PM {
 		if dup {
 			continue
 		}
+		if pm.Version == "" && len(avoidFor(pm)) == 0 {
+			continue
+		}
 		out = append(out, PM{Name: ident(pm.Name), Version: ident(pm.Version), Ecosystem: pm.Ecosystem,
 			Source: ident(pm.Source.Path), Avoid: avoidFor(pm)})
 	}
@@ -462,8 +473,13 @@ func evidenceScore(ev []string) int {
 
 func usableRun(run string) (string, bool) {
 	run = strings.TrimSpace(run)
-	if run == "" || len(run) > MaxCommandLen || strings.ContainsAny(run, "\n\r") {
+	if run == "" || len(run) > MaxCommandLen {
 		return "", false
+	}
+	for _, r := range run {
+		if r < 0x20 || r == 0x7f {
+			return "", false
+		}
 	}
 	run = redact.String(run)
 	if len(run) > MaxCommandLen {
@@ -472,23 +488,142 @@ func usableRun(run string) (string, bool) {
 	return run, true
 }
 
-func buildCommands(repo *model.Repo, pdir string) []Command {
+func firstTool(run string) string {
+	f := strings.Fields(run)
+	if len(f) == 0 {
+		return ""
+	}
+	return path.Base(f[0])
+}
+
+func jvmTool(run string) string {
+	switch firstTool(run) {
+	case "gradlew", "gradlew.bat", "gradle":
+		return "gradle"
+	case "mvnw", "mvnw.cmd", "mvn":
+		return "maven"
+	}
+	return ""
+}
+
+var jsPMTools = set("npm pnpm yarn bun")
+
+var alternateKinds = map[string]bool{
+	model.KindFormat: true, model.KindLint: true, model.KindTest: true, model.KindTypecheck: true,
+}
+
+var adaptKinds = map[string]bool{
+	model.KindTest: true, model.KindTestOne: true, model.KindBuild: true, model.KindLint: true,
+	model.KindTypecheck: true, model.KindCheck: true,
+}
+
+// adaptCargo rewrites a workspace-level cargo command to target one crate.
+func adaptCargo(run, crate string) (string, bool) {
+	if !validPkg(crate) || strings.ContainsAny(crate, " ") {
+		return "", false
+	}
+	f := strings.Fields(run)
+	if len(f) < 2 || f[0] != "cargo" {
+		return "", false
+	}
+	for _, w := range f {
+		if w == "-p" || w == "--package" || strings.HasPrefix(w, "--package=") {
+			return "", false
+		}
+	}
+	for i, w := range f {
+		if w == "--workspace" || w == "--all" {
+			f[i] = "-p " + crate
+			return strings.Join(f, " "), true
+		}
+	}
+	end := 2
+	if f[1] == "nextest" && len(f) > 2 && f[2] == "run" {
+		end = 3
+	}
+	if f[1] != "test" && f[1] != "build" && f[1] != "clippy" && f[1] != "check" && f[1] != "nextest" && f[1] != "doc" {
+		return "", false
+	}
+	out := append(append(append([]string{}, f[:end]...), "-p", crate), f[end:]...)
+	return strings.Join(out, " "), true
+}
+
+func buildCommands(repo *model.Repo, pdir string) ([]Command, *Alt) {
 	var out []Command
+	var other *Alt
 	seen := map[string]bool{}
-	pick := func(dir string) {
+
+	owner, hasOwner := model.Project{}, false
+	if pdir != "." {
+		for _, p := range repo.Projects {
+			if p.Dir == pdir {
+				owner, hasOwner = p, true
+				break
+			}
+		}
+	}
+
+	pick := func(dir string, adapt bool) {
+		var all []model.Command
+		for _, c := range repo.Commands {
+			if c.Dir != dir {
+				continue
+			}
+			if _, ok := usableRun(c.Run); ok {
+				all = append(all, c)
+			}
+		}
+		// One JVM build tool per directory.
+		ci := map[string]int{}
+		for _, c := range all {
+			if t := jvmTool(c.Run); t != "" && evidenceScore(c.Evidence) != 3 && (evidenceScore(c.Evidence) == 0 || evidenceScore(c.Evidence) == 2) {
+				ci[t]++
+			}
+		}
+		present := map[string]bool{}
+		for _, c := range all {
+			if t := jvmTool(c.Run); t != "" {
+				present[t] = true
+			}
+		}
+		if present["gradle"] && present["maven"] {
+			chosen := "gradle"
+			switch {
+			case ci["maven"] > ci["gradle"]:
+				chosen = "maven"
+			case ci["maven"] == ci["gradle"] && hasPom(repo, dir, all):
+				chosen = "maven"
+			}
+			notChosen := "maven"
+			if chosen == "maven" {
+				notChosen = "gradle"
+			}
+			var keep []model.Command
+			var bestOther *model.Command
+			for i, c := range all {
+				if jvmTool(c.Run) == notChosen {
+					if other == nil && (bestOther == nil || (c.Kind == model.KindBuild && bestOther.Kind != model.KindBuild)) {
+						bestOther = &all[i]
+					}
+					continue
+				}
+				keep = append(keep, c)
+			}
+			all = keep
+			if bestOther != nil && other == nil {
+				run, _ := usableRun(bestOther.Run)
+				other = &Alt{Tool: map[string]string{"gradle": "Gradle", "maven": "Maven"}[notChosen], Run: run, Label: commandLabel(*bestOther, dir)}
+			}
+		}
 		for _, kind := range kindOrder {
 			if seen[kind] {
 				continue
 			}
 			var cands []model.Command
-			for _, c := range repo.Commands {
-				if c.Kind != kind || c.Dir != dir {
-					continue
+			for _, c := range all {
+				if c.Kind == kind {
+					cands = append(cands, c)
 				}
-				if _, ok := usableRun(c.Run); !ok {
-					continue
-				}
-				cands = append(cands, c)
 			}
 			if len(cands) == 0 {
 				continue
@@ -516,21 +651,90 @@ func buildCommands(repo *model.Repo, pdir string) []Command {
 			})
 			c := cands[0]
 			run, _ := usableRun(c.Run)
-			out = append(out, Command{
-				Kind: kind, Run: run, Dir: dir, Label: commandLabel(c),
+			cmd := Command{
+				Kind: kind, Run: run, Dir: dir, Label: commandLabel(c, dir),
 				Evidence: nonNil(c.Evidence), Verified: evidenceScore(c.Evidence) < 3, Note: safeNote(c.Note),
-			})
+			}
+			if adapt && hasOwner && owner.Ecosystem == "rust" && adaptKinds[kind] {
+				if r2, ok := adaptCargo(run, owner.Name); ok && len(r2) <= MaxCommandLen {
+					cmd.Run, cmd.Adapted = r2, true
+				}
+			}
+			if alternateKinds[kind] && evidenceScore(c.Evidence) <= 1 {
+				for _, d := range cands[1:] {
+					if evidenceScore(d.Evidence) > 1 || firstTool(d.Run) == firstTool(c.Run) ||
+						(jsPMTools[firstTool(d.Run)] && jsPMTools[firstTool(c.Run)]) {
+						continue
+					}
+					dr, _ := usableRun(d.Run)
+					cmd.Alternate = &Alt{Run: dr, Label: commandLabel(d, dir)}
+					break
+				}
+			}
+			out = append(out, cmd)
 			seen[kind] = true
 		}
 	}
-	pick(pdir)
+
+	pick(pdir, false)
 	if pdir != "." {
-		pick(".")
+		// Walk up: enclosing projects (e.g. a Cargo/pnpm workspace root), then the repo root.
+		var anc []string
+		for _, p := range repo.Projects {
+			if p.Dir != "." && p.Dir != pdir && within(pdir, p.Dir) {
+				anc = append(anc, p.Dir)
+			}
+		}
+		sort.Slice(anc, func(i, j int) bool { return len(anc[i]) > len(anc[j]) })
+		for _, d := range anc {
+			pick(d, true)
+		}
+		pick(".", false)
+	} else {
+		pick(".", false)
+		if d, ok := soleFallbackDir(repo); ok {
+			pick(d, false)
+		}
 	}
 	if out == nil {
-		return []Command{}
+		out = []Command{}
 	}
-	return out
+	return out, other
+}
+
+func hasPom(repo *model.Repo, dir string, cmds []model.Command) bool {
+	for _, p := range repo.Projects {
+		if p.Dir == dir && path.Base(p.Manifest) == "pom.xml" {
+			return true
+		}
+	}
+	for _, c := range cmds {
+		if path.Base(c.Source.Path) == "pom.xml" {
+			return true
+		}
+	}
+	return false
+}
+
+// soleFallbackDir returns the single primary non-root project directory that
+// may supply commands missing at the repo root.
+func soleFallbackDir(repo *model.Repo) (string, bool) {
+	members := map[string]bool{}
+	for _, p := range repo.Projects {
+		if p.Workspace != "" {
+			members[p.Dir] = true
+		}
+	}
+	var cands []string
+	for d := range primaryDirs(repo) {
+		if d != "." && !members[d] {
+			cands = append(cands, d)
+		}
+	}
+	if len(cands) == 1 {
+		return cands[0], true
+	}
+	return "", false
 }
 
 // restrictsDeps reports whether an install command skips some dependencies.
@@ -553,17 +757,27 @@ func restrictsDeps(run string) bool {
 	return false
 }
 
-func commandLabel(c model.Command) string {
+func commandLabel(c model.Command, dir string) string {
 	var parts []string
 	ev := evidenceScore(c.Evidence)
 	if ev == 3 {
 		return toolWord(c.Run) + " convention, unverified"
 	}
 	if ev <= 1 {
-		if s := path.Base(c.Source.Path); c.Source.Path != "" && !strings.HasPrefix(c.Source.Path, ".github/") {
-			parts = append(parts, ident(s))
-		} else if c.Source.Path == "" {
+		p := c.Source.Path
+		switch {
+		case p == "":
 			parts = append(parts, "declared")
+		case isCIPath(p):
+		default:
+			if dir != "." && strings.HasPrefix(p, dir+"/") {
+				p = p[len(dir)+1:]
+			}
+			if validPath(p) {
+				parts = append(parts, p)
+			} else {
+				parts = append(parts, "declared")
+			}
 		}
 	}
 	if ev == 0 || ev == 2 {
@@ -646,6 +860,7 @@ func rootEcosystems(repo *model.Repo, pdir string) []ProjectRef {
 func buildWorkspace(repo *model.Repo, pdir string) *Workspace {
 	var members []model.Project
 	isWS := false
+	seenDirs := map[string]bool{}
 	for _, p := range repo.Projects {
 		if p.Dir == pdir {
 			if p.IsWorkspaceRoot {
@@ -658,7 +873,13 @@ func buildWorkspace(repo *model.Repo, pdir string) *Workspace {
 		}
 		if p.Workspace != "" {
 			isWS = true
+		} else if inSampleDir(p.Dir) {
+			continue
 		}
+		if seenDirs[p.Dir] {
+			continue
+		}
+		seenDirs[p.Dir] = true
 		members = append(members, p)
 	}
 	if len(members) == 0 {
@@ -696,6 +917,15 @@ func buildWorkspace(repo *model.Repo, pdir string) *Workspace {
 		}
 	}
 	w.Count = len(members)
+	perEco := map[string]int{}
+	for _, p := range repo.Projects {
+		if p.Dir != pdir && within(p.Dir, pdir) {
+			perEco[p.Ecosystem]++
+			if perEco[p.Ecosystem] >= detectorMemberCap {
+				w.Capped = true
+			}
+		}
+	}
 	for i, p := range members {
 		if i >= MaxListed {
 			break
@@ -704,6 +934,21 @@ func buildWorkspace(repo *model.Repo, pdir string) *Workspace {
 	}
 	w.Omitted = w.Count - len(w.Members)
 	return w
+}
+
+// detectorMemberCap is the per-ecosystem member limit the detectors stop at;
+// reaching it means the real count is unknown ("300+").
+const detectorMemberCap = 300
+
+var sampleSegments = set("example examples _examples testdata fixtures fixture samples sample")
+
+func inSampleDir(dir string) bool {
+	for _, seg := range strings.Split(strings.ToLower(dir), "/") {
+		if sampleSegments[seg] {
+			return true
+		}
+	}
+	return false
 }
 
 // ---- do-not-edit -----------------------------------------------------------

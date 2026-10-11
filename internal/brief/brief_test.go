@@ -55,7 +55,7 @@ func TestRootMarkdown(t *testing.T) {
 		"- test: `pnpm test` (package.json, CI)",
 		"- single test: `pnpm vitest run <file> -t \"<name>\"` (vitest convention, unverified)",
 		"- lint: `pnpm lint` (package.json)",
-		"Workspace (pnpm, 2 packages): `packages/core` (@acme/core), `packages/ui` (@acme/ui) — `agentbrief brief <dir>`",
+		"Workspace (pnpm, 2 packages): `packages/core` (`@acme/core`), `packages/ui` (`@acme/ui`) — per-package commands: `agentbrief brief <dir>` (if installed), otherwise see each package's manifest.",
 		"Do not edit by hand: `src/gen/**` (generated), lockfiles `pnpm-lock.yaml`.",
 		"Other agent instructions: `CLAUDE.md`.",
 		"Notes:\n- Uses Git LFS",
@@ -88,7 +88,7 @@ func TestScopedProject(t *testing.T) {
 	if !strings.Contains(md, "Commands (run from `packages/core`):\n- test: `pnpm test` (package.json)") {
 		t.Errorf("project commands first:\n%s", md)
 	}
-	if !strings.Contains(md, "Repo-root commands (run from the repo root):") || strings.Count(md, "- test:") != 1 {
+	if !strings.Contains(md, "More commands (run from the repo root):") || strings.Count(md, "- test:") != 1 {
 		t.Errorf("root commands should fill remaining kinds:\n%s", md)
 	}
 	ui := Build(pnpmRepo(), "packages/ui")

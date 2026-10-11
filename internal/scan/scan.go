@@ -14,7 +14,9 @@ package scan
 import (
 	"errors"
 	"io/fs"
+	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -92,6 +94,26 @@ func (r *Repo) ReadString(rel string) string {
 		return ""
 	}
 	return string(b)
+}
+
+// Size returns the byte size of a scanned file (0 if unknown). Read truncates
+// at MaxReadBytes, so callers use Size to tell a truncated read from a whole one.
+func (r *Repo) Size(rel string) int64 {
+	rel = clean(rel)
+	if !r.fileSet[rel] {
+		return 0
+	}
+	if r.mem != nil {
+		return int64(len(r.mem[rel]))
+	}
+	if r.root == "" {
+		return 0
+	}
+	st, err := os.Stat(filepath.Join(r.root, filepath.FromSlash(rel)))
+	if err != nil {
+		return 0
+	}
+	return st.Size()
 }
 
 // Head returns at most n bytes from the start of a file. On disk it reads only

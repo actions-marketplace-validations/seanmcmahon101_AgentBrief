@@ -1,6 +1,7 @@
 package detect
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/seanmcmahon101/AgentBrief/internal/model"
@@ -245,5 +246,77 @@ func TestFinalizeSkipsForeignDirsAndInstallers(t *testing.T) {
 	f := finalizeWith([]model.Command{conv("install", "uv sync")}, step("pip install -e ."))
 	if len(f.Commands) != 1 {
 		t.Errorf("pip install added next to uv: %+v", f.Commands)
+	}
+}
+
+func TestFinalizeJVMAndSubsets(t *testing.T) {
+	mvn := conv("test", "./mvnw verify")
+	for _, ci := range []string{"mvn clean verify", "mvn -B verify", "./mvnw verify -Dfoo"} {
+		if f := finalizeWith([]model.Command{mvn}, step(ci)); !hasCI(f.Commands[0]) {
+			t.Errorf("%q should corroborate ./mvnw verify", ci)
+		}
+	}
+	// A subset run is never the project's test command.
+	f := finalizeWith([]model.Command{mvn}, step("mvn clean test --projects gson --activate-profiles gson-subset"))
+	if hasCI(f.Commands[0]) || len(f.Commands) != 1 {
+		t.Errorf("subset run leaked: %+v", f.Commands)
+	}
+	gr := conv("test", "./gradlew test")
+	if f := finalizeWith([]model.Command{gr}, step("gradle test --tests com.x.Foo")); !hasCI(f.Commands[0]) || len(f.Commands) != 1 {
+		t.Errorf("same remaining invocation should corroborate: %+v", f.Commands)
+	}
+	f = finalizeWith([]model.Command{conv("test", "cargo test --workspace")},
+		step("cargo test --verbose --workspace"), step("cargo test --verbose --workspace --features pcre2"), step("cargo test -p grep-regex"))
+	if len(f.Commands) != 1 || !hasCI(f.Commands[0]) {
+		t.Errorf("cargo variants: %+v", f.Commands)
+	}
+	// With no base command a plain CI test is still recorded, subsets are not duplicated.
+	f = finalizeWith(nil, step("mvn -pl core test -Dtest=Foo"))
+	if len(f.Commands) != 1 {
+		t.Errorf("%+v", f.Commands)
+	}
+	f = finalizeWith(nil, step("pytest -k foo tests/"), step("pytest -x tests/"))
+	if len(f.Commands) == 0 {
+		t.Error("pytest not recorded")
+	}
+}
+
+func TestFinalizeToxUv(t *testing.T) {
+	c := decl("test", "uv run tox")
+	for _, ci := range []string{"uv run --locked --no-default-groups --group dev tox run", "tox", "uv run tox run -e typing"} {
+		if f := finalizeWith([]model.Command{c}, step(ci)); !hasCI(f.Commands[0]) {
+			t.Errorf("%q", ci)
+		}
+	}
+}
+
+func TestOversizedManifestNote(t *testing.T) {
+	big := "{\"name\":\"" + strings.Repeat("a", scan.MaxReadBytes) + "\"}"
+	f := &Facts{Repo: &model.Repo{}}
+	noteOversized(scan.FromMap(map[string]string{"package.json": big, "web/package.json": "{}", "data.json": big}), f)
+	if len(f.Notes) != 1 || f.Notes[0].Text != "`package.json` is larger than 1 MiB and was not parsed" {
+		t.Errorf("notes = %+v", f.Notes)
+	}
+}
+
+func TestPruneExampleProjects(t *testing.T) {
+	f := &Facts{Repo: &model.Repo{}}
+	f.Projects = []model.Project{
+		{Dir: ".", Ecosystem: "go"}, {Dir: "_examples/rest", Ecosystem: "go"},
+		{Dir: "examples/a", Ecosystem: "node", Workspace: "."}, {Dir: "pkg/examples/x", Ecosystem: "go"},
+	}
+	f.Commands = []model.Command{{Kind: "test", Run: "go test", Dir: "_examples/rest"}, {Kind: "test", Run: "go test", Dir: "."}}
+	f.PackageManagers = []model.PackageManager{{Name: "go", Dir: "_examples/rest"}}
+	pruneExampleProjects(nil, f)
+	if len(f.Projects) != 2 || len(f.Commands) != 1 || len(f.PackageManagers) != 0 {
+		t.Errorf("%+v", f.Repo)
+	}
+}
+
+func TestFinalizeCargoSubsetsNotAdded(t *testing.T) {
+	f := finalizeWith([]model.Command{conv("test", "cargo test --workspace")},
+		step("cargo test --bin rg flags::defs::tests -- --nocapture"), step("cargo test --manifest-path crates/cli/Cargo.toml --lib print_hostname"))
+	if len(f.Commands) != 1 {
+		t.Errorf("%+v", f.Commands)
 	}
 }

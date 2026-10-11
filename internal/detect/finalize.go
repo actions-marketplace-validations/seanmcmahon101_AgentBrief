@@ -30,8 +30,9 @@ func finalizeCI(r *scan.Repo, f *Facts) {
 	existing := len(f.Commands) // detector-made commands; CI-only additions come after
 	var additions []pendingCI
 	for _, c := range cands {
-		kind := ciKind(c.canon)
-		restricted := kind == model.KindInstall && ciRestrictsDeps(c.canon)
+		canon, subset := ciStripSubset(c.canon)
+		kind := ciKind(canon)
+		restricted := kind == model.KindInstall && ciRestrictsDeps(canon)
 		matched := false
 		for i := 0; i < existing; i++ {
 			cmd := &f.Commands[i]
@@ -39,16 +40,16 @@ func finalizeCI(r *scan.Repo, f *Facts) {
 				continue
 			}
 			ct := finCanon(shellFields(cmd.Run))
-			if !hasTokenPrefix(c.canon, ct) {
+			if !hasTokenPrefix(canon, ct) {
 				continue
 			}
-			if restricted && len(ct) != len(c.canon) {
+			if restricted && len(ct) != len(canon) {
 				// `uv sync --no-dev ...` is a narrower install than the
 				// project's own; do not let it vouch for the base command.
 				matched = true
 				continue
 			}
-			if kind == model.KindInstall && ciStrictInstall(c.canon) && len(ct) != len(c.canon) {
+			if kind == model.KindInstall && ciStrictInstall(canon) && len(ct) != len(canon) {
 				continue // kept as its own, more specific, fact below
 			}
 			// CI runs the command, possibly with extra flags: corroborate
@@ -62,10 +63,13 @@ func finalizeCI(r *scan.Repo, f *Facts) {
 		if kind != "" && !ciUnsafe(c.display) {
 			// A cd into a directory that is not in the repo (a second
 			// checkout, say) says nothing about this repository.
+			if subset && hasKindIn(f, kind, c.dir, len(f.Commands)) {
+				continue // a subset run must not become the project's command
+			}
 			if c.dir != "." && !r.IsDir(c.dir) {
 				continue
 			}
-			if kind == model.KindInstall && hasOtherInstaller(f, c.dir, existing, c.canon[0]) {
+			if kind == model.KindInstall && hasOtherInstaller(f, c.dir, existing, canon[0]) {
 				continue
 			}
 			if restricted && hasKindIn(f, model.KindInstall, c.dir, existing) {
@@ -325,7 +329,9 @@ func shellFields(s string) []string {
 
 // ---- canonical form ----
 
-var uvSwitches = setOf("--locked", "--frozen", "--no-sync", "--isolated", "--no-dev", "--all-extras", "--all-groups")
+var uvValueFlags = setOf("--group", "--extra", "--with")
+
+var uvSwitches = setOf("--locked", "--frozen", "--no-sync", "--isolated", "--no-dev", "--all-extras", "--all-groups", "--no-default-groups")
 
 var pyRunners = setOf("uv", "poetry", "pdm", "pipenv", "hatch")
 
@@ -338,7 +344,10 @@ func finCanon(toks []string) []string {
 		// Only strip the wrapper when its flags are plain switches; flags
 		// like --directory change where the command runs.
 		rest := toks[2:]
-		for len(rest) > 0 && uvSwitches[rest[0]] {
+		for len(rest) > 0 && (uvSwitches[rest[0]] || (uvValueFlags[rest[0]] && len(rest) > 1)) {
+			if uvValueFlags[rest[0]] {
+				rest = rest[1:]
+			}
 			rest = rest[1:]
 		}
 		if len(rest) > 0 && !strings.HasPrefix(rest[0], "-") {
@@ -358,6 +367,16 @@ func finCanon(toks []string) []string {
 		// scripts/test, ./scripts/test and scripts/test.sh are one script.
 		toks[0] = strings.TrimSuffix(strings.TrimSuffix(strings.TrimPrefix(toks[0], "./"), ".sh"), ".bash")
 	}
+	if len(toks) >= 2 && toks[0] == "tox" && toks[1] == "run" {
+		toks = append([]string{"tox"}, toks[2:]...)
+	}
+	switch toks[0] {
+	case "./mvnw", "mvnw", "mvnw.cmd":
+		toks[0] = "mvn"
+	case "./gradlew", "gradlew", "gradlew.bat":
+		toks[0] = "gradle"
+	}
+	toks = dropNoise(toks)
 	switch toks[0] {
 	case "npm":
 		if len(toks) >= 3 && (toks[1] == "run" || toks[1] == "run-script") {
@@ -379,6 +398,50 @@ func finCanon(toks []string) []string {
 	return toks
 }
 
+// noiseFlags change verbosity or interactivity, not what a command does.
+var noiseFlags = setOf("--verbose", "-v", "-B", "--batch-mode", "-q", "--quiet", "--no-daemon", "--stacktrace",
+	"-ntp", "--no-transfer-progress", "--locked", "--color=always", "--color=never", "--console=plain")
+
+// dropNoise removes noise flags, and the leading `clean` goal of mvn/gradle.
+func dropNoise(toks []string) []string {
+	out := toks[:1:1]
+	for i, t := range toks[1:] {
+		if noiseFlags[t] || (i == 0 && t == "clean" && (toks[0] == "mvn" || toks[0] == "gradle")) {
+			continue
+		}
+		out = append(out, t)
+	}
+	return out
+}
+
+// subsetFlags select part of a build or test run. They take a value unless
+// written as flag=value or glued (-Dtest=Foo).
+var subsetFlags = setOf("--projects", "-pl", "-P", "--activate-profiles", "--package", "-p", "--filter", "-F",
+	"-k", "--tests", "--test", "-run", "--features", "--also-make", "-am", "--bin", "--manifest-path", "--lib", "--doc", "--example", "--bench")
+
+var subsetBoolean = setOf("--also-make", "-am", "--lib", "--doc")
+
+// ciStripSubset removes subset-selecting flags (and their values) and reports
+// whether any were present. A subset run is not the project's general command.
+func ciStripSubset(canon []string) (rest []string, subset bool) {
+	for i := 0; i < len(canon); i++ {
+		t := canon[i]
+		name, _, hasEq := strings.Cut(t, "=")
+		switch {
+		case strings.HasPrefix(t, "-Dtest") || strings.HasPrefix(t, "-Dit.test"):
+			subset = true
+		case subsetFlags[name]:
+			subset = true
+			if !hasEq && !subsetBoolean[name] && i+1 < len(canon) {
+				i++
+			}
+		default:
+			rest = append(rest, t)
+		}
+	}
+	return rest, subset
+}
+
 // ---- recognising well-known CI commands ----
 
 var ciRules = []struct {
@@ -387,8 +450,8 @@ var ciRules = []struct {
 }{
 	{model.KindInstall, regexp.MustCompile(`^(?:npm ci|pnpm install|yarn install|bun install|uv sync|poetry install|bundle install|go mod download)(?: |$)`)},
 	{model.KindTest, regexp.MustCompile(`^(?:go test|cargo test|cargo nextest run|pytest|npm test|pnpm test|yarn test|bun test|make test|just test|dotnet test|bundle exec rspec|mix test)(?: |$)`)},
-	{model.KindTest, regexp.MustCompile(`^\./gradlew (?:\S+ )*?(?:test|check)(?: |$)`)},
-	{model.KindTest, regexp.MustCompile(`^mvnw? (?:\S+ )*?(?:test|verify)(?: |$)`)},
+	{model.KindTest, regexp.MustCompile(`^gradle (?:\S+ )*?(?:test|check)(?: |$)`)},
+	{model.KindTest, regexp.MustCompile(`^mvn (?:\S+ )*?(?:test|verify)(?: |$)`)},
 	{model.KindLint, regexp.MustCompile(`^(?:golangci-lint run|cargo clippy|ruff check|(?:npx |pnpm exec |yarn |bunx )?eslint)(?: |$)`)},
 	{model.KindFormat, regexp.MustCompile(`^(?:cargo fmt .*--check|gofmt -l|ruff format .*--check|(?:npx |pnpm exec |yarn |bunx )?prettier .*(?:--check|-c)\b)`)},
 	{model.KindTypecheck, regexp.MustCompile(`^(?:mypy|pyright)(?: |$)`)},
@@ -416,4 +479,86 @@ func ciKind(canon []string) string {
 		}
 	}
 	return ""
+}
+
+// ---- oversized manifests ----
+
+func init() { registerLate("oversized-manifests", noteOversized) }
+
+var manifestNames = setOf("package.json", "pyproject.toml", "Cargo.toml", "pom.xml", "go.mod", "build.gradle",
+	"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "composer.json", "Gemfile", "mix.exs", "Package.swift",
+	"Makefile", "justfile", "Taskfile.yml", "Taskfile.yaml", "CMakeLists.txt", "deno.json", "tox.ini", "noxfile.py",
+	".gitlab-ci.yml", "docker-compose.yml", "compose.yaml", "Dockerfile")
+
+const maxOversizedNotes = 5
+
+// noteOversized tells the reader when a file we would have parsed was too big
+// to read, instead of silently producing nothing for it.
+func noteOversized(r *scan.Repo, f *Facts) {
+	n := 0
+	for _, p := range r.Files() {
+		base := path.Base(p)
+		isCI := strings.HasPrefix(p, ".github/workflows/") && (strings.HasSuffix(p, ".yml") || strings.HasSuffix(p, ".yaml"))
+		if !(manifestNames[base] || isCI || strings.HasSuffix(base, ".csproj")) || isVendoredPath(p) || hasFixtureDir(p) {
+			continue
+		}
+		if r.Size(p) > scan.MaxReadBytes {
+			f.AddNote(model.Note{Text: "`" + p + "` is larger than 1 MiB and was not parsed", Source: model.Source{Path: p}})
+			if n++; n >= maxOversizedNotes {
+				return
+			}
+		}
+	}
+}
+
+// ---- example/fixture projects ----
+
+func init() { registerLate("a-prune-examples", pruneExampleProjects) }
+
+var exampleDirs = setOf("example", "examples", "_examples", "testdata", "fixtures", "test-fixtures", "samples", "sample")
+
+func inExampleDir(dir string) bool {
+	for _, seg := range strings.Split(dir, "/") {
+		if exampleDirs[strings.ToLower(seg)] {
+			return true
+		}
+	}
+	return false
+}
+
+// pruneExampleProjects drops stand-alone projects (and their package managers
+// and commands) that live in example or fixture directories: they are
+// samples, not parts of the project. Workspace members are kept.
+func pruneExampleProjects(_ *scan.Repo, f *Facts) {
+	drop := map[string]bool{}
+	var keep []model.Project
+	for _, p := range f.Projects {
+		if p.Dir != "." && p.Workspace == "" && !p.IsWorkspaceRoot && inExampleDir(p.Dir) {
+			drop[p.Dir] = true
+			continue
+		}
+		keep = append(keep, p)
+	}
+	if len(drop) == 0 {
+		return
+	}
+	f.Projects = keep
+	// A directory still owned by a kept project (another ecosystem) stays.
+	for _, p := range keep {
+		delete(drop, p.Dir)
+	}
+	pms := f.PackageManagers[:0]
+	for _, pm := range f.PackageManagers {
+		if !drop[pm.Dir] {
+			pms = append(pms, pm)
+		}
+	}
+	f.PackageManagers = pms
+	cmds := f.Commands[:0]
+	for _, c := range f.Commands {
+		if !drop[c.Dir] {
+			cmds = append(cmds, c)
+		}
+	}
+	f.Commands = cmds
 }

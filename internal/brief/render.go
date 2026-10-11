@@ -100,45 +100,79 @@ func (b Brief) body(maxNotes int) string {
 	line("")
 	line("%s", generatedLine)
 	line("")
-	empty := len(b.Toolchain) == 0 && len(b.PackageManagers) == 0 && len(b.Commands) == 0 &&
-		b.Workspace == nil && len(b.DoNotEdit) == 0
-	if empty {
-		line("- No toolchain, command or package-manager facts could be derived from this repository.")
-	}
-	if b.Project != nil {
-		s := "- Scope: " + codeSpan(b.Project.Dir)
-		if b.Project.Name != "" && b.Project.Name != b.Project.Dir {
-			s += " (" + b.Project.Name + ")"
-		}
-		line("%s", s)
-	}
 
-	// Toolchain and package managers.
+	// ---- toolchain and package managers (validated)
 	var parts []string
 	for _, t := range b.Toolchain {
+		if !validName(t.Name) || !validVersion(t.Version) {
+			continue
+		}
 		p := displayTool(t.Name) + " " + t.Version
-		if len(t.Sources) > 0 {
-			var src []string
-			for _, s := range t.Sources {
+		var src []string
+		for _, s := range t.Sources {
+			if validPath(s) {
 				src = append(src, codeSpan(s))
 			}
+		}
+		if len(src) > 0 {
 			p += " (" + strings.Join(src, ", ") + ")"
 		}
 		parts = append(parts, p)
 	}
 	var avoid []string
 	for _, pm := range b.PackageManagers {
+		if !validName(pm.Name) {
+			continue
+		}
 		p := pm.Name
-		if pm.Version != "" {
+		if pm.Version != "" && validVersion(pm.Version) {
 			p += " " + pm.Version
 		}
-		if pm.Source != "" {
+		if pm.Source != "" && validPath(pm.Source) {
 			p += " (" + codeSpan(pm.Source) + ")"
 		}
 		parts = append(parts, p)
 		if len(pm.Avoid) > 0 {
 			avoid = append(avoid, fmt.Sprintf("Use %s, not %s.", pm.Name, sentenceList(pm.Avoid, "or")))
 		}
+	}
+
+	var cmdLines []string
+	cmds := b.renderCommands()
+	var ws []string
+	if b.Workspace != nil {
+		ws = b.renderWorkspace()
+	}
+	var dne []string
+	for _, d := range b.DoNotEdit {
+		switch {
+		case len(d.Patterns) > 0:
+			var l []string
+			for _, p := range d.Patterns {
+				if validPattern(p) {
+					l = append(l, codeSpan(p))
+				}
+			}
+			if len(l) > 0 {
+				dne = append(dne, "lockfiles "+strings.Join(l, ", "))
+			}
+		case validPattern(d.Pattern) && d.Reason != "" && validReason(d.Reason):
+			dne = append(dne, codeSpan(d.Pattern)+" ("+d.Reason+")")
+		case validPattern(d.Pattern) && d.Reason == "":
+			dne = append(dne, codeSpan(d.Pattern))
+		}
+	}
+	_ = cmdLines
+
+	if len(parts) == 0 && len(cmds) == 0 && len(ws) == 0 && len(dne) == 0 {
+		line("- No toolchain, command or package-manager facts could be derived from this repository.")
+	}
+	if b.Project != nil && validPath(b.Project.Dir) {
+		s := "- Scope: " + codeSpan(b.Project.Dir)
+		if b.Project.Name != "" && b.Project.Name != b.Project.Dir && validPkg(b.Project.Name) {
+			s += " (" + codeSpan(b.Project.Name) + ")"
+		}
+		line("%s", s)
 	}
 	if len(parts) > 0 {
 		s := "- Toolchain: " + strings.Join(parts, ", ") + "."
@@ -150,104 +184,53 @@ func (b Brief) body(maxNotes int) string {
 	if len(b.Ecosystems) > 1 {
 		var e []string
 		for _, p := range b.Ecosystems {
+			if !validName(p.Ecosystem) {
+				continue
+			}
 			s := p.Ecosystem
-			if p.Manifest != "" {
+			if p.Manifest != "" && validPath(p.Manifest) {
 				s += " (" + codeSpan(p.Manifest) + ")"
 			}
 			e = append(e, s)
 		}
-		line("- Ecosystems at %s: %s.", dirPhrase(b.Scope), strings.Join(e, ", "))
-	}
-
-	// Commands, grouped by dir (project dir first).
-	if len(b.Commands) > 0 {
-		var order []string
-		groups := map[string][]Command{}
-		for _, c := range b.Commands {
-			if _, ok := groups[c.Dir]; !ok {
-				order = append(order, c.Dir)
-			}
-			groups[c.Dir] = append(groups[c.Dir], c)
+		if len(e) > 1 && validPath(b.Scope) {
+			line("- Ecosystems at %s: %s.", dirPhrase(b.Scope), strings.Join(e, ", "))
 		}
+	}
+	if len(cmds) > 0 {
 		line("")
-		for i, d := range order {
-			head := "Commands (run from " + dirPhrase(d) + "):"
-			if i > 0 {
-				head = "Repo-root commands (run from the repo root):"
-			}
-			line("%s", head)
-			for _, c := range groups[d] {
-				s := fmt.Sprintf("- %s: %s (%s)", KindLabel(c.Kind), codeSpan(c.Run), c.Label)
-				if c.Note != "" {
-					s += " — " + c.Note
-				}
-				line("%s", s)
-			}
+		for _, l := range cmds {
+			line("%s", l)
 		}
 	}
-
-	// Workspace / projects.
-	if ws := b.Workspace; ws != nil {
+	if b.OtherBuildTool != nil && validName(strings.ToLower(b.OtherBuildTool.Tool)) {
 		line("")
-		var members []string
-		for _, m := range ws.Members {
-			s := codeSpan(m.Dir)
-			if ws.Kind == "workspace" {
-				if m.Name != "" && m.Name != m.Dir && !strings.HasSuffix(m.Dir, "/"+m.Name) {
-					s += " (" + m.Name + ")"
-				}
-			} else {
-				e := m.Ecosystem
-				if m.Name != "" && m.Name != m.Dir && !strings.HasSuffix(m.Dir, "/"+m.Name) {
-					e += ", " + m.Name
-				}
-				s += " (" + e + ")"
-			}
-			members = append(members, s)
-		}
-		if ws.Omitted > 0 {
-			members = append(members, "…")
-		}
-		label := "Projects"
-		unit := "projects"
-		if ws.Kind == "workspace" {
-			label, unit = "Workspace", "packages"
-		}
-		head := fmt.Sprintf("%d %s", ws.Count, unit)
-		if ws.Manager != "" {
-			head = ws.Manager + ", " + head
-		}
-		line("%s (%s): %s — `agentbrief brief <dir>` shows a project's own commands.", label, head, strings.Join(members, ", "))
+		line("%s build also present: %s.", b.OtherBuildTool.Tool, codeSpan(b.OtherBuildTool.Run))
 	}
-
-	// Do not edit.
-	if len(b.DoNotEdit) > 0 {
+	if len(ws) > 0 {
 		line("")
-		var items []string
-		for _, d := range b.DoNotEdit {
-			switch {
-			case len(d.Patterns) > 0:
-				var l []string
-				for _, p := range d.Patterns {
-					l = append(l, codeSpan(p))
-				}
-				items = append(items, "lockfiles "+strings.Join(l, ", "))
-			case d.Reason != "":
-				items = append(items, codeSpan(d.Pattern)+" ("+d.Reason+")")
-			default:
-				items = append(items, codeSpan(d.Pattern))
-			}
+		for _, l := range ws {
+			line("%s", l)
 		}
-		line("Do not edit by hand: %s.", strings.Join(items, ", "))
+	}
+	if len(dne) > 0 {
+		line("")
+		line("Do not edit by hand: %s.", strings.Join(dne, ", "))
 	}
 
-	// Other instruction files.
-	if len(b.InstructionFiles) > 0 {
+	// ---- other instruction files
+	var files []string
+	for _, f := range b.InstructionFiles {
+		if validPath(strings.TrimSuffix(f, "/")) {
+			files = append(files, f)
+		}
+	}
+	if len(files) > 0 {
 		line("")
 		var l []string
-		for i, f := range b.InstructionFiles {
+		for i, f := range files {
 			if i >= MaxInstructions {
-				l = append(l, fmt.Sprintf("… (+%d more)", len(b.InstructionFiles)-MaxInstructions))
+				l = append(l, fmt.Sprintf("… (+%d more)", len(files)-MaxInstructions))
 				break
 			}
 			l = append(l, codeSpan(f))
@@ -255,7 +238,7 @@ func (b Brief) body(maxNotes int) string {
 		line("Other agent instructions: %s.", strings.Join(l, ", "))
 	}
 
-	// Notes.
+	// ---- notes
 	if maxNotes > 0 && len(b.Notes) > 0 {
 		line("")
 		line("Notes:")
@@ -267,4 +250,86 @@ func (b Brief) body(maxNotes int) string {
 		}
 	}
 	return w.String()
+}
+
+func (b Brief) renderCommands() []string {
+	var order []string
+	groups := map[string][]Command{}
+	for _, c := range b.Commands {
+		if !validPath(c.Dir) && c.Dir != "." {
+			continue
+		}
+		if _, ok := groups[c.Dir]; !ok {
+			order = append(order, c.Dir)
+		}
+		groups[c.Dir] = append(groups[c.Dir], c)
+	}
+	var out []string
+	for i, d := range order {
+		head := "Commands (run from " + dirPhrase(d) + "):"
+		if i > 0 {
+			head = "More commands (run from " + dirPhrase(d) + "):"
+		}
+		out = append(out, head)
+		for _, c := range groups[d] {
+			s := fmt.Sprintf("- %s: %s (%s)", KindLabel(c.Kind), codeSpan(c.Run), c.Label)
+			if c.Adapted {
+				s = fmt.Sprintf("- %s: %s (%s, adapted to this crate)", KindLabel(c.Kind), codeSpan(c.Run), c.Label)
+			}
+			if c.Alternate != nil {
+				s += fmt.Sprintf("; also %s (%s)", codeSpan(c.Alternate.Run), c.Alternate.Label)
+			}
+			if c.Note != "" {
+				s += " — " + c.Note
+			}
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+func (b Brief) renderWorkspace() []string {
+	ws := b.Workspace
+	var members []string
+	for _, m := range ws.Members {
+		if !validPath(m.Dir) {
+			continue
+		}
+		s := codeSpan(m.Dir)
+		named := m.Name != "" && m.Name != m.Dir && !strings.HasSuffix(m.Dir, "/"+m.Name) && validPkg(m.Name)
+		if ws.Kind == "workspace" {
+			if named {
+				s += " (" + codeSpan(m.Name) + ")"
+			}
+		} else if validName(m.Ecosystem) {
+			e := m.Ecosystem
+			if named {
+				e += ", " + codeSpan(m.Name)
+			}
+			s += " (" + e + ")"
+		}
+		members = append(members, s)
+	}
+	if len(members) == 0 {
+		return nil
+	}
+	if ws.Omitted > 0 || len(members) < len(ws.Members) {
+		members = append(members, "…")
+	}
+	label, unit := "Projects", "project"
+	if ws.Kind == "workspace" {
+		label, unit = "Workspace", "package"
+	}
+	count := fmt.Sprintf("%d", ws.Count)
+	if ws.Capped {
+		count += "+"
+	}
+	if ws.Count != 1 || ws.Capped {
+		unit += "s"
+	}
+	head := count + " " + unit
+	if ws.Manager != "" && validName(ws.Manager) {
+		head = ws.Manager + ", " + head
+	}
+	return []string{fmt.Sprintf("%s (%s): %s — per-package commands: `agentbrief brief <dir>` (if installed), otherwise see each package's manifest.", label, head, strings.Join(members, ", "))}
 }

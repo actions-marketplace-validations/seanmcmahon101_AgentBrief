@@ -172,5 +172,4 @@ func detectBazel(r *scan.Repo, f *Facts) {
 	src := at(marker, 1)
 	f.AddCommand(model.Command{Kind: model.KindBuild, Run: "bazel build //...", Dir: ".", Evidence: conv, Source: src})
 	f.AddCommand(model.Command{Kind: model.KindTest, Run: "bazel test //...", Dir: ".", Evidence: conv, Source: src})
-	f.AddCommand(model.Command{Kind: model.KindTestOne, Run: "bazel test //<package>:<target>", Dir: ".", Evidence: conv, Source: src, Note: "replace <package>:<target>"})
 }

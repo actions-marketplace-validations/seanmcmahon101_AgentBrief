@@ -189,3 +189,12 @@ func TestPythonSourceLines(t *testing.T) {
 		}
 	}
 }
+
+func TestPythonToxCommand(t *testing.T) {
+	f := runOnly(map[string]string{"pyproject.toml": "[project]\nname='a'\n[tool.tox]\nenv_list=['lint']\n", "uv.lock": ""}, detectPython)
+	wantCmds(t, f, ".|test|uv run tox")
+	f = runOnly(map[string]string{"tox.ini": "[tox]\nenvlist=py\n", "setup.py": "x"}, detectPython)
+	wantCmds(t, f, ".|test|tox")
+	f = runOnly(map[string]string{"pyproject.toml": "[project]\nname='a'\n"}, detectPython)
+	noCmds(t, f, ".|test|tox")
+}

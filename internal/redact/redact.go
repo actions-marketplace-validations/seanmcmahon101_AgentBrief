@@ -35,6 +35,22 @@ var urlCreds = regexp.MustCompile(`([a-zA-Z][a-zA-Z0-9+.-]*://)[^\s/@:]+:[^\s/@]
 // group 3 the value itself.
 var assignment = regexp.MustCompile(`(?i)((?:[a-z0-9_.-]*(?:api[_-]?key|secret|token|password|passwd|private[_-]?key))["']?\s*[:=]\s*)(["']?)([^\s"',;]+)`)
 
+// Credential-bearing command-line forms. Each regex keeps the flag/header name
+// in group 1 and replaces the rest.
+var cliCreds = []*regexp.Regexp{
+	// curl -u user:pass, --user user:pass, --user=user:pass
+	regexp.MustCompile(`(?i)((?:^|\s)(?:-u|--user|--proxy-user)(?:\s+|=)["']?)[^\s"']*:[^\s"']+`),
+	// --password x, --password=x, --passwd, --pass, --token, --api-key, --secret, --access-key
+	regexp.MustCompile(`(?i)((?:^|\s)--(?:password|passwd|pass|token|api-?key|secret|client-secret|access-?key|auth-?token)(?:\s+|=)["']?)[^\s"'$<][^\s"']*`),
+	// Authorization: Bearer x / Basic x / Token x
+	regexp.MustCompile(`(?i)(\bauthorization\s*[:=]\s*["']?(?:bearer|basic|token|digest)\s+)[^\s"']+`),
+	// -H "X-Api-Key: value", X-Auth-Token, X-Secret...
+	regexp.MustCompile(`(?i)(\bx-[a-z0-9-]*(?:api-?key|token|secret|auth|password)[a-z0-9-]*\s*:\s*)[^\s"']+`),
+	// mysql-style -pPASSWORD glued to the flag (a space-separated -p is a
+	// different flag in cargo/pnpm/pip and is never touched).
+	regexp.MustCompile(`(\bmysql(?:dump|admin)?\b[^|&;]*?\s-p)[^\s"'-][^\s"']*`),
+}
+
 // String replaces secrets in s with [REDACTED].
 func String(s string) string {
 	if s == "" {
@@ -42,6 +58,9 @@ func String(s string) string {
 	}
 	for _, re := range tokenPatterns {
 		s = re.ReplaceAllString(s, Mask)
+	}
+	for _, re := range cliCreds {
+		s = re.ReplaceAllStringFunc(s, maskTail(re))
 	}
 	s = urlCreds.ReplaceAllString(s, "${1}"+Mask+"@")
 	return assignment.ReplaceAllStringFunc(s, redactAssignment)
@@ -75,4 +94,31 @@ func isLiteralSecret(v string) bool {
 		}
 	}
 	return true
+}
+
+// maskTail keeps group 1 of re's match and masks the remainder, unless the
+// remainder is a placeholder or reference.
+func maskTail(re *regexp.Regexp) func(string) string {
+	return func(m string) string {
+		sub := re.FindStringSubmatch(m)
+		prefix := sub[1]
+		rest := m[len(prefix):]
+		if strings.Contains(rest, Mask) || !isCLISecret(rest) {
+			return m
+		}
+		return prefix + Mask
+	}
+}
+
+// isCLISecret is looser than isLiteralSecret: CLI passwords can be short, but
+// references like $VAR, ${{ }} and <placeholders> are not secrets.
+func isCLISecret(v string) bool {
+	if v == "" {
+		return false
+	}
+	switch v[0] {
+	case '$', '<', '{', '%', '(', '`', '@':
+		return false
+	}
+	return !strings.Contains(v, "$")
 }
