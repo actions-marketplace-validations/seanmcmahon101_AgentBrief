@@ -327,7 +327,7 @@ var taskKinds = map[string]string{
 	"tsc": model.KindTypecheck, "check-types": model.KindTypecheck, "test:typecheck": model.KindTypecheck,
 	"mypy": model.KindTypecheck, "pyright": model.KindTypecheck,
 	"dev": model.KindDev, "start": model.KindDev, "serve": model.KindDev, "watch": model.KindDev,
-	"run": model.KindRun,
+	"run":      model.KindRun,
 	"generate": model.KindGenerate, "gen": model.KindGenerate, "codegen": model.KindGenerate,
 	"check": model.KindCheck, "ci": model.KindCheck, "verify": model.KindCheck, "precommit": model.KindCheck, "pre-commit": model.KindCheck,
 }
