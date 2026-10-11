@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "none",
+    "rep": 1,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Yarn v1 (classic), pinned as yarn@1.22.22 in package.json, with workspaces for excalidraw-app, packages/* and examples/*. Node >=18; CI uses Node 20.x. Install with: yarn install",
+    "q2": "yarn test:unit --watch=false (this is vitest run once without watch mode. Plain `yarn test` or `yarn test:unit` starts vitest in watch mode.)",
+    "q3": "yarn test:unit --watch=false packages/element/tests/bounds.test.ts (equivalent: yarn vitest run packages/element/tests/bounds.test.ts)",
+    "q4": "CI (.github/workflows/lint.yml) runs these in order after `yarn install`: yarn test:format && yarn test:lint && yarn test:types. These expand to: prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore --list-different; eslint --max-warnings=0 --ext .js,.ts,.tsx .; and tsc. To auto-fix locally, run yarn fix.",
+    "q5": "Don't hand-edit these generated or ignored paths (from .eslintignore and package.json scripts): yarn.lock (written by yarn), node_modules/, build/ and dist/ directories (excalidraw-app/build, packages/*/dist, examples/*/build and dist), dev-dist/, coverage/, packages/excalidraw/types (generated type declarations), public/workbox, and examples/**/public. package-lock.json is also ignored, because the repo uses yarn. I did not check the contents of packages/excalidraw/locales, so I can't say whether any generated files there (such as percentages.json) are covered. No vendored third-party directory is marked in the config files I read."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from root matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false` is explicitly in the ACCEPT list."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false packages/element/tests/bounds.test.ts` and the `yarn vitest run` equivalent are both accepted."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives yarn test:format, test:lint and test:types as CI runs them, with no removed scripts mentioned."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names yarn.lock and build output dirs (build/, dist/, dev-dist/, packages/excalidraw/types), matching ACCEPT with no REJECT items; it honestly notes it did not check locales."
+    }
+  }
+}

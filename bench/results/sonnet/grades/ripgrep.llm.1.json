@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "llm",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Cargo (Rust, edition 2024, MSRV 1.96). There is no separate install step. Run `cargo build` from the repo root and it fetches and builds dependencies. To fetch only, run `cargo fetch`.",
+    "q2": "cargo test --all (the command documented in AGENTS.md and the README). CI runs `cargo test --verbose --workspace --features unstable-index` and `cargo test --verbose --workspace --features pcre2`.",
+    "q3": "cargo test --test integration regression::. The integration tests build as the single target `integration` from tests/tests.rs (autotests = false), and tests/regression.rs is the `regression` module in it, so `--test regression` would not work.",
+    "q4": "cargo fmt --all --check (rustfmt.toml: max_width 79). CI also runs the docs check: RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items --workspace. The zsh completion check is `ci/test-complete`, which needs a built `rg` and zsh. CI has no clippy step.",
+    "q5": "No vendored directories. `target/` is build output and is gitignored. `Cargo.lock` is managed by cargo, so don't hand-edit it. The man page, shell completions and `--help` text are generated at build time from the flag docs in crates/core/flags/defs.rs, so edit that file and not the generated output. I did not check whether `HomebrewFormula` is a symlink to `pkg/brew`, so treat it as probably not hand-edited."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names Cargo, says no separate install step, and gives `cargo build` and `cargo fetch`, matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`cargo test --all` is an accepted command, and the CI commands it lists with --workspace are consistent with the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`cargo test --test integration regression::` matches an accepted command and correctly explains why `--test regression` fails."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check`, correctly adds the cargo doc check, and correctly states that CI has no clippy step."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no vendored directories and names target/ and Cargo.lock, as accepted; the extra claim about generated man page and completions is not a rejected item, and it does not call crates/*, tests/data or pkg/ generated or vendored."
+    }
+  }
+}

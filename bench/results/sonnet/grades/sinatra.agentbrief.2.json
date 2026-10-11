@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "sinatra",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Ruby with Bundler (Gemfile at the root, plus separate Gemfiles in sinatra-contrib and rack-protection). Rake is the task runner. Install with: bundle install. CI also runs 'cd sinatra-contrib && bundle install' for contrib.",
+    "q2": "The core suite is: bundle exec rake. That is the default task and equals 'bundle exec rake test' (Minitest). CI also runs the other two packages separately, so the full set is: bundle exec rake && (cd sinatra-contrib && bundle install && bundle exec rake) && (cd rack-protection && bundle install && bundle exec rake)",
+    "q3": "(cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb). sinatra-contrib uses RSpec, not Minitest, so the AGENTS.md hint 'bundle exec ruby -Itest <file>' does not apply to it. The same thing from the root without cd is: BUNDLE_GEMFILE=sinatra-contrib/Gemfile bundle exec rspec --default-path sinatra-contrib/spec sinatra-contrib/spec/capture_spec.rb, but the cd form is simpler.",
+    "q4": "bundle exec rubocop. CI (.github/workflows/test.yml and release.yml) has no rubocop or lint step, so there is no CI lint command. Rubocop is pinned to ~> 1.32.0 in the root Gemfile and configured in .rubocop.yml. It excludes test/**, rack-protection/** and sinatra-contrib/**, so it only checks the root lib, Rakefile and similar files.",
+    "q5": "I found no committed generated or vendored source directories. These are git-ignored build outputs that you shouldn't edit or commit: pkg/, coverage/, doc/ (yard output, including doc/api), .yardoc, vendor/ (including vendor/bundle), .bundle, *.lock files (Gemfile.lock) and *.gem. The AgentBrief-generated block between the <!-- agentbrief:start --> and <!-- agentbrief:end --> markers in AGENTS.md is rewritten by 'agentbrief sync', so don't edit inside it by hand. The README translations (README.*.md) are maintained by hand, not generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives Bundler and `bundle install`, correctly noting the sub-project Gemfiles."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "States `bundle exec rake` as the core suite and correctly adds the contrib and rack-protection runs from CI."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Gives `cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb`, matching the accepted command; the extra root-level variant is harmless."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `bundle exec rubocop` and correctly says CI has no lint step."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says nothing committed is generated or vendored and lists coverage/ and doc/ (including doc/api) as build outputs; no rejected claims."
+    }
+  }
+}

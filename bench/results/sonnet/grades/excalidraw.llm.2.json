@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "llm",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Yarn 1 (classic) workspaces monorepo, pinned as yarn@1.22.22 with Node >= 18. Install dependencies from the repo root with: yarn install",
+    "q2": "yarn test:app --watch=false  (CI runs `yarn test:app`; `yarn test` and plain `yarn test:app` start Vitest in watch mode. `yarn test:all` runs typecheck, lint, prettier and tests together.)",
+    "q3": "yarn test:app --watch=false packages/element/tests/bounds.test.ts",
+    "q4": "yarn install && yarn test:other && yarn test:code && yarn test:typecheck  (these are the three steps in .github/workflows/lint.yml. test:other is `prettier --list-different` on css/scss/json/md/html/yml. test:code is `eslint --max-warnings=0 --ext .js,.ts,.tsx .`. test:typecheck is `tsc`.)",
+    "q5": "Don't edit these by hand: yarn.lock (managed by yarn), node_modules/, build/, dist/, dev-dist/, coverage/, packages/*/dist and packages/*/build (build outputs, deleted by `yarn rm:build`), packages/excalidraw/types and public/workbox (generated, listed in .eslintignore), and examples/**/public. The translated locale files packages/excalidraw/locales/*.json other than en.json are synced from Crowdin, so edit only en.json (the source in crowdin.yml). I did not run anything to confirm which of these are present in this checkout."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from the repo root matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is an explicitly accepted one-shot form, and the extra detail about CI and test:all is correct."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted form, since the flag order doesn't matter and it targets only that file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "It lists test:other, test:code and test:typecheck, exactly what lint.yml runs, with correct descriptions."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "It names yarn.lock, build output dirs (build/, dist/, dev-dist/) and the non-en locale files with en.json as the only hand-edited one, and contains nothing that matches a REJECT item."
+    }
+  }
+}

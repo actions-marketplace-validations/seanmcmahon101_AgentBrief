@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "none",
+    "rep": 2,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "pnpm (pnpm@12.10.0 per the packageManager field; the preinstall script enforces it with only-allow, and Node must be ^20.19.0 || >=22.12.0). Install with: pnpm install",
+    "q2": "pnpm run build && pnpm test. CI builds first. `pnpm test` runs `pnpm test:unit && pnpm test-serve && pnpm test-build`. CI also runs `pnpm run test-serve-bundled`, which `pnpm test` doesn't include. The e2e tests need the Playwright browser: pnpm playwright install chromium",
+    "q3": "pnpm exec vitest run packages/vite/src/node/__tests__/config.spec.ts",
+    "q4": "pnpm run build && pnpm run lint:js && pnpm format && git diff --exit-code && pnpm run typecheck && pnpm run test-docs. These are the CI lint job's steps. `pnpm format` runs oxfmt, and `git diff --exit-code` fails if it changed any files. The build comes first, as in CI. I couldn't confirm that `git diff` works here, since this directory isn't a git repository.",
+    "q5": "I found no vendored directories. Generated or build output that shouldn't be edited by hand: `**/dist/` in each package (including packages/vite/dist), `pnpm-lock.yaml`, `packages/*/CHANGELOG.md` (generated at release; oxfmt ignores it), and `playground-temp/` (a test copy of playground). The `**/temp/` directories and `docs/.vitepress/cache/` are also ignored by ESLint. Fixtures and snapshots are test data, so only change them deliberately: `**/fixtures/**` and `**/*.snap` (ESLint ignores both)."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and gives `pnpm install`, matching the truth with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `pnpm run build && pnpm test` and correctly describes test as test:unit + test-serve + test-build, noting test-serve-bundled as a CI extra."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm exec vitest run <file>` is an explicitly accepted form and targets the correct file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes `pnpm run lint:js` and `pnpm format && git diff --exit-code`, plus typecheck and test-docs, matching the CI lint job."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names pnpm-lock.yaml plus dist/ outputs and generated CHANGELOG.md, with no rejected claims."
+    }
+  }
+}

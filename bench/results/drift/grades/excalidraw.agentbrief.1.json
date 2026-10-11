@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Yarn classic (yarn@1.22.22, set by packageManager in package.json). It is a yarn workspaces monorepo, so don't use npm or pnpm. Install with: yarn install",
+    "q2": "yarn test:unit --watch=false (this is `vitest` without watch mode; CI runs `yarn test:unit`). To run everything CI-style, including types, lint and format, use: yarn test:all",
+    "q3": "yarn vitest run packages/element/tests/bounds.test.ts (equivalent: yarn test:unit --watch=false packages/element/tests/bounds.test.ts)",
+    "q4": "CI (.github/workflows/lint.yml) runs these after `yarn install`: yarn test:format && yarn test:lint && yarn test:types. These expand to: prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore --list-different; eslint --max-warnings=0 --ext .js,.ts,.tsx .; tsc. To auto-fix, run: yarn fix",
+    "q5": "Don't hand-edit these generated or vendored files: the lockfiles yarn.lock, dev-docs/yarn.lock and examples/with-nextjs/yarn.lock; and the build outputs and dependency dirs node_modules/, build/, dist/ (including packages/*/dist and excalidraw-app/build), dev-dist, coverage, public/workbox, packages/excalidraw/types and examples/**/public. AGENTS.md also has an AgentBrief-generated block between its `agentbrief:start` and `agentbrief:end` markers. Don't edit inside it; refresh it with `agentbrief sync`."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false` is explicitly accepted, and `yarn test:all` is noted as a superset."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn vitest run packages/element/tests/bounds.test.ts` matches an accepted command exactly."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives yarn test:format, test:lint and test:types as CI runs them, covering both required checks plus types."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names yarn.lock and build output dirs (build/, dist/, dev-dist, packages/excalidraw/types), matching accept criteria with no rejected items; the extra AGENTS.md note is harmless."
+    }
+  }
+}

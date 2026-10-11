@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pnpm (a pnpm workspace monorepo; package.json has packageManager pnpm@12.9.1 and a preinstall hook that rejects npm/yarn; Node ^20.19.0 || >=22.12.0). Install with: pnpm install. CI also runs `pnpm run build` before any tests, and e2e tests need `pnpm playwright install chromium`.",
+    "q2": "pnpm test  (runs `pnpm test-unit && pnpm test-serve && pnpm test-build`). CI runs these separately, after `pnpm run build`: pnpm run test-unit, pnpm run test-serve, pnpm run test-serve-bundled, pnpm run test-build.",
+    "q3": "pnpm exec vitest run packages/vite/src/node/__tests__/config.spec.ts",
+    "q4": "pnpm run build && pnpm run lint && pnpm format && git diff --exit-code && pnpm run typecheck && pnpm run test-docs. CI's lint job runs these in this order. The build runs first because typecheck and docs need built output. `pnpm format` runs oxfmt and rewrites files, so `git diff --exit-code` is what fails on unformatted code. This repo has no .git directory, so `git diff` won't work here. As a read-only formatting check, `pnpm exec oxfmt --check` should work, though I haven't verified that flag. To run lint only, use `pnpm run lint`.",
+    "q5": "pnpm-lock.yaml is generated, so don't edit it by hand. Other generated or vendored paths, which are build output or ignored by lint and format: **/dist/ (build output), playground-temp/ and **/temp/ (test scratch), .vitepress/cache/, packages/*/CHANGELOG.md (generated at release), **/*.snap (snapshots), and **/fixtures/ (test fixtures that are deliberately odd). Also leave alone packages/create-vite/template-* (scaffold templates, excluded from ESLint) and LICENSE.md."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and `pnpm install`, matching the accept criterion with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `pnpm test` and correctly describes the chain and CI's separate runs after build."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm exec vitest run <file>` is explicitly accepted and the path is correct."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes pnpm run lint, pnpm format with git diff --exit-code, plus typecheck and test-docs, matching CI; the unverified oxfmt --check note is harmless extra."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names pnpm-lock.yaml plus dist/ outputs and generated CHANGELOG.md, and does not declare src, docs or playground generated."
+    }
+  }
+}

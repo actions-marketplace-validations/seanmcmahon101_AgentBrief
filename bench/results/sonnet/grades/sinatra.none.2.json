@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "sinatra",
+    "arm": "none",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Ruby with Bundler (Gemfile at the repo root) and Rake as the task runner. Install with: bundle install. For sinatra-contrib, CI also runs: cd sinatra-contrib && bundle install. rack-protection has its own Gemfile and is installed with: cd rack-protection && bundle install.",
+    "q2": "From the repo root, the core suite is: bundle exec rake. That runs the default Minitest task over test/. CI also runs (cd sinatra-contrib && bundle exec rake) and (cd rack-protection && bundle exec rake). For everything in one line: bundle exec rake && (cd sinatra-contrib && bundle exec rake) && (cd rack-protection && bundle exec rake)",
+    "q3": "cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb. From the repo root, without changing directory, this should also work: (cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb)",
+    "q4": "CI (.github/workflows/test.yml) has no lint or formatting step, and nothing in .github or the Rakefile mentions rubocop. rubocop ~> 1.32.0 is in the root Gemfile and configured in .rubocop.yml. That config excludes test/, rack-protection/ and sinatra-contrib/. The command to run it locally from the repo root is: bundle exec rubocop",
+    "q5": "Nothing in the repo is clearly generated or vendored, and I found no 'DO NOT EDIT' markers. The ignored paths are build output and shouldn't be edited or committed: pkg/, coverage/, doc/ (generated API docs), .yardoc, .bundle, vendor/ (bundled gems), *.gem and *.lock. Only the source tree is checked in. The fixtures in sinatra-contrib/spec/config_file/ are test data, not generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "States Ruby with Bundler and `bundle install`, with correct extra detail about the subprojects."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `bundle exec rake` and correctly notes CI also runs it in sinatra-contrib and rack-protection."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Gives `cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb`, matching the accept criterion exactly."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Says CI has no lint step and gives `bundle exec rubocop` as the local command, matching the accept criteria."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says nothing is clearly generated or vendored and lists coverage/ and doc/ as ignored build output, which matches the accept criteria without claiming lib/ or rack-protection/ are vendored."
+    }
+  }
+}

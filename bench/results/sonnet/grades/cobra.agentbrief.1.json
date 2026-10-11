@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Go modules, driven through the Makefile. Install dependencies with `go get -v ./...`, which is what `make install_deps` runs. `make test` and `make richtest` run it automatically. The module is `github.com/spf13/cobra`, and `go.mod` declares `go 1.15`.",
+    "q2": "`make test`. This runs `go get -v ./...` and then `go test -v ./...`. CI runs `make richtest`, the same thing through richgo. Without the Makefile, use `go test ./...`.",
+    "q3": "`go test ./doc -run 'TestGenMd' -v`. That pattern matches every test in doc/md_docs_test.go: TestGenMdDoc, TestGenMdDocWithNoLongOrSynopsis, TestGenMdNoHiddenParents, TestGenMdNoTag and TestGenMdTree. The pattern `-run 'TestGenMd'` also matches any other test whose name starts with TestGenMd. To run one test, use `go test ./doc -run '^TestGenMdDoc$' -v`.",
+    "q4": "Run `make fmt` and `make lint`. `make fmt` checks gofmt. `make lint` runs `golangci-lint run -v` with .golangci.yml, which enables gofmt, goimports, errcheck, goconst, gocritic, gosec, govet, ineffassign, misspell, nolintlint, staticcheck, unconvert and unused. CI runs `golangci-lint run --verbose` through golangci-lint-action. CI also runs a license-header check: `docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .`",
+    "q5": "`go.sum` is a lockfile, so don't edit it by hand; AGENTS.md lists it as the only do-not-edit file. Keep the AgentBrief-generated block in AGENTS.md between `<!-- agentbrief:start -->` and `<!-- agentbrief:end -->` untouched too. It is refreshed with `agentbrief sync`. There is no vendor/ directory, and I found no `DO NOT EDIT` markers in the code."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Go modules with `go get -v ./...` via `make install_deps` matches the accepted answer."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`make test` is correct, with accurate details on CI's `make richtest` and the plain `go test ./...` fallback."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`go test ./doc -run 'TestGenMd' -v` matches the accepted form and lists the five correct tests."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "`make lint` and `make fmt` match the accepted commands, and the CI golangci-lint and addlicense checks are described correctly."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "It says go.sum is tool-managed, that there is no vendor/ directory, and that there are no DO NOT EDIT markers, which matches 'none'; the AGENTS.md block is harmless extra detail and doc/site/assets are not claimed to be generated."
+    }
+  }
+}

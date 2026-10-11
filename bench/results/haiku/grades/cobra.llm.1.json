@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "llm",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Go modules (go.mod, module github.com/spf13/cobra, go 1.15); there is no separate package manager. Install dependencies with: make install_deps (this runs `go get -v ./...` from the repo root)",
+    "q2": "make test (runs install_deps, then `go test -v ./...`; with the CI rich-output wrapper this is `make richtest`, which needs richgo installed)",
+    "q3": "go test -v -run '^(TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree)$' ./doc/",
+    "q4": "make fmt && golangci-lint run --verbose (CI runs golangci-lint via golangci/golangci-lint-action with the .golangci.yml config, which includes the gofmt and goimports formatters; `make fmt` is the gofmt -l check from the Makefile; CI also runs a license-header check with docker run ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .)",
+    "q5": "none: no vendor/ directory, no *.pb.go or other generated files, and no 'DO NOT EDIT' or 'Code generated' markers were found in the repo."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies Go modules and gives `make install_deps` (go get -v ./...), which matches an ACCEPT criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `make test` running `go test -v ./...` and mentions `make richtest` for CI, matching ACCEPT."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Runs go test with -run naming exactly the five TestGenMd* functions in ./doc, matching ACCEPT."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives golangci-lint run plus make fmt and the addlicense check, all consistent with the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Answers none, matching the truth with no contradicting claims."
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "none",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Yarn 1 classic monorepo (yarn workspaces; the root package.json pins \"packageManager\": \"yarn@1.22.22\", Node 20.x in CI). Install from the repository root with: yarn install",
+    "q2": "yarn test:app --watch=false (the root \"test\" script is plain vitest, which stays in watch mode locally; --watch=false runs it once, as CI does). The broader yarn test:all also runs typecheck, lint and prettier.",
+    "q3": "yarn test:app --watch=false packages/element/tests/bounds.test.ts",
+    "q4": "yarn test:other && yarn test:code && yarn test:typecheck (test:other = prettier --list-different, test:code = eslint --max-warnings=0 --ext .js,.ts,.tsx ., test:typecheck = tsc; these are the three commands run in .github/workflows/lint.yml after yarn install)",
+    "q5": "Generated, do not hand-edit: packages/excalidraw/types (gitignored, emitted by the build), build/ and dist/ output dirs (excalidraw-app/build, excalidraw-app/dist, packages/*/dist, packages/*/build), excalidraw-app/dev-dist, public/workbox (PWA output), coverage/. Vendored: the hashed font binaries under packages/excalidraw/fonts/ (e.g. Excalifont/*.woff2). Translation files packages/excalidraw/locales/*.json other than en.json are synced from Crowdin (crowdin.yml), so edit en.json and let Crowdin manage the rest. Note: this directory is not a git repository, so I could only confirm these from the ignore files, workflows and config, not from git status."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies yarn classic and `yarn install` from the repo root, matching the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is an explicitly accepted one-shot form, and `yarn test:all` is correctly described as the broader superset."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted form, with the flag placed before the path, and would run only that file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `yarn test:other`, `yarn test:code` and `yarn test:typecheck`, which are exactly the three commands CI runs."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names build/dist output dirs, packages/excalidraw/types, and non-en locale files managed by Crowdin, all of which match the accept criteria; the extra fonts and workbox items are harmless detail."
+    }
+  }
+}

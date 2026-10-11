@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Go modules (Go toolchain, driven via the Makefile). Install dependencies with: `go mod download`. The Makefile's `make install_deps` runs `go get -v ./...`, and `make test` and `make richtest` call it automatically. There is no vendor directory and no other package manager.",
+    "q2": "`make test`, which runs `go get -v ./...` and then `go test -v ./...`. CI itself runs `make richtest`, which needs richgo installed. If you don't want the Makefile, run `go test ./...`.",
+    "q3": "`go test ./doc -run 'TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree' -v`. The file defines exactly those five tests. Go cannot select tests by filename, so this regex lists them all. Anchor it as `-run '^(TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree)$'` to avoid matching tests with the same prefix in other files of the package.",
+    "q4": "CI runs three checks. (1) golangci-lint: `golangci-lint run --verbose`. It uses .golangci.yml, which enables the gofmt and goimports formatters plus errcheck, goconst, gocritic, gosec, govet, ineffassign, misspell, nolintlint, staticcheck, unconvert and unused. (2) Licence headers: `docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .`. (3) Local formatting check: `make fmt`, which runs gofmt -l. CI does not run it separately because the linter's gofmt covers it. `make lint` runs `golangci-lint run -v`.",
+    "q5": "go.sum is a lockfile and must not be hand-edited. Use `go mod tidy` or `go get` to change it. There is no vendor/ directory and no generated-code directories. Don't edit the AgentBrief block in AGENTS.md between `<!-- agentbrief:start -->` and `<!-- agentbrief:end -->`, because `agentbrief sync` regenerates it. CLAUDE.md just includes AGENTS.md. bin/ and cobra.test are gitignored build outputs. The files in assets/ (such as CobraMain.png) are binary assets, and site/content is documentation source, not generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names Go modules, gives `go mod download`, and correctly notes `make install_deps` runs `go get -v ./...`."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `make test` (install_deps then `go test -v ./...`), notes CI uses `make richtest`, and offers `go test ./...`."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Gives `go test ./doc -run` with a regex naming all five TestGenMd* functions, and notes Go can't select by file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `golangci-lint run` as the CI check, `make lint`, `make fmt`, and the addlicense check, all matching the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no vendor/ or generated-code directories, mentions only go.sum as tool-managed, and explicitly says assets/ and site/content are not generated."
+    }
+  }
+}

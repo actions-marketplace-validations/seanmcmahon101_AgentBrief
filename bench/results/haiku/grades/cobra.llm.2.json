@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "llm",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Go modules (go.mod, module github.com/spf13/cobra, go 1.15); there is no other package manager. Install dependencies from the repo root with: make install_deps (the Makefile target runs `go get -v ./...`).",
+    "q2": "make test (runs install_deps, then `go test -v ./...`). A plain equivalent without the dependency step is: go test ./...",
+    "q3": "go test -v -run '^(TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree)$' ./doc (Go cannot select tests by file name; these are the five Test functions defined in doc/md_docs_test.go)",
+    "q4": "make fmt && golangci-lint run --verbose && docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check . (make fmt is the gofmt check; golangci-lint run --verbose matches the CI lint job, which uses config in .golangci.yml; the addlicense command is the lic-headers job in .github/workflows/test.yml)",
+    "q5": "None. No vendor/ directory and no generated files (no 'Code generated ... DO NOT EDIT' headers) were found. go.mod and go.sum are maintained by the Go tooling, so change them through go commands rather than by hand."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Go modules with `make install_deps` (go get -v ./...) matches an ACCEPT criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`make test` and `go test ./...` are both accepted and correctly described."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Uses go test -run with the five exact TestGenMd* names against ./doc, matching the ACCEPT criterion."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes golangci-lint run (matches CI) plus make fmt and the addlicense check as bonus; nothing contradicts the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Answers none, notes go.mod/go.sum are tool-managed, no vendor dir, which matches ACCEPT."
+    }
+  }
+}

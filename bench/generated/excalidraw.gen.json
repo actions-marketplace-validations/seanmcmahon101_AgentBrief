@@ -1,0 +1,101 @@
+{
+  "duration_api_ms": 23377,
+  "stop_reason": "end_turn",
+  "session_id": "9495dc01-31dc-416a-9b03-9cdbaf583d49",
+  "total_cost_usd": 0.10811930000000002,
+  "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 18299,
+    "cache_read_input_tokens": 104533,
+    "output_tokens": 2445,
+    "output_tokens_details": {
+      "thinking_tokens": 35
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 18299,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 244,
+        "cache_read_input_tokens": 26942,
+        "cache_creation_input_tokens": 1527,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1527
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 10,
+      "outputTokens": 2445,
+      "cacheReadInputTokens": 104533,
+      "cacheCreationInputTokens": 18299,
+      "webSearchRequests": 0,
+      "costUSD": 0.10811930000000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 35,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 5,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I created `AGENTS.md` at the repository root. It covers the build, lint, typecheck and test commands, including how to run a single test file or a single test by name, and a short architecture overview.\n\nI took the commands from `package.json`, `vitest.config.mts`, `.lintstagedrc.js` and the app's `package.json`. I didn't run any of them. I also didn't confirm the single-test invocations (`yarn test:app --watch=false <file>` and `-t \"name\"`) by running them. They're my reading of how those scripts pass arguments to Vitest.\n\nI also didn't open any of the source files listed under architecture. Their roles come from file and class names, so check those descriptions against the code.\n\nThe repo isn't a git repository, so nothing was committed.",
+  "ttft_ms": 2469,
+  "type": "result",
+  "duration_ms": 23540,
+  "uuid": "d4161e37-7905-4434-b5da-8ae001b17bda",
+  "ttft_stream_ms": 1358,
+  "time_to_request_ms": 41,
+  "first_content_frame_ms": 1358,
+  "queued_turn_count": 0,
+  "result_index": 0,
+  "_wall_s": 24.4,
+  "_returncode": 0
+}

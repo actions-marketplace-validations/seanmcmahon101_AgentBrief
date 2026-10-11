@@ -1,0 +1,97 @@
+{
+  "repo": "vite",
+  "ecosystem": "pnpm monorepo (TypeScript)",
+  "test_file": "packages/vite/src/node/__tests__/config.spec.ts",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which package manager / build tool should be used, and what exact command installs dependencies?",
+      "truth": "pnpm (packageManager now pnpm@12.10.0; preinstall `npx only-allow pnpm`). Install: `pnpm install`.",
+      "accept": [
+        "pnpm install / pnpm i (optionally --frozen-lockfile)"
+      ],
+      "reject": [
+        "npm install / npm ci / yarn"
+      ],
+      "evidence": [
+        "package.json",
+        "pnpm-lock.yaml"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What exact command runs the full test suite?",
+      "truth": "`pnpm test` = test:unit + test-serve + test-build (CI builds first, then test:unit, test-serve, test-serve-bundled, test-build). The old script `test-unit` no longer exists.",
+      "accept": [
+        "pnpm test / pnpm run test",
+        "explicit chain pnpm test:unit && pnpm test-serve && pnpm test-build"
+      ],
+      "reject": [
+        "pnpm test-unit (removed script)",
+        "pnpm test:unit alone = 0.5",
+        "npm/yarn test"
+      ],
+      "evidence": [
+        "package.json",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What exact command runs only the tests in packages/vite/src/node/__tests__/config.spec.ts?",
+      "truth": "From repo root: `pnpm vitest run packages/vite/src/node/__tests__/config.spec.ts` or `pnpm test:unit <file>`. `pnpm test-unit` no longer exists; `pnpm test <file>` does not narrow.",
+      "accept": [
+        "pnpm vitest run <file>",
+        "pnpm test:unit <file>",
+        "pnpm exec vitest run <file>",
+        "npx vitest run <file> from root"
+      ],
+      "reject": [
+        "pnpm test-unit <file> (removed script)",
+        "pnpm test <file>",
+        "whole suite",
+        "npm/yarn"
+      ],
+      "evidence": [
+        "package.json",
+        "vitest.config.ts"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What exact command(s) check lint/formatting the way CI does?",
+      "truth": "CI lint job: `pnpm run lint:js` (eslint; old name `lint` is gone), `pnpm format && git diff --exit-code` (oxfmt), `pnpm run typecheck`, `pnpm run test-docs`.",
+      "accept": [
+        "pnpm run lint:js AND a format check (pnpm format then git diff --exit-code, or oxfmt --check); typecheck a bonus"
+      ],
+      "reject": [
+        "pnpm lint / pnpm run lint (removed script)",
+        "prettier",
+        "only lint:js = 0.5"
+      ],
+      "evidence": [
+        ".github/workflows/ci.yml",
+        "package.json"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "Name files or directories in this repo that are generated or vendored and must not be edited by hand (or say none).",
+      "truth": "pnpm-lock.yaml (generated); build output dist/ (e.g. packages/vite/dist, gitignored); packages/vite/src/types/*.d.ts are inlined third-party type definitions copied from upstream (alias, chokidar, ws, connect); CHANGELOG.md files are generated at release (merge-changelog tooling).",
+      "accept": [
+        "Score 1 if it names pnpm-lock.yaml plus at least one of: dist/ outputs, the vendored d.ts in packages/vite/src/types, generated CHANGELOG.md. Score 0.5 if it names only one item."
+      ],
+      "reject": [
+        "'none' = 0",
+        "declaring packages/*/src, docs/, playground/ generated"
+      ],
+      "evidence": [
+        "pnpm-lock.yaml",
+        ".gitignore",
+        "packages/vite/src/types/chokidar.d.ts",
+        "package.json"
+      ]
+    }
+  ],
+  "drift": "scripts renamed: test-unit->test:unit, lint->lint:js; packageManager pnpm@12.9.1->12.10.0"
+}

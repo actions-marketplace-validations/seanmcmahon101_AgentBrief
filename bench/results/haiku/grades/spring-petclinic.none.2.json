@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "none",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Maven, run through the committed wrapper ./mvnw (Java 17+, no global Maven needed). Install/resolve dependencies with: ./mvnw dependency:go-offline (the Gradle alternative, also in the repo, is ./gradlew dependencies).",
+    "q2": "./mvnw test",
+    "q3": "./mvnw test -Dtest=org.springframework.samples.petclinic.owner.OwnerControllerTests",
+    "q4": "CI (.github/workflows/maven-build.yml) runs ./mvnw -B verify, which includes the format and lint checks. The check-only subset is ./mvnw -B validate, which runs spring-javaformat:validate (Spring Java format) and the nohttp-checkstyle check bound to the validate phase. The Gradle workflow runs ./gradlew build, which includes checkstyle and format checks.",
+    "q5": "Generated: src/main/resources/static/resources/css/petclinic.css is compiled from src/main/scss/*.scss by the libsass plugin under the css profile (regenerate with ./mvnw package -P css; edit the .scss, not the CSS). target/ and build/ are gitignored build output. Vendored: src/main/resources/static/resources/fonts/* (Montserrat and Varela Round webfonts) and gradle/wrapper/gradle-wrapper.jar (wrapper jar, do not hand-edit). Bootstrap and Font Awesome come from Maven webjars, not from files in the repo."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Uses the Maven wrapper ./mvnw with dependency resolution (dependency:go-offline is equivalent to dependency:resolve) and mentions the Gradle wrapper."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw test is an accepted answer."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw test -Dtest with the fully-qualified class name is explicitly accepted."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Identifies ./mvnw -B verify as the CI command and ./mvnw -B validate running spring-javaformat:validate and nohttp checkstyle, plus ./gradlew build for Gradle, matching the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names petclinic.css generated from scss with the correct regeneration command, plus target/ and build/; the extra vendored items are harmless."
+    }
+  }
+}

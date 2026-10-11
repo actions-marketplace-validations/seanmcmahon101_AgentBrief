@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "llm",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Maven via the wrapper (primary, and what CI uses). Gradle is a secondary option. Maven has no separate install step, because dependencies resolve on first build. To fetch them up front, run: ./mvnw -B dependency:go-offline. The Gradle equivalent is ./gradlew build.",
+    "q2": "./mvnw test (tests only). CI runs the full build with ./mvnw -B verify. Some tests need Docker: MySqlIntegrationTests uses Testcontainers and PostgresIntegrationTests uses Docker Compose.",
+    "q3": "./mvnw test -Dtest=OwnerControllerTests (Gradle: ./gradlew test --tests '*OwnerControllerTests')",
+    "q4": "CI has no separate lint step. Formatting is enforced in Maven's validate phase, through spring-javaformat:validate and the nohttp Checkstyle check, so ./mvnw -B verify (the CI command) runs it. To run only the checks, use ./mvnw -B validate. To fix formatting errors, run ./mvnw spring-javaformat:apply.",
+    "q5": "Don't hand-edit these generated or vendored paths: target/ and build/ (build output), src/main/resources/static/resources/css (compiled from SCSS by ./mvnw package -P css, so edit the SCSS source instead), and the wrapper files .mvn/wrapper/, mvnw, mvnw.cmd, gradle/wrapper/, gradlew and gradlew.bat. I did not check whether target/, build/ or the css directory exist in this checkout."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names the Maven wrapper ./mvnw with dependency:go-offline to fetch dependencies, and ./gradlew build for Gradle, matching both accepted wrappers."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives ./mvnw test and the CI command ./mvnw -B verify, both accepted, with no contradictions."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw test -Dtest=OwnerControllerTests and the Gradle --tests '*OwnerControllerTests' form both match the accepted commands."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Correctly says checks run in Maven validate via spring-javaformat:validate and nohttp, gives ./mvnw -B validate and ./mvnw -B verify, and mentions apply only as a fix."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Identifies the generated CSS under src/main/resources/static/resources/css compiled from SCSS via ./mvnw package -P css, plus target/ and build/; the extra wrapper files are harmless."
+    }
+  }
+}

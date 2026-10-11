@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "llm-stale",
+    "rep": 2,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Yarn 1 (classic) workspaces monorepo (yarn@1.22.22, Node >= 18). Install with: yarn install (plain `yarn` is the same). Note: AGENTS.md says to use `yarn`, which matches package.json.",
+    "q2": "yarn test:unit --watch=false  (package.json: `test` and `test:unit` both run `vitest`, which defaults to watch mode, so pass --watch=false for a single run. `yarn test:all` runs types, lint, format and unit tests together.) AGENTS.md mentions `yarn test:app`, but that script does not exist in package.json.",
+    "q3": "yarn test:unit --watch=false packages/element/tests/bounds.test.ts",
+    "q4": "CI (.github/workflows/lint.yml) runs, after `yarn install`: `yarn test:format`, then `yarn test:lint`, then `yarn test:types`. These expand to `prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore --list-different`, `eslint --max-warnings=0 --ext .js,.ts,.tsx .` and `tsc`. AGENTS.md names `test:code`, `test:other` and `test:typecheck`, but those scripts are not in package.json. To autofix, run `yarn fix`.",
+    "q5": "Don't hand-edit these: yarn.lock; node_modules/; build output (build/, dist/, dev-dist, excalidraw-app/build, packages/*/dist); coverage/; packages/excalidraw/types (generated type declarations, listed in .eslintignore); examples/**/public; public/workbox; the Wasm bindings under packages/excalidraw/subset/harfbuzz/ and packages/excalidraw/subset/woff2/ (for example harfbuzz-wasm.ts and woff2-wasm.ts, which are generated, probably by scripts/buildWasm.js); and the embedded font data in packages/excalidraw/fonts/ (for example Xiaolai/index.ts and ComicShanns/index.ts). I did not open the Wasm and font files, so check them before relying on this."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from root matches the accept criterion with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false` is an accepted command and it correctly notes test:app does not exist."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted `yarn test:unit <file> --watch=false` and runs only that file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Lists yarn test:format, test:lint and test:types as CI runs them, and correctly flags the removed scripts as nonexistent."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Includes yarn.lock and build output dirs (build/, dist/, dev-dist), matching the accept criterion; it does not name the non-en locale files, and the extra Wasm/font claims are hedged and not matched by any REJECT item."
+    }
+  }
+}

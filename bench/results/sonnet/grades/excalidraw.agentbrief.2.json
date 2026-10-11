@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Yarn 1 (classic), pinned as yarn@1.22.22 in package.json. It's a yarn workspaces monorepo, so don't use npm or pnpm. Install dependencies with: yarn install",
+    "q2": "yarn test:app --watch=false. This runs vitest once and exits. Plain `yarn test` or `yarn test:app` starts vitest in watch mode. CI runs `yarn test:app`. The repo's own aggregate script is `yarn test:all`, which also runs typecheck, eslint and prettier.",
+    "q3": "yarn vitest run packages/element/tests/bounds.test.ts",
+    "q4": "These are the commands from .github/workflows/lint.yml, run in this order after `yarn install`: yarn test:other && yarn test:code && yarn test:typecheck. `test:other` is prettier --list-different on css, scss, json, md, html and yml files. `test:code` is eslint --max-warnings=0 --ext .js,.ts,.tsx . and `test:typecheck` is tsc. To auto-fix, run `yarn fix`.",
+    "q5": "Don't hand-edit yarn.lock or dev-docs/yarn.lock; AGENTS.md lists both as lockfiles. Don't edit installed or build output either: node_modules/, build/, dist/ (including excalidraw-app/build, excalidraw-app/dist and packages/*/dist), dev-dist, coverage, public/workbox, packages/excalidraw/types, and examples/**/public. These are all listed in .eslintignore. I did not check whether other files, such as the non-English locale files, are generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` matches the accept criterion and nothing contradicts the truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is an accepted one-shot form, and the extra detail about CI and test:all is accurate."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn vitest run packages/element/tests/bounds.test.ts` exactly matches an accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives yarn test:other, test:code and test:typecheck as CI does; the `yarn fix` mention is only an extra note, not the sole answer."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names yarn.lock and build output dirs (build/, dist/, dev-dist, packages/excalidraw/types), matching the accept criterion; it admits not checking locales but that is not required."
+    }
+  }
+}

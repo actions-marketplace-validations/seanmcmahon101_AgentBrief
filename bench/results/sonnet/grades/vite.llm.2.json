@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "llm",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pnpm (pinned by packageManager pnpm@12.9.1; the preinstall hook rejects npm and yarn; Node ^20.19.0 || >=22.12.0). Install with: pnpm i (equivalent to pnpm install). Run pnpm build afterwards before the playground tests.",
+    "q2": "pnpm test (runs pnpm test-unit && pnpm test-serve && pnpm test-build). Run pnpm build first. CI also runs pnpm run test-serve-bundled, which pnpm test does not include.",
+    "q3": "pnpm test-unit packages/vite/src/node/__tests__/config.spec.ts (this runs vitest run with that path as a filter; add -t \"<test name>\" to run a single case).",
+    "q4": "pnpm run build && pnpm run lint && pnpm format && git diff --exit-code && pnpm run typecheck && pnpm run test-docs. CI runs these in that order in its Lint job, and the build comes first because typecheck and docs need built packages. The formatting check is pnpm format (oxfmt) followed by git diff --exit-code. git diff --exit-code needs a git repository, and this directory is not one.",
+    "q5": "Generated, build-output or runtime-created paths (all gitignored or ignored by lint and format): dist/ and **/dist/ in each package, dist-ssr, playground-temp/, temp/, node_modules/, .pnpm-store, .eslintcache, docs/.vitepress/cache and docs/.vitepress/.temp, packages/vite/LICENSE (generated), and playground/glob-import/root/follow-symlinks/linked/my-lib (a symlink created at test time). Also do not hand-edit pnpm-lock.yaml, or packages/*/CHANGELOG.md (merged by the merge-changelog script and release tooling). Vendored or fixture content that is excluded from lint and format, and should not be reformatted or fixed: **/fixtures/**, packages/create-vite/template-* (excluded from eslint), and the vendored minified libs playground/external/public/slash@3.0.0.js and playground/ssr-html/public/slash@3.0.0.js."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and `pnpm i`/`pnpm install`, with no contradicting details."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `pnpm test` (after build), which matches ACCEPT; the note about test-serve-bundled is accurate extra detail."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm test-unit <file>` is an explicitly accepted command and runs only that spec."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes `pnpm run lint` and `pnpm format && git diff --exit-code`, plus typecheck and test-docs, matching CI."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names pnpm-lock.yaml plus dist/ outputs and generated CHANGELOG.md, and does not declare src, docs or playground generated."
+    }
+  }
+}

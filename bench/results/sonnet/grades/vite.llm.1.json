@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "llm",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pnpm (the repo pins pnpm@12.9.1 and its preinstall hook rejects npm and yarn). Install dependencies with: pnpm i",
+    "q2": "pnpm test. This runs pnpm test-unit && pnpm test-serve && pnpm test-build. The playground tests need a build first, so run pnpm build before it. CI also runs pnpm run test-serve-bundled, which pnpm test does not include.",
+    "q3": "pnpm test-unit packages/vite/src/node/__tests__/config.spec.ts",
+    "q4": "pnpm build && pnpm lint && pnpm format && git diff --exit-code && pnpm typecheck. CI's lint job runs the build first, then pnpm run lint (eslint), then pnpm format && git diff --exit-code (oxfmt, which fails if it changes any file), then pnpm run typecheck. It also runs pnpm run test-docs.",
+    "q5": "Generated, so don't edit by hand: dist/ directories (for example packages/vite/dist), playground-temp/ (playground copies made for each test run), pnpm-lock.yaml, the per-package CHANGELOG.md files (packages/*/CHANGELOG.md), and .vitepress/cache. Vendored third-party files: playground/external/public/slash@3.0.0.js and playground/ssr-html/public/slash@3.0.0.js. Test fixtures (**/fixtures/** and **.snap snapshots) are deliberately malformed or exact, so don't reformat them. packages/create-vite/template-* is excluded from lint and is not generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "pnpm with `pnpm i` matches the accept criterion and the preinstall hook is correctly described."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`pnpm test` with the correct chain and a note to build first matches the accept criteria; the test-serve-bundled remark is accurate."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm test-unit <file>` is explicitly an accepted command for running a single spec."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes pnpm lint plus the format check with git diff --exit-code, along with typecheck and test-docs, matching CI."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names pnpm-lock.yaml plus dist/ outputs and generated CHANGELOG.md files, satisfying the accept criterion without declaring src, docs or playground generated."
+    }
+  }
+}

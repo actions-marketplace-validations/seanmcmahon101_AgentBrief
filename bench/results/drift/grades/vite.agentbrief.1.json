@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Use pnpm (the repo pins pnpm@12.10.0 via the `packageManager` field, and Node ^20.19.0 || >=22.12.0). The `preinstall` script runs `npx only-allow pnpm`, so npm and yarn are rejected. Install with: `pnpm install`",
+    "q2": "`pnpm test`. This runs `pnpm test:unit && pnpm test-serve && pnpm test-build`, which are vitest unit tests plus the Playwright e2e serve and build tests. Run `pnpm build` first and `pnpm exec playwright install chromium` once, because the e2e tests need built packages and a Chromium binary. CI also runs `pnpm run test-serve-bundled`. For unit tests only, use `pnpm test:unit`, which is `vitest run`.",
+    "q3": "`pnpm exec vitest run packages/vite/src/node/__tests__/config.spec.ts`. Append `-t \"<test name>\"` to narrow it to one test.",
+    "q4": "CI's lint job runs these in order after `pnpm run build`: `pnpm run lint:js` (which is `eslint --cache . --concurrency auto`), then `pnpm format && git diff --exit-code` (oxfmt, failing if it changes any file), then `pnpm run typecheck`, then `pnpm run test-docs`. For lint and formatting alone, run `pnpm run lint:js && pnpm format && git diff --exit-code`.",
+    "q5": "Do not hand-edit `pnpm-lock.yaml`; it is the generated lockfile, and AGENTS.md lists it as do-not-edit. Build output (`**/dist`, `dist-ssr`) and `node_modules` are generated and gitignored. So are `playground-temp`, `temp`, `.eslintcache`, `docs/.vitepress/cache`, `docs/.vitepress/.temp` and `packages/vite/LICENSE`. ESLint also skips `**/fixtures/**` and `**/*.snap`, so treat the test fixtures and snapshots as managed content: update snapshots with vitest rather than by hand. The create-vite templates (`packages/create-vite/template-*`) are skipped by ESLint but are source files, not generated. I did not find a separate vendored directory, but I only listed files in `packages/vite/src/node/**` and the fixtures. I did not check `.oxfmtrc.json` for ignore patterns."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and gives `pnpm install`, consistent with the truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `pnpm test` with the correct chain test:unit && test-serve && test-build; extra detail is accurate and harmless."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm exec vitest run <file>` is an explicitly accepted form and targets the right file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `pnpm run lint:js` plus `pnpm format && git diff --exit-code`, matching CI, with typecheck as a bonus."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Names pnpm-lock.yaml and gitignored dist build output, which are two accepted items, but also claims fixtures/snapshots should be treated as managed content and misses the vendored d.ts files and generated CHANGELOGs; the mixed extras are borderline, so it is scored 0.5 rather than 1."
+    }
+  }
+}

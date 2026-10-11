@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "llm",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Maven via the checked-in wrapper (Gradle via ./gradlew is also supported, but CI's primary workflow and the README use Maven). Install dependencies with: ./mvnw -B dependency:go-offline (or ./mvnw -B compile, which also resolves them). There is no separate install step, because the wrapper downloads Maven and dependencies on first use.",
+    "q2": "./mvnw -B test (CI runs the full build, including tests and the format and checkstyle checks, with ./mvnw -B verify). Gradle equivalent: ./gradlew test.",
+    "q3": "./mvnw -B test -Dtest=OwnerControllerTests (Gradle equivalent: ./gradlew test --tests org.springframework.samples.petclinic.owner.OwnerControllerTests).",
+    "q4": "CI runs only ./mvnw -B verify. The spring-javaformat:validate goal and the nohttp checkstyle check are both bound to the validate phase, so they run automatically. To run just the lint checks: ./mvnw -B validate. Fix formatting with: ./mvnw spring-javaformat:apply. Gradle CI equivalent: ./gradlew build (it includes checkFormat*, checkstyleMain, checkstyleTest and checkstyleNohttp).",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated from src/main/scss/*.scss plus Bootstrap, so edit the scss and rebuild with ./mvnw package -P css instead of editing the css by hand. The fonts under src/main/resources/static/resources/fonts/ are vendored webfonts, and the Wrapper files (gradle/wrapper/gradle-wrapper.jar, gradlew, gradlew.bat, mvnw, mvnw.cmd, .mvn/wrapper/) are generated. Build output (target/, build/) is also generated, though it doesn't exist yet. Apart from these, nothing else is generated or vendored."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Uses the Maven wrapper with ./mvnw dependency:go-offline / compile, which resolves dependencies, and mentions the Gradle wrapper too."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw -B test matches the accepted ./mvnw test, and it also names ./mvnw -B verify and ./gradlew test."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw -B test -Dtest=OwnerControllerTests is the accepted class filter, and the Gradle FQN form is also correct."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives ./mvnw -B validate and ./mvnw -B verify (which CI runs) plus ./gradlew build; all are accepted, and spring-javaformat:apply is only mentioned as the fix command."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Correctly identifies petclinic.css as generated from scss, with the ./mvnw package -P css regeneration command, and also notes target/ and build/; the extra items are harmless."
+    }
+  }
+}

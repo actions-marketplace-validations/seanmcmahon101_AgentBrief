@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "none",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pip with a virtualenv, driven by the repo's scripts. Run `scripts/install`. It creates `venv/` with `python3 -m venv venv`, then runs `venv/bin/pip install -U pip` and `venv/bin/pip install -r requirements.txt`. Use `scripts/install -p python3.12` to pick a different interpreter. In CI (`GITHUB_ACTIONS` set) it skips the venv and runs plain `pip`.",
+    "q2": "scripts/test. It runs `scripts/check` first, then `venv/bin/coverage run -m pytest`, then `scripts/coverage`, which enforces 100% coverage. To run pytest alone without lint or coverage: `venv/bin/pytest`.",
+    "q3": "venv/bin/pytest tests/client/test_auth.py. Via the wrapper (which also runs check and coverage) it is `scripts/test tests/client/test_auth.py`, but the coverage step will fail on a partial run.",
+    "q4": "scripts/check. It runs `./scripts/sync-version`, then `venv/bin/ruff format httpx tests --diff`, `venv/bin/mypy httpx tests`, and `venv/bin/ruff check httpx tests`. CI also runs `scripts/build`, which does `python -m build`, `twine check dist/*` and `mkdocs build`. To auto-fix lint and formatting locally, use `scripts/lint`.",
+    "q5": "I found no vendored directories. These are generated or build output, not hand-edited: `venv/` (from scripts/install), `dist/` (from scripts/build), `site/` (mkdocs build output), and coverage artifacts such as `.coverage`. I only read the scripts and workflows and did not read `.gitignore`, so I haven't confirmed these are all ignored. The version in `httpx/__version__.py` must match the second version entry in `CHANGELOG.md`. `scripts/sync-version` checks this and fails if they differ."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives scripts/install, which creates a venv and runs pip install -r requirements.txt, matching the ground truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test and correctly describes its steps, and also mentions venv/bin/pytest, both accepted."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/pytest tests/client/test_auth.py is an accepted form of pytest on that file, and the caveat about the wrapper is accurate."
+    },
+    "q4": {
+      "score": 0.5,
+      "reason": "scripts/check is correct and fully described, but the answer also recommends scripts/lint, which the REJECT list says does not exist, contradicting the truth."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Lists dist/ and site/ as build artifacts and finds no vendored dirs, but omits htmlcov and egg-info, and admits it did not check .gitignore; no generated source claims, so it is mostly right but incomplete."
+    }
+  }
+}

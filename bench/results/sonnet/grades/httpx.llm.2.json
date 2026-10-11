@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "llm",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pip with a venv, driven by the repo's scripts (no uv/poetry). Install with: scripts/install. It creates ./venv and runs pip install -U pip, then pip install -r requirements.txt. The scripts use venv/bin/ automatically if venv exists.",
+    "q2": "scripts/test. Locally it runs scripts/check first, then coverage run -m pytest, then scripts/coverage, which fails under 100% coverage. In CI the lint step is skipped here because it runs separately. For pytest alone with no lint or coverage gate, run: venv/bin/pytest",
+    "q3": "venv/bin/pytest tests/client/test_auth.py (or plain 'pytest tests/client/test_auth.py' if the venv is activated). The wrapper also works: scripts/test tests/client/test_auth.py, but it adds lint and the 100% coverage gate.",
+    "q4": "scripts/check. It runs these in order: ./scripts/sync-version, venv/bin/ruff format httpx tests --diff, venv/bin/mypy httpx tests, venv/bin/ruff check httpx tests. To auto-fix instead, run scripts/lint (ruff check --fix, then ruff format).",
+    "q5": "No source files are vendored or hand-generated. Build and tool output must not be edited, and all of it is gitignored: venv*/, build/, dist/, site/ (mkdocs output), htmlcov/, .coverage, *.egg-info/, .mypy_cache/, .pytest_cache/, __pycache__/. Related files to leave alone: httpx/__version__.py must match the latest CHANGELOG.md entry, because scripts/sync-version checks this. requirements.txt is also a pinned dependency list."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names scripts/install, which creates the venv and runs pip install -r requirements.txt, matching the truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test with the correct description of check, coverage run, and the 100% gate, and also mentions venv/bin/pytest."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Gives (venv/bin/)pytest tests/client/test_auth.py and notes the scripts/test wrapper alternative with its caveats."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives scripts/check with the correct component commands; the scripts/lint mention is extra, though the truth says scripts/lint doesn't exist as a check command (it's presented as an auto-fix, which is harmless extra detail)."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "States no vendored or generated source and lists gitignored build artifacts (dist/, site/, htmlcov/, *.egg-info), matching accept; the extra notes don't claim source files are generated."
+    }
+  }
+}

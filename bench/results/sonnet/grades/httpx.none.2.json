@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "none",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pip inside a venv, driven by the repo's shell scripts (no uv, poetry or similar). Install dependencies with: scripts/install. It creates ./venv with python3 and runs pip install -U pip, then pip install -r requirements.txt. To pick a different interpreter, run: scripts/install -p python3.12",
+    "q2": "scripts/test. This runs scripts/check first when not on GitHub Actions, then 'coverage run -m pytest', then scripts/coverage, which enforces 100% coverage. If you only want pytest without lint or coverage, run: venv/bin/pytest",
+    "q3": "venv/bin/pytest tests/client/test_auth.py. The venv/bin/ prefix is needed because scripts/install puts the tools in ./venv. If you have activated the venv, plain 'pytest tests/client/test_auth.py' works. You can also run: scripts/test tests/client/test_auth.py. That passes the path through to pytest, but it also runs scripts/check and scripts/coverage, and the 100% coverage gate will fail on a partial run.",
+    "q4": "scripts/check. This is what CI runs ('Run linting checks' in .github/workflows/test-suite.yml). It runs ./scripts/sync-version, then venv/bin/ruff format httpx tests --diff, then venv/bin/mypy httpx tests, then venv/bin/ruff check httpx tests. To auto-fix instead of just checking, run scripts/lint.",
+    "q5": "I found no vendored code and no files marked generated or 'do not edit'. Do not hand-edit these build and cache outputs, all of which are gitignored: build/, dist/, site/ (built docs), htmlcov/, *.egg-info/, venv*/, .coverage, .pytest_cache/, .mypy_cache/, __pycache__/. One more constraint: the version in httpx/__version__.py must match the latest release entry in CHANGELOG.md, because scripts/sync-version checks this."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives scripts/install in a venv with pip install -r requirements.txt, matching the accepted answer."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test as the full-suite command and venv/bin/pytest as an accepted alternative."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Gives venv/bin/pytest tests/client/test_auth.py, and correctly notes scripts/test would fail the coverage gate on a partial run."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives scripts/check, which is what CI runs, and correctly lists its steps (ruff format --diff, mypy, ruff check)."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no vendored or generated source files and lists build artifacts (dist/, site/, htmlcov/, *.egg-info) as not to be hand-edited, matching the accepted answer; extra gitignored cache dirs are harmless."
+    }
+  }
+}

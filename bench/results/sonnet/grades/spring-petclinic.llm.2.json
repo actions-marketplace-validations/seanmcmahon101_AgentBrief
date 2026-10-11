@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "llm",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Maven, using the wrapper. Maven is primary and is what CI uses (Gradle also exists). There is no separate install step. Run `./mvnw dependency:go-offline` to prefetch dependencies, or `./mvnw -B verify` to resolve and build.",
+    "q2": "./mvnw test (tests only). CI runs the full build plus tests with `./mvnw -B verify`.",
+    "q3": "./mvnw test -Dtest=OwnerControllerTests",
+    "q4": "There is no separate lint command. Formatting (spring-javaformat:validate) and the nohttp Checkstyle check (src/checkstyle/) are bound to Maven's validate phase. CI therefore checks them by running `./mvnw -B verify`. To run only the checks, use `./mvnw -B validate`. To fix formatting, use `./mvnw spring-javaformat:apply`.",
+    "q5": "Generated, so don't edit by hand: target/ and build/ (build output), .gradle, and the compiled CSS in src/main/resources/static/resources/css/. Per .gitignore, every *.css there except petclinic.css is generated from SCSS by `./mvnw package -P css`, so edit the SCSS sources instead. The wrapper files (.mvn/wrapper/maven-wrapper.jar, gradle/wrapper/gradle-wrapper.jar, mvnw, gradlew) are vendored and shouldn't be hand-edited. There is no checked-in vendored dependency directory."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names the Maven wrapper (./mvnw) with valid dependency:go-offline and verify commands, and notes that Gradle also exists."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw test and ./mvnw -B verify are both accepted."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw test -Dtest=OwnerControllerTests matches the accepted command exactly."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Correctly says the checks are bound to validate, and gives ./mvnw -B verify, ./mvnw -B validate and spring-javaformat:apply for fixing."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Lists target/ and build/ and the generated CSS directory with the right ./mvnw package -P css command, but explicitly excludes petclinic.css, which the truth says is the generated file."
+    }
+  }
+}

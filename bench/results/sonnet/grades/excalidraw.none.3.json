@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "none",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Yarn classic (yarn@1.22.22, a workspaces monorepo; Node >=18, CI uses Node 20). Install with: yarn install",
+    "q2": "yarn test:app --watch=false (runs vitest once without watch mode). `yarn test` is the same as `yarn test:app`, but it starts vitest in watch mode. For CI's full check (typecheck, eslint, prettier, then tests): yarn test:all",
+    "q3": "yarn vitest run packages/element/tests/bounds.test.ts",
+    "q4": "yarn test:other && yarn test:code && yarn test:typecheck. These are the three steps in .github/workflows/lint.yml. They expand to: prettier --list-different on css/scss/json/md/html/yml files, eslint --max-warnings=0 --ext .js,.ts,.tsx ., and tsc. To auto-fix, run yarn fix.",
+    "q5": "No checked-in generated or vendored source directories turned up. .eslintignore lists build output and generated paths that must not be hand-edited or committed: node_modules/, build/, dist/, dev-dist, coverage, public/workbox, packages/excalidraw/types, examples/**/public, and package-lock.json (the repo uses yarn.lock). yarn.lock is lockfile-managed, so update it through yarn rather than by hand. I did not check whether the locale files in packages/excalidraw/locales are generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` at root matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is explicitly accepted, and the extra details (yarn test, yarn test:all) are consistent with the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn vitest run packages/element/tests/bounds.test.ts` exactly matches an accept item."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives yarn test:other, test:code and test:typecheck matching CI; the mention of `yarn fix` is only an extra note on auto-fixing, not the answer."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Names build output dirs (build, dist, dev-dist, packages/excalidraw/types) and yarn.lock, which matches an accept item, but opens with 'no generated or vendored source directories' and explicitly misses the Crowdin-managed locale files."
+    }
+  }
+}

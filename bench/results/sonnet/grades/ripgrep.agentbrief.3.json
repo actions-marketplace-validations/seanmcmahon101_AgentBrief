@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "agentbrief",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Cargo (Rust, toolchain >=1.96, pinned in CI as 1.96.0). There is no separate install step. Cargo fetches dependencies during the build, so run: cargo build --workspace. To fetch dependencies only, run: cargo fetch.",
+    "q2": "cargo test --workspace --features unstable-index (CI first runs this, then runs cargo test --workspace --features pcre2). The AGENTS.md shortcut `cargo test --workspace` also works, but it skips the index tests.",
+    "q3": "cargo test --test integration regression:: (tests/regression.rs is a module of the `integration` test target, which is tests/tests.rs per Cargo.toml [[test]]. The `regression::` filter selects only that module.)",
+    "q4": "cargo fmt --all --check (this is the CI rustfmt job). The CI docs job also runs: RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items --workspace. CI does not run clippy.",
+    "q5": "Cargo.lock and fuzz/Cargo.lock (lockfiles, per AGENTS.md). Also the man page and shell completions, which are produced by ripgrep's build process (build.rs) into target/ build output. Do not hand-edit target/ either. No vendored directories were found."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies Cargo, says no separate install step, and gives cargo build --workspace and cargo fetch, consistent with the accepted answer."
+    },
+    "q2": {
+      "score": 0.5,
+      "reason": "Includes cargo test --workspace and the pcre2 run, but the primary command adds an unstable-index feature not in the truth and claims the plain workspace command skips tests."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "cargo test --test integration regression:: exactly matches an accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives cargo fmt --all --check, adds the cargo doc command, and correctly says CI does not run clippy."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names Cargo.lock and target/ as non-hand-edited and says no vendored directories, matching the truth; the build.rs outputs lie in target/ and don't contradict it."
+    }
+  }
+}

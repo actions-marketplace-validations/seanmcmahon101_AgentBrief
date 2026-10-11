@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "llm",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Go modules with make (Go toolchain). From the repo root, run `make install_deps`, which runs `go get -v ./...`. `go mod download` also works. The `make test` target runs install_deps first.",
+    "q2": "make test (runs `go get -v ./...` and then `go test -v ./...`). CI runs `make richtest`, which needs richgo. Without make: `go test ./...`",
+    "q3": "go test -v ./doc -run '^(TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree)$'",
+    "q4": "CI runs golangci-lint, which also enforces gofmt and goimports through .golangci.yml: `golangci-lint run --verbose` (same as `make lint`). The local formatting check is `make fmt` (gofmt -l). CI also runs a license-header check: `docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .`",
+    "q5": "None found. There are no vendored directories and no 'Code generated' or 'DO NOT EDIT' markers in the source. `bin/` is a gitignored build output directory and is not present in the repo. The `assets/CobraMain.png` image is a static asset."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives `make install_deps` (go get -v ./...) and `go mod download`, both accepted, with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "States `make test`, mentions CI's `make richtest`, and the plain `go test ./...`, all matching accept criteria."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Runs `go test -v ./doc -run` with an anchored regex naming exactly the five TestGenMd* functions from that file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives golangci-lint run (same as make lint), make fmt, and the addlicense check, all matching the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Answers none, with no vendored or generated directories claimed; the assets image is correctly called a static asset."
+    }
+  }
+}

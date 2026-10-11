@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Maven, through the committed Maven Wrapper (./mvnw, Maven 3.9.16, Java 17). build.gradle also exists, but README and CI use Maven. Install dependencies with: ./mvnw -B dependency:go-offline (Maven also resolves them on the first build).",
+    "q2": "./mvnw -B test",
+    "q3": "./mvnw -B -Dtest=OwnerControllerTests test",
+    "q4": "CI has no separate lint job. Its only build command is ./mvnw -B verify (.github/workflows/maven-build.yml), and the checks run inside it because spring-javaformat:validate and the nohttp checkstyle check are bound to the validate phase. To run just those checks: ./mvnw -B validate",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated from src/main/scss/*.scss by the libsass plugin in the css profile (regenerate with ./mvnw generate-resources -P css, and edit the .scss files instead). src/main/resources/static/resources/fonts/* are vendored third-party webfonts (Montserrat, Varela Round). target/ is build output (gitignored). Bootstrap is fetched as a webjar at build time, not vendored in the repo."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Uses Maven wrapper ./mvnw with a dependency resolution command (dependency:go-offline), matching the accepted Maven wrapper answer."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw -B test matches the accepted ./mvnw test (with the CI -B flag)."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw -B -Dtest=OwnerControllerTests test correctly filters by class using the wrapper."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Identifies ./mvnw -B verify as CI's command and gives ./mvnw -B validate to run the bound spring-javaformat and nohttp checks, matching accepted answers."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Correctly names petclinic.css as generated from scss (regenerate command via generate-resources -P css is functionally consistent with the css profile) and also notes target/; extra vendored fonts detail is harmless."
+    }
+  }
+}

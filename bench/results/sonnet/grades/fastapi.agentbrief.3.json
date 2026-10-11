@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "fastapi",
+    "arm": "agentbrief",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "uv (uv.lock, Python 3.11 per .python-version). Install with: uv sync --locked --extra all",
+    "q2": "uv run bash scripts/test.sh",
+    "q3": "uv run pytest tests/test_application.py",
+    "q4": "CI runs pre-commit through prek: `uv run prek run --from-ref origin/master --to-ref HEAD --show-diff-on-failure`. Use `uv run prek run --all-files` to check everything. The hooks run ruff check, ruff format, mypy, ty, typos, and basic file checks. To run the lint script directly: `uv run bash scripts/lint.sh`. That runs `mypy fastapi`, `ty check`, `ruff check fastapi tests docs_src scripts` and `ruff format fastapi tests --check`.",
+    "q5": "uv.lock is a generated lockfile, so don't edit it by hand (change pyproject.toml and run `uv lock`). The files in docs/en/data/ (people.yml, contributors.yml, sponsors.yml, github_sponsors.yml, topic_repos.yml, translators.yml and similar) are filled in by scripts/ jobs and GitHub workflows. The block between the agentbrief:start and agentbrief:end markers in AGENTS.md is also generated. There is no vendored code directory. I did not check whether the translated docs in docs/<lang>/ are generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies uv and gives `uv sync --locked --extra all`, which matches an ACCEPT command exactly."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`uv run bash scripts/test.sh` matches the accepted command."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`uv run pytest tests/test_application.py` is exactly the accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives the CI prek command, `uv run prek run --all-files`, and `uv run bash scripts/lint.sh` with the correct contents, all matching ACCEPT."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names uv.lock as generated and not to be edited by hand, which satisfies the at-least-one criterion; the extra claims don't contradict the truth."
+    }
+  }
+}

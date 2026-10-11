@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "none",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Maven, using the checked-in wrapper (a Gradle build also exists, but CI's primary build and the pom.xml are Maven). Install dependencies with: ./mvnw -B dependency:go-offline (a plain ./mvnw -B compile also fetches them). Needs JDK 17+.",
+    "q2": "./mvnw -B test (CI runs the full build including tests, format and checkstyle checks with: ./mvnw -B verify)",
+    "q3": "./mvnw -B test -Dtest=OwnerControllerTests",
+    "q4": "CI has no separate lint step. It runs ./mvnw -B verify, and the validate phase of that runs spring-javaformat:validate and the nohttp checkstyle check. To run only those two checks: ./mvnw -B validate. To auto-fix formatting: ./mvnw spring-javaformat:apply",
+    "q5": "target/ (Maven build output), build/ and .gradle/ (Gradle output), and any generated *.css under src/main/resources/static/resources/css (compiled from the SCSS by libsass; gitignored except petclinic.css). Edit the SCSS sources instead. There are no vendored directories. The wrapper files (mvnw, mvnw.cmd, gradlew, gradlew.bat, .mvn/wrapper/, gradle/wrapper/) are tool-generated and shouldn't be hand-edited."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names the Maven wrapper ./mvnw with dependency:go-offline/compile and mentions Gradle exists; matches ACCEPT with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw -B test and ./mvnw -B verify both match accepted commands."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw -B test -Dtest=OwnerControllerTests matches the accepted class-filter command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Identifies ./mvnw -B verify and validate as running spring-javaformat:validate and nohttp checkstyle, matching ACCEPT; apply is only an extra."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Gives target/ and build/ output dirs but does not identify petclinic.css as generated, and wrongly says petclinic.css is the one that is not gitignored/implies hand-editable generated files vaguely."
+    }
+  }
+}

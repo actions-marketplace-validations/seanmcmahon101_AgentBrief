@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Maven, via the committed Maven wrapper (./mvnw; Maven is the CI build, and build.gradle is a parallel Gradle build). Install/resolve dependencies with: ./mvnw -B dependency:go-offline",
+    "q2": "./mvnw -B test",
+    "q3": "./mvnw -B test -Dtest=OwnerControllerTests",
+    "q4": "./mvnw -B validate (runs the spring-javaformat validate goal and the nohttp checkstyle check, both bound to the validate phase; CI runs the full ./mvnw -B verify, which includes these)",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated from src/main/scss/*.scss (via the Maven 'css' profile, ./mvnw generate-resources -P css), so change the SCSS and regenerate instead of editing the CSS. src/main/resources/static/resources/fonts/* and the bundled webfont assets are vendored third-party files. target/ and build/ are build output and not hand-edited."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Uses the Maven wrapper ./mvnw with dependency:go-offline, which resolves dependencies and matches the accepted Maven wrapper approach."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw -B test matches the accepted ./mvnw test, with only the harmless batch-mode flag added."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw -B test -Dtest=OwnerControllerTests filters by class name and matches the accepted form."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "./mvnw -B validate is accepted, and it correctly notes that CI runs verify, which includes these checks."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Identifies petclinic.css as generated from the SCSS via the Maven css profile and mentions target/ and build/; the extra claim about vendored fonts is harmless."
+    }
+  }
+}

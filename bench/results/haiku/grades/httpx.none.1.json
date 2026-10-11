@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "none",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Pip with a venv, driven by the repo's shell scripts (pyproject.toml uses hatchling only as the build backend; there is no uv/poetry/tox). Install with: scripts/install (on Windows-free Linux/macOS this creates ./venv and runs pip install -U pip and pip install -r requirements.txt, which does an editable install with the brotli,cli,http2,socks,zstd extras). Equivalent manual form: python3 -m venv venv && venv/bin/pip install -U pip && venv/bin/pip install -r requirements.txt",
+    "q2": "scripts/test",
+    "q3": "venv/bin/pytest tests/client/test_auth.py (do not use scripts/test for a single file: it passes arguments through to pytest, but it also runs scripts/check and scripts/coverage, and the coverage step enforces --fail-under=100, so a partial run will fail it)",
+    "q4": "scripts/check (CI runs this step. It executes ./scripts/sync-version, then: venv/bin/ruff format httpx tests --diff, venv/bin/mypy httpx tests, and venv/bin/ruff check httpx tests. To apply fixes locally instead, use scripts/lint, which runs ruff check --fix and ruff format.)",
+    "q5": "None. I found no generated or vendored files or directories and no 'do not edit' markers in the repo. httpx/__version__.py is hand-edited: it is the version source for hatch, and scripts/sync-version fails if it does not match the second version heading in CHANGELOG.md, so bump both together. The mkdocs output (site/) and build/ and dist/ are gitignored build artifacts, not source."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies pip in a venv and gives scripts/install plus the equivalent pip install -r requirements.txt, matching ACCEPT."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "scripts/test is an accepted command."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/pytest tests/client/test_auth.py matches the accepted pytest invocation and correctly warns against scripts/test for a partial run."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives scripts/check and its contents (ruff format --diff, mypy, ruff check), matching the truth; the extra mention of scripts/lint is framed as a separate fixing command, not the CI check."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Answers none and identifies site/, build/, dist/ as gitignored build artifacts, consistent with the truth."
+    }
+  }
+}

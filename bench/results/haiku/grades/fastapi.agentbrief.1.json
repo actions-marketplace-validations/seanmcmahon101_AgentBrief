@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "fastapi",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "uv is the package and environment manager (uv.lock is committed; pyproject.toml declares the project with a pdm-backend build, but deps are installed with uv). Install from the repo root with: uv sync --locked --extra all",
+    "q2": "uv run bash scripts/test.sh",
+    "q3": "uv run pytest tests/test_application.py",
+    "q4": "uv run bash scripts/lint.sh (runs: mypy fastapi; ty check; ruff check fastapi tests docs_src scripts; ruff format fastapi tests --check). The pre-commit CI job also runs: uv run prek run --from-ref origin/${GITHUB_BASE_REF} --to-ref HEAD --show-diff-on-failure",
+    "q5": "README.md is generated from docs/en/docs/index.md by scripts/docs.py generate-readme, so edit index.md instead. docs/en/overrides/partials/banner-sponsors.html is rendered by scripts/docs.py render-banner-sponsors. uv.lock is managed by uv and should not be hand-edited. Translated docs under docs/<lang>/ come from the translation tooling (scripts/translate.py, scripts/translation_fixer.py). I found no vendored directories; fastapi/_compat/ is first-party code. Build output (site/, site_build/, htmlcov/, coverage/) is gitignored and generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names uv and gives `uv sync --locked --extra all`, which exactly matches the CI command."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`uv run bash scripts/test.sh` matches the accepted command."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`uv run pytest tests/test_application.py` matches the accepted command exactly."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `uv run bash scripts/lint.sh` with the correct contents, plus the CI prek command."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names README.md generated from index.md, the banner-sponsors.html partial, uv.lock and build outputs, with no rejected claims."
+    }
+  }
+}

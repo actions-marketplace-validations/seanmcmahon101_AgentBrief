@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "none",
+    "rep": 2,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Yarn v1 (classic), pinned as yarn@1.22.22 in package.json's packageManager field. The repo is a Yarn workspaces monorepo that needs Node >=18, and CI uses Node 20.x. Install dependencies with: yarn install",
+    "q2": "yarn test:unit --watch=false  (this runs vitest once. CI runs plain `yarn test:unit`, which exits on its own without a TTY. `yarn test:all` also runs types, lint and format checks first.)",
+    "q3": "yarn test:unit --watch=false packages/element/tests/bounds.test.ts",
+    "q4": "CI (.github/workflows/lint.yml) runs these three in order after `yarn install`: yarn test:format && yarn test:lint && yarn test:types. These expand to: prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore --list-different, then eslint --max-warnings=0 --ext .js,.ts,.tsx ., then tsc. To auto-fix, run `yarn fix`.",
+    "q5": "The ignore lists in .eslintignore (.prettierignore is empty) name these generated or vendored paths: node_modules/, build/, dist/, dev-dist/, coverage/, public/workbox, packages/excalidraw/types, examples/**/public, and firebase/. Don't hand-edit them. yarn.lock is also machine-generated, so change it only through yarn. I didn't check whether other generated files exist, such as locale coverage output. I also didn't check whether the packages/fractional-indexing and packages/laser-pointer folders are vendored code."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from root matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false` is explicitly accepted and the extra detail is accurate."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted form with the file filter and watch disabled."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives yarn test:format, test:lint and test:types matching CI; the `yarn fix` mention is harmless extra."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names build/, dist/, dev-dist/, packages/excalidraw/types and yarn.lock as generated, matching the accept criterion without any rejected claims."
+    }
+  }
+}

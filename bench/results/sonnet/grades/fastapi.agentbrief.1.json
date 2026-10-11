@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "fastapi",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "uv (lockfile uv.lock, Python 3.11 per .python-version). Install with: `uv sync --locked --extra all`. CI's test job uses `uv sync --no-dev --group tests --extra all`, and the pre-commit job uses `uv sync --locked --extra all`. A plain `uv sync` also works, and AGENTS.md lists it.",
+    "q2": "`uv run bash scripts/test.sh`. This runs `PYTHONPATH=./docs_src pytest -n auto --dist loadgroup tests scripts/tests/`. CI runs it as `uv run --no-sync bash scripts/test-cov.sh`, which adds coverage.",
+    "q3": "`PYTHONPATH=./docs_src uv run pytest tests/test_application.py`. I did not check that this file exists. The repo's pytest config adds `--ignore=docs_src` and a 20s timeout. Add `-n auto` if you want parallel runs.",
+    "q4": "CI lint runs through pre-commit (prek). The command is `uv run prek run --from-ref origin/<base-branch> --to-ref HEAD --show-diff-on-failure`. Use `uv run prek run --all-files` to check everything. The hooks include `ruff check`, `ruff format`, `mypy fastapi`, `ty check`, typos, zizmor and the docs-script checks. To run the underlying checks directly, use `bash scripts/lint.sh`, which runs `mypy fastapi`, `ty check`, `ruff check fastapi tests docs_src scripts` and `ruff format fastapi tests --check`. Run these through `uv run`, for example `uv run bash scripts/lint.sh`. To auto-fix, use `uv run bash scripts/format.sh`.",
+    "q5": "Do not hand-edit `uv.lock`, which uv generates. Do not hand-edit `README.md` either, because the pre-commit hook `generate-readme` produces it from `docs/en/docs/index.md`. The same applies to the sponsor banner partial `docs/en/overrides/partials/banner-sponsors.html` (rendered from `docs/en/data/sponsors.yml`). Translated docs under `docs/<lang>/` (everything except `docs/en`) are generated or LLM-translated, and a hook rejects manual changes to non-translated files there. The AgentBrief block in `AGENTS.md` is generated and must not be edited. `docs/language_names.yml` and the language lists are updated by `docs.py update-languages`. I found no vendored directories."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names uv and `uv sync --locked --extra all`, which matches an ACCEPT command."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`uv run bash scripts/test.sh` matches the accepted command and the details are correct."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`PYTHONPATH=./docs_src uv run pytest tests/test_application.py` runs only that file; the extra PYTHONPATH is harmless."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives the prek CI command, `prek run --all-files`, and `bash scripts/lint.sh` with the correct contents, all matching ACCEPT."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names uv.lock, README.md generated from docs/en/docs/index.md, and the banner-sponsors.html partial, all correct."
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "none",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Go modules (go.mod: module github.com/spf13/cobra, go 1.15); run `make install_deps` from the repo root, which executes `go get -v ./...`.",
+    "q2": "make test (runs install_deps, then `go test -v ./...`); equivalent direct form: go test -v ./...",
+    "q3": "go test -v ./doc/ -run '^(TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree)$'  (Go selects tests per package, not per file, so this runs the five test functions defined in doc/md_docs_test.go)",
+    "q4": "make fmt (gofmt -l check over all .go files) and golangci-lint run --verbose (config in .golangci.yml; CI uses golangci-lint-action with args --verbose). CI also runs a license-header check: docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .",
+    "q5": "None. There is no vendor/ directory, and no .go files contain 'Code generated' or 'DO NOT EDIT' markers; the doc/ generators and completion files are hand-written source."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Go modules with `make install_deps` running `go get -v ./...` matches the accepted answer."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`make test` and `go test -v ./...` are both accepted commands."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Runs `go test ./doc` with a -run regex naming exactly the five TestGenMd* functions, and correctly notes Go selects tests per package."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives golangci-lint run (as in CI) plus make fmt and the addlicense check, all consistent with the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says none, with no vendor/ dir or generated markers, matching the truth and avoiding all reject items."
+    }
+  }
+}

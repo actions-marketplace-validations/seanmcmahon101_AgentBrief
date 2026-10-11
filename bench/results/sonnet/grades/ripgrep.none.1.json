@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "none",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Cargo (Rust). There is no separate install step. Cargo fetches dependencies during the build. Run `cargo build --workspace` from the repo root. Add `--locked` to stay on Cargo.lock. The pinned toolchain is Rust 1.96 (edition 2024).",
+    "q2": "`cargo test --workspace`. CI also runs it with `--features unstable-index` and with `--features pcre2`, which needs the PCRE2 library: `cargo test --verbose --workspace --features unstable-index` and `cargo test --verbose --workspace --features pcre2`.",
+    "q3": "`cargo test --test integration regression`. tests/regression.rs is not its own test target. Cargo.toml sets `autotests = false` and defines one `[[test]]` named `integration` (path tests/tests.rs), which pulls in `mod regression;`. The trailing `regression` filters to tests in that module. To be stricter, use `cargo test --test integration regression:: `.",
+    "q4": "Formatting: `cargo fmt --all --check`. Docs lint, with warnings treated as errors: `RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items --workspace`. CI has no clippy step. It also runs `ci/test-complete` (zsh completion test) and `cargo check` inside `fuzz/`.",
+    "q5": "I found no vendored directories. Files that should not be hand-edited: `Cargo.lock` (managed by Cargo) and `target/` (build output). `build.rs` generates the man page and shell completions into `target/`, and the completions and man page are built from `crates/core/flags/defs.rs` and the templates in `crates/core/flags/doc/`. Edit those sources instead. `benchsuite/runs/*` (raw.csv, summary) are recorded benchmark results and should be left as they are. I did not confirm that `target/` exists, because there is no git repo or build here."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names Cargo, says no separate install step and that dependencies are fetched during `cargo build`, matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `cargo test --workspace` and the CI `--features pcre2` variant; the extra unstable-index feature is harmless detail."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Gives `cargo test --test integration regression` and correctly explains the single integration test target."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check` plus the cargo doc command, and correctly states CI has no clippy step."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names Cargo.lock and target/ as not to be hand-edited and says no vendored directories; the extra benchsuite/runs note does not claim crates/*, tests/data or pkg/ are generated."
+    }
+  }
+}

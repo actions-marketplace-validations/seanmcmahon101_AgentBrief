@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "fastapi",
+    "arm": "llm-stale",
+    "rep": 2,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "uv (lockfile uv.lock, Python 3.11 per .python-version, supports >=3.10). Install with: uv sync --group dev --extra all. CI's test job uses: uv sync --no-dev --group tests --extra all. The pre-commit job uses: uv sync --locked --extra all.",
+    "q2": "bash scripts/run-tests.sh (runs: PYTHONPATH=./docs_src pytest -n auto --dist loadgroup tests scripts/tests/). Run it through uv if the venv isn't activated: uv run bash scripts/run-tests.sh. CI itself runs bash scripts/test-cov.sh, which wraps run-tests.sh with --cov. AGENTS.md says scripts/test.sh, but that file doesn't exist.",
+    "q3": "PYTHONPATH=./docs_src uv run pytest tests/test_application.py -p no:xdist (PYTHONPATH is needed so tests can import docs_src examples. Drop 'uv run' if the venv is active.)",
+    "q4": "CI lints with pre-commit hooks via prek: uv sync --locked --extra all && uv run prek run --all-files (CI itself uses --from-ref origin/<base> --to-ref HEAD instead of --all-files). The hooks are ruff check, ruff format, mypy fastapi, ty check, typos, zizmor, and the docs checks. The same checks without hooks are in scripts/check-style.sh: uv run bash scripts/check-style.sh (mypy fastapi; ty check; ruff check fastapi tests docs_src scripts; ruff format fastapi tests --check). To auto-fix: bash scripts/format.sh. AGENTS.md's scripts/lint.sh doesn't exist, and nothing in CI calls check-style.sh.",
+    "q5": "No vendored directories. Generated or tool-managed files that shouldn't be hand-edited: uv.lock (use uv lock or uv sync), README.md (generated from docs/en/docs/index.md by 'uv run ./scripts/docs.py generate-readme'), docs/en/overrides/partials/banner-sponsors.html (generated from docs/en/data/sponsors.yml by 'scripts/docs.py render-banner-sponsors'), and docs/en/data/*.yml (bot-updated by the sponsors.py and topic_repos.py workflows). The translated docs under docs/<lang>/ (de, es, fr, hi, ja, ko, pt, ru, tr, uk, zh, zh-hant) are produced by the translate workflow and scripts/translate.py. The pre-commit hook 'ensure-non-translated' also protects non-translated files in them, so don't edit them by hand. Also don't hand-edit the language list that 'docs.py update-languages' generates."
+  },
+  "grades": {
+    "q1": {
+      "score": 0.5,
+      "reason": "Names uv and the CI pre-commit command `uv sync --locked --extra all`, but its primary install command `uv sync --group dev --extra all` is not an accepted form and it mixes in a CI test-job variant."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `bash scripts/run-tests.sh` (and the uv run variant) and correctly notes CI uses test-cov.sh, with no rejected items recommended."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`PYTHONPATH=./docs_src uv run pytest tests/test_application.py -p no:xdist` is a valid pytest invocation on that file; the extras are harmless."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `uv run prek run --all-files` and `uv run bash scripts/check-style.sh` with the correct underlying commands, and correctly notes that scripts/lint.sh does not exist."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names uv.lock, README.md generated from docs/en/docs/index.md, and banner-sponsors.html, and does not claim fastapi/ or docs_src/ is generated."
+    }
+  }
+}

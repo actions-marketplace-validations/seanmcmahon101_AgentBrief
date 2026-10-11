@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "llm",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Go modules with Make as the wrapper (go.mod, module github.com/spf13/cobra). Install dependencies with: go get -v ./...   (this is what `make install_deps` runs, and `make test` calls it first).",
+    "q2": "make test   (runs `go get -v ./...` and then `go test -v ./...`). Plain equivalent: go test ./...   CI runs `make richtest`, which needs richgo.",
+    "q3": "go test -v ./doc -run 'TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree'   (these are all five tests in doc/md_docs_test.go; Go runs tests per package, so there is no per-file flag). To run one test: go test -run '^TestGenMdTree$' ./doc",
+    "q4": "Formatting: make fmt   (gofmt -l check, prints the diff on failure). Lint: make lint   (runs `golangci-lint run -v` using .golangci.yml, which also enforces gofmt/goimports). CI runs golangci-lint-action with `--verbose`. CI also has a license-header check: docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .",
+    "q5": "None. There are no vendored or generated source files that I could find. The only non-source directories are assets/ (CobraMain.png) and site/content/ (hand-written docs). bin/ and cobra.test are gitignored build outputs. go.sum is tool-managed, so change it with go commands, not by hand."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Go modules with `go get -v ./...` / `make install_deps` matches an ACCEPT criterion with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`make test` and `go test ./...` are both accepted, and the CI `make richtest` note is correct."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`go test -v ./doc -run` naming all five TestGenMd* functions in md_docs_test.go matches the ACCEPT criterion, and the note that Go has no per-file flag is correct."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "`make lint` (golangci-lint run -v), `make fmt`, and the addlicense check all match the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says none, notes go.sum is tool-managed, and does not claim doc/, site/ or assets/ are generated or vendored."
+    }
+  }
+}

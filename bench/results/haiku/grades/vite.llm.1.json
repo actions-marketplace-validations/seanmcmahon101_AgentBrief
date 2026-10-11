@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "llm",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "pnpm (pinned via the \"packageManager\" field: pnpm@12.9.1; enable Corepack or install that version). Install dependencies from the repo root with: pnpm install",
+    "q2": "pnpm test",
+    "q3": "pnpm run test-unit packages/vite/src/node/__tests__/config.spec.ts",
+    "q4": "pnpm run lint && pnpm format && git diff --exit-code",
+    "q5": "None are hand-edited source. Generated or tool-managed paths to leave alone: build output such as dist/ directories (produced by pnpm run build), the copied packages/vite/LICENSE (gitignored build artifact), .eslintcache, and pnpm-lock.yaml (managed by pnpm, not edited by hand). node_modules/ is also gitignored."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and gives `pnpm install` from the root, matching the truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`pnpm test` matches the accepted full-suite command."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm run test-unit <file>` is equivalent to the accepted `pnpm test-unit <file>` and targets only that spec."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `pnpm run lint` plus `pnpm format && git diff --exit-code`, matching the lint and format checks CI runs; typecheck is only a bonus."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Names pnpm-lock.yaml and dist/ outputs, which meets the accept criterion for a 1, but opens with 'None are hand-edited source' and adds the unverified claim that packages/vite/LICENSE and .eslintcache are generated, so credit is held to partial."
+    }
+  }
+}

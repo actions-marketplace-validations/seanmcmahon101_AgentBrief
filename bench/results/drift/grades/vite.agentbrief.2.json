@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "pnpm (pinned to pnpm@12.10.0 via packageManager; a preinstall hook rejects npm and yarn; Node ^20.19.0 || >=22.12.0). Install with: pnpm install",
+    "q2": "pnpm build && pnpm exec playwright install chromium && pnpm test   (pnpm test runs test:unit, test-serve and test-build in sequence. CI also runs test-serve-bundled: pnpm run test-serve-bundled. The unit tests alone are: pnpm test:unit)",
+    "q3": "pnpm exec vitest run packages/vite/src/node/__tests__/config.spec.ts",
+    "q4": "pnpm run build && pnpm run lint:js && pnpm format && git diff --exit-code && pnpm run typecheck   (CI's lint job also runs pnpm run test-docs. The build comes first because typecheck and lint need built packages. The format step reformats files, then git diff --exit-code fails if anything changed.)",
+    "q5": "pnpm-lock.yaml (generated lockfile). packages/*/CHANGELOG.md (generated from commits at release). patches/ (chokidar@3.6.0.patch, sirv@3.0.2.patch, dotenv-expand@13.0.0.patch are dependency patches applied by pnpm). dist/ and playground-temp/ (build and test output). Vendored or fixture files that the formatter ignores: playground/external/public/slash@3.0.0.js, playground/ssr-html/public/slash@3.0.0.js, playground/worker/classic-worker.js, playground/css/weapp.wxss. The block between agentbrief:start and agentbrief:end in AGENTS.md is also generated; refresh it with agentbrief sync."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and gives `pnpm install`, with no contradicting details."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `pnpm test` as the full-suite command; the extra build and playwright steps and the note on test-serve-bundled are harmless and consistent with CI."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm exec vitest run <file>` is explicitly an accepted form and the path is correct."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes `pnpm run lint:js` and `pnpm format && git diff --exit-code`, plus typecheck and a mention of test-docs, matching CI."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names pnpm-lock.yaml plus dist/ and generated CHANGELOG.md files, which meets the accept criterion; the extra items are not declared generated in the rejected categories (src, docs, playground are not wholesale called generated)."
+    }
+  }
+}

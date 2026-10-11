@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "llm",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Cargo (Rust workspace, edition 2024, MSRV 1.96). Cargo has no separate install step, because dependencies are fetched on build. Run `cargo build` from the repo root, or `cargo fetch` to only download dependencies. CI builds with `cargo build --verbose --workspace`.",
+    "q2": "`cargo test --all`. This is the documented command in AGENTS.md. CI instead runs `cargo test --verbose --workspace --features unstable-index` and `cargo test --verbose --workspace --features pcre2`.",
+    "q3": "`cargo test --test integration regression::`. tests/regression.rs is a module of the single `integration` test target (tests/tests.rs, `autotests = false`), so it can't be run as `--test regression`. The `regression::` filter selects its tests.",
+    "q4": "The CI formatting check is `cargo fmt --all --check` (rustfmt.toml sets max_width 79). The CI docs check is `RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items --workspace`. CI has no clippy step. It also runs `ci/test-complete`, which checks zsh completions against `--help` and needs a built `rg` and zsh.",
+    "q5": "I found no vendored directories. Lockfiles are tool-generated, so don't hand-edit `Cargo.lock` or `fuzz/Cargo.lock`. `HomebrewFormula` is a symlink to `pkg/brew`, so edit the files under `pkg/brew` rather than the link. The build script (build.rs) generates shell completions and man pages into `target/`, and those must not be edited. They come from the flag docs in `crates/core/flags/defs.rs`, so change that file instead. `crates/core/flags/complete/zsh.rs` matched my search for generated-file markers, but I didn't open it to confirm it is generated. `ci/sha256-releases` is probably release-generated, but I didn't check it either."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names Cargo, says no separate install step, and gives `cargo build` / `cargo fetch`, matching ACCEPT."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `cargo test --all`, which is an accepted command; the CI details are harmless extras."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`cargo test --test integration regression::` matches an ACCEPT form and correctly explains why `--test regression` fails."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check` and the cargo doc check, and correctly states CI has no clippy step."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Correctly names Cargo.lock and target/ and finds no vendored directories, but also claims generated files that are not hand-editable (fuzz/Cargo.lock, pkg/brew handling, flags/defs.rs guidance) and hedges on unverified files like zsh.rs and ci/sha256-releases, which blurs the 'none' truth."
+    }
+  }
+}

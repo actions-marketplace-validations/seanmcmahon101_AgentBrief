@@ -7,6 +7,7 @@ to results/raw/<repo>.<arm>.<rep>.json. Resumable: existing result files are ski
 Grading is separate (grade.py), reporting too (report.py).
 """
 import argparse, json, os, shutil, subprocess, sys, time
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 BENCH = os.path.dirname(os.path.abspath(__file__))
@@ -14,6 +15,8 @@ WORK_DEFAULT = "/tmp/claude-1000/-home-sm/dc3a09a6-ed56-427c-a632-10969d6c9cdc/s
 CORPUS_DEFAULT = "/home/sm/Work/agentbrief-corpus"
 REPOS = ["excalidraw", "vite", "httpx", "fastapi", "cobra", "ripgrep", "spring-petclinic", "sinatra"]
 ARMS = ["none", "llm", "agentbrief"]
+DRIFT_REPOS = ["excalidraw", "vite", "fastapi", "ripgrep"]
+DRIFT_ARMS = ["none", "llm-stale", "agentbrief"]
 
 # Instruction files other agents/tools might load. All removed in every arm.
 STRIP_NAMES = {"AGENTS.md", "CLAUDE.md", "CLAUDE.local.md", "GEMINI.md", ".cursorrules", ".clinerules",
@@ -92,7 +95,7 @@ def generate_llm(repo, a):
     if os.path.exists(md):
         return open(md).read()
     log("generating LLM AGENTS.md for", repo)
-    d = os.path.join(a.work, "gen", repo)
+    d = os.path.join(a.work, "gen", repo)  # always the unmutated repo
     strip_copy(os.path.join(a.corpus, repo), d)
     out = claude(d, LLM_PROMPT, "sonnet", ["--allowedTools", "Read,Glob,Grep,Write,Bash(ls:*),Bash(find:*),Bash(cat:*)",
                                           "--permission-mode", "acceptEdits", "--max-turns", "40"], timeout=1200)
@@ -105,20 +108,29 @@ def generate_llm(repo, a):
     return text
 
 
+def results_dir(tag):
+    return os.path.join(BENCH, "results", tag)
+
+
 def generate_agentbrief(repo, a, dst):
     """Run `agentbrief sync` on the stripped copy and return the AGENTS.md it wrote."""
     p = subprocess.run([a.agentbrief, "sync", "-C", dst, "--no-imports"], capture_output=True, text=True, timeout=300)
     if p.returncode != 0 or not os.path.exists(os.path.join(dst, "AGENTS.md")):
         raise SystemExit(f"agentbrief sync failed on {repo}: {p.stdout[-500:]} {p.stderr[-500:]}")
     text = open(os.path.join(dst, "AGENTS.md")).read()
-    open(os.path.join(BENCH, "generated", f"{repo}.agentbrief.AGENTS.md"), "w").write(text)
+    keep = os.path.join(results_dir(a.tag), "agentbrief-md")
+    os.makedirs(keep, exist_ok=True)
+    open(os.path.join(keep, f"{repo}.AGENTS.md"), "w").write(text)
     return text
 
 
 def setup_arm(repo, arm, a):
-    dst = os.path.join(a.work, arm, repo)
+    dst = os.path.join(a.work, a.tag, arm, repo)
     strip_copy(os.path.join(a.corpus, repo), dst)
-    if arm == "llm":
+    if a.drift:  # repo changes AFTER the (cached, unmutated-repo) llm AGENTS.md was written
+        import drift
+        drift.MUTATIONS[repo](dst)
+    if arm in ("llm", "llm-stale"):
         write_instruction_files(dst, generate_llm(repo, a))
     elif arm == "agentbrief":
         text = generate_agentbrief(repo, a, dst)
@@ -126,25 +138,32 @@ def setup_arm(repo, arm, a):
     return dst
 
 
-def build_prompt(repo):
-    task = json.load(open(os.path.join(BENCH, "tasks", f"{repo}.json")))
+def task_path(repo, drift):
+    return os.path.join(BENCH, "tasks", "drift" if drift else "", f"{repo}.json")
+
+
+def build_prompt(repo, drift):
+    task = json.load(open(task_path(repo, drift)))
     qs = "\n".join(f"{q['id']}. {q['question']}" for q in task["questions"])
     return QUESTION_PROMPT.format(qs=qs)
 
 
 def one_run(repo, arm, rep, dst, a):
-    out_path = os.path.join(BENCH, "results", "raw", f"{repo}.{arm}.{rep}.json")
-    out = claude(dst, build_prompt(repo), a.model,
+    out_path = os.path.join(results_dir(a.tag), "raw", f"{repo}.{arm}.{rep}.json")
+    out = claude(dst, build_prompt(repo, a.drift), a.model,
                  ["--max-turns", str(a.max_turns), "--allowedTools", ",".join(READ_TOOLS)])
-    out["_meta"] = {"repo": repo, "arm": arm, "rep": rep, "model": a.model}
+    out["_meta"] = {"repo": repo, "arm": arm, "rep": rep, "model": a.model, "tag": a.tag, "drift": a.drift}
     json.dump(out, open(out_path, "w"), indent=2)
     return out_path, out
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--repos", default=",".join(REPOS))
-    ap.add_argument("--arms", default=",".join(ARMS))
+    ap.add_argument("--repos", default=None)
+    ap.add_argument("--tag", default="sonnet", help="results go to results/<tag>/ (default: sonnet)")
+    ap.add_argument("--drift", action="store_true",
+                    help="drift experiment: mutate repos after llm generation; uses tasks/drift/, arms llm-stale")
+    ap.add_argument("--arms", default=None)
     ap.add_argument("--reps", type=int, default=2)
     ap.add_argument("--jobs", type=int, default=3)
     ap.add_argument("--model", default="sonnet")
@@ -154,8 +173,11 @@ def main():
     ap.add_argument("--work", default=WORK_DEFAULT)
     ap.add_argument("--setup-only", action="store_true", help="prepare arm directories, make no agent runs")
     a = ap.parse_args()
+    assert not a.drift or a.tag != "sonnet", "use a separate --tag for the drift experiment"
     assert a.work.startswith("/tmp/"), "work dir must be under /tmp (ancestor CLAUDE.md files leak otherwise)"
-    for d in ("generated", "results/raw", "results/grades"):
+    a.repos = a.repos or ",".join(DRIFT_REPOS if a.drift else REPOS)
+    a.arms = a.arms or ",".join(DRIFT_ARMS if a.drift else ARMS)
+    for d in ("generated", f"results/{a.tag}/raw", f"results/{a.tag}/grades"):
         os.makedirs(os.path.join(BENCH, d), exist_ok=True)
     repos, arms = a.repos.split(","), a.arms.split(",")
     if "agentbrief" in arms and not a.agentbrief:
@@ -165,7 +187,7 @@ def main():
     for repo in repos:
         for arm in arms:
             todo = [r for r in range(1, a.reps + 1)
-                    if not os.path.exists(os.path.join(BENCH, "results", "raw", f"{repo}.{arm}.{r}.json"))]
+                    if not os.path.exists(os.path.join(results_dir(a.tag), "raw", f"{repo}.{arm}.{r}.json"))]
             if not todo and not a.setup_only:
                 continue
             dst = setup_arm(repo, arm, a)  # sequential: LLM generation + copies happen up front

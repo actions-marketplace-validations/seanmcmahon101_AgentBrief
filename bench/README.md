@@ -28,8 +28,25 @@ python3 bench/run.py --agentbrief /path/to/agentbrief --jobs 4      # resumable;
 python3 bench/grade.py --jobs 4
 python3 bench/report.py
 ```
-Flags: `--repos a,b`, `--arms none,llm`, `--reps N` (default 2), `--model`, `--setup-only`.
+Results live in `results/<tag>/{raw,grades,summary.md}`; pass the same `--tag` to run.py, grade.py and report.py
+(default `sonnet`). `generated/` (LLM AGENTS.md files, generated once with sonnet) is shared by all tags, so
+arms differ only in the file, not in who wrote it. Flags: `--repos a,b`, `--arms none,llm`, `--reps N` (default 2), `--model`, `--setup-only`.
 Delete a file in `results/raw/` to rerun it; `grade.py --force` regrades.
+
+## Experiments
+- `sonnet` (default tag): the main run, `--model sonnet`.
+- `haiku`: same design with `--model haiku` as the answering model (judge stays sonnet).
+  `python3 bench/run.py --tag haiku --model haiku --agentbrief BIN`
+- `drift`: a CONSTRUCTED experiment measuring the cost of stale instructions, NOT how often real repos drift.
+  `python3 bench/run.py --tag drift --drift --agentbrief BIN`. For excalidraw, vite, fastapi and ripgrep,
+  `drift.py` applies a deterministic, asserted mutation to the stripped copy (renamed scripts/test targets,
+  a pnpm bump, a renamed script file with CI updated, a new CI clippy step; see the docstrings). Arms:
+  `llm-stale` (the LLM AGENTS.md written from the UNmutated repo), `agentbrief` (`sync` run on the mutated
+  copy, i.e. what a repo running `agentbrief check`/`sync` in CI would have) and `none`. Ground truth for
+  the mutated repos is hand-derived in `tasks/drift/`. Prose docs (README/CONTRIBUTING) are not updated by
+  the mutations, which is a choice that hurts `none` and any arm that reads docs. The mutations were chosen
+  by the benchmark author knowing what the LLM file says, so results bound the effect of stale facts from
+  above; they say nothing about drift frequency.
 
 ## What this measures
 Orientation accuracy and cost when an agent may only read files. It does NOT measure end-to-end task

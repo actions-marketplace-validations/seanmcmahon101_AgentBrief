@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Go modules (go.mod, go 1.15 directive). Install dependencies from the repo root with: make install_deps (this runs `go get -v ./...`).",
+    "q2": "make test (this runs install_deps, then `go test -v ./...`). Equivalent direct command: go test -v ./...",
+    "q3": "go test -v ./doc -run '^TestGenMd'  (matches TestGenMdDoc, TestGenMdDocWithNoLongOrSynopsis, TestGenMdNoHiddenParents, TestGenMdNoTag, TestGenMdTree in doc/md_docs_test.go; Go cannot select tests by file, so -run is the filter)",
+    "q4": "make fmt && golangci-lint run -v  (CI's golangci-lint job runs golangci-lint-action with args --verbose, and make fmt is the gofmt -l check). CI also runs a license-header check: docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .",
+    "q5": "go.sum (lockfile; AGENTS.md says not to edit it by hand). No vendor/ directory exists, and no files with a 'Code generated' or 'DO NOT EDIT' header were found."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Go modules with `make install_deps` (go get -v ./...) matches an ACCEPT criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`make test` and `go test -v ./...` both match ACCEPT."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`go test -v ./doc -run '^TestGenMd'` matches the TestGenMd* functions in package ./doc and notes Go cannot select by file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes golangci-lint run -v (and make fmt, addlicense check), matching ACCEPT with no contradictions."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no vendor/ and no generated files, only go.sum as tool-managed, which is acceptable."
+    }
+  }
+}

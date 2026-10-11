@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Yarn classic (yarn@1.22.22, set by `packageManager` in package.json), with Node >=18 (CI uses Node 20). It's a yarn workspaces monorepo. Install with: `yarn install`",
+    "q2": "`yarn test:unit --watch=false` runs the full vitest suite once. Plain `yarn test` or `yarn test:unit` runs `vitest`, which starts watch mode in a TTY. CI runs `yarn test:unit`. To run all checks (types, lint, format and unit tests), use `yarn test:all`.",
+    "q3": "`yarn vitest run packages/element/tests/bounds.test.ts`",
+    "q4": "CI (.github/workflows/lint.yml) runs these in order: `yarn install && yarn test:format && yarn test:lint && yarn test:types`. These expand to `prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore --list-different`, `eslint --max-warnings=0 --ext .js,.ts,.tsx .` and `tsc`. To auto-fix, run `yarn fix`.",
+    "q5": "Do not hand-edit `yarn.lock` or `dev-docs/yarn.lock`, which are lockfiles. Build output and generated paths from .eslintignore are also off-limits: `node_modules/`, `build/`, `dist/`, `dev-dist`, `coverage`, `public/workbox`, `packages/excalidraw/types` and `examples/**/public`. The AgentBrief-generated block between the `agentbrief:start` and `agentbrief:end` markers in AGENTS.md is also generated. Refresh it with `agentbrief sync` instead of editing it. Separately, AGENTS.md lists `agentbrief sync` outputs as `unverified` for the single-test and typecheck commands, so don't rely on those lines. Use the commands above instead."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from the root matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false` is accepted, and the mention of `yarn test`, `yarn test:unit` and `yarn test:all` is consistent with the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn vitest run packages/element/tests/bounds.test.ts` is exactly an accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "It lists `yarn test:format`, `yarn test:lint` and `yarn test:types` as CI runs them, matching the truth; the extra `yarn fix` detail is harmless."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "It names yarn.lock and build output dirs (build/, dist/, dev-dist, packages/excalidraw/types), which match the accept criterion; the extra AgentBrief detail doesn't contradict the truth."
+    }
+  }
+}

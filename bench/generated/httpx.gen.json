@@ -1,0 +1,109 @@
+{
+  "duration_api_ms": 30114,
+  "stop_reason": "end_turn",
+  "session_id": "7e6d5f3b-6147-4562-94e3-a193053ca5e0",
+  "total_cost_usd": 0.12571369999999998,
+  "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 18274,
+    "cache_read_input_tokens": 181557,
+    "output_tokens": 3443,
+    "output_tokens_details": {
+      "thinking_tokens": 165
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 18274,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 332,
+        "cache_read_input_tokens": 27954,
+        "cache_creation_input_tokens": 490,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 490
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 16,
+      "outputTokens": 3443,
+      "cacheReadInputTokens": 181557,
+      "cacheCreationInputTokens": 18274,
+      "webSearchRequests": 0,
+      "costUSD": 0.12571369999999998,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 165,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01YY1hLNkBs2Jr2Ch1SFs8Js",
+      "tool_input": {
+        "command": "cd /tmp/claude-1000/-home-sm/dc3a09a6-ed56-427c-a632-10969d6c9cdc/scratchpad/bench-work/gen/httpx; cat scripts/test scripts/sync-version; grep -n \"^class \\|^import\\|^from\" httpx/_client.py | head -60; grep -n \"^class \" httpx/_transports/*.py httpx/_urlparse.py httpx/_urls.py; sed -n 1,12p httpx/_transports/default.py; grep -n \"_main\\|scripts\" pyproject.toml; grep -n \"anyio\\|trio\\|pytest\\|uvicorn\" requirements.txt tests/conftest.py | head -20; grep -rn \"def sync-version\" /dev/null; sed -n 1,30p tests/test_exported_members.py"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 8,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I created `AGENTS.md` at the repo root. I didn't run any of the scripts or tests, only read them.\n\nIt covers:\n- **Commands:** install, the full `scripts/test` flow, `scripts/check`, `scripts/lint`, docs and build. It notes that `scripts/test` fails if coverage is under 100%.\n- **Running a single test:** `pytest tests/test_auth.py::test_basic_auth` or `-k`. I confirmed `test_basic_auth` exists.\n- **Architecture:** the duplicated sync/async send pipeline in `_client.py`, the transport layer wrapping `httpcore`, the URL/models split, and the generator-based auth flow.\n- **Testing setup:** the uvicorn `server` fixture, `MockTransport`, and `@pytest.mark.anyio`.\n\nI couldn't confirm that async tests run under both asyncio and trio, so the file only says what I could see: they use the anyio marker and trio is in `requirements.txt`.",
+  "ttft_ms": 2875,
+  "type": "result",
+  "duration_ms": 30318,
+  "uuid": "240f4029-0072-495a-91c4-493a8ff6fae4",
+  "ttft_stream_ms": 1716,
+  "time_to_request_ms": 40,
+  "first_content_frame_ms": 1717,
+  "queued_turn_count": 0,
+  "result_index": 0,
+  "_wall_s": 31.0,
+  "_returncode": 0
+}

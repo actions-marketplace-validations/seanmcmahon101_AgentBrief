@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Python with pip in a venv, using the hatchling build backend declared in pyproject.toml. From the repo root run: scripts/install (it creates ./venv, runs `pip install -U pip`, then `pip install -r requirements.txt`, which installs the project editable with extras `-e .[brotli,cli,http2,socks,zstd]`). The equivalent manual form is: python3 -m venv venv && venv/bin/pip install -U pip && venv/bin/pip install -r requirements.txt",
+    "q2": "scripts/test",
+    "q3": "scripts/test -- tests/client/test_auth.py",
+    "q4": "scripts/check (CI runs this as its lint step). It runs: ./scripts/sync-version; ruff format httpx tests --diff; mypy httpx tests; ruff check httpx tests. Do not use scripts/lint for CI checks, because it auto-fixes and rewrites files.",
+    "q5": "None. I found no generated or vendored directories and no 'generated'/'do not edit' markers in httpx/. scripts/sync-version only checks that the CHANGELOG.md and httpx/__version__.py versions match; it does not generate files."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names scripts/install and pip install -r requirements.txt in a venv, matching the accept criteria; the hatchling mention is harmless extra detail."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "scripts/test is the accepted command for the full suite."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "scripts/test with the file path is an accepted form; the extra `--` is simply forwarded to pytest, which still runs only that file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives scripts/check, matches truth including the ruff format --diff, ruff check and mypy steps; the note about not using scripts/lint is consistent."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Answers none, which matches the truth that no generated or vendored source files are committed."
+    }
+  }
+}

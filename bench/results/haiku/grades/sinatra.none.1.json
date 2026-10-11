@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "sinatra",
+    "arm": "none",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Bundler with Rake (Ruby gems). Run `bundle install` from the repo root. The sub-projects have their own Gemfiles, so also run `(cd sinatra-contrib && bundle install)` and `(cd rack-protection && bundle install)`.",
+    "q2": "`bundle exec rake && (cd rack-protection && bundle exec rake) && (cd sinatra-contrib && bundle exec rake)`. The root `bundle exec rake` runs the default `test` task (Minitest). The other two run the sub-gem suites, matching the CI steps in .github/workflows/test.yml.",
+    "q3": "`(cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb)`. It must run from sinatra-contrib because rspec is only in sinatra-contrib/Gemfile, not the root Gemfile.",
+    "q4": "CI runs no lint or formatting check. .github/workflows/test.yml and release.yml contain no rubocop step. The repo does ship a RuboCop config (.rubocop.yml, with rubocop ~> 1.32.0 in the root Gemfile), so the closest local check is `bundle exec rubocop` from the repo root.",
+    "q5": "None are marked as do-not-edit. Build output and vendored paths (vendor/, doc/, coverage/, pkg/, *.gem, *.lock) are git-ignored per .gitignore. sinatra-contrib/sinatra-contrib.gemspec is rewritten by `rake gemspec` (author, email and file fields come from git), and the lib/**/version.rb files are rewritten by the release:commit_version task, so edit those only through those tasks. I did not check whether the root sinatra.gemspec is also generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives `bundle install` from the root, plus the sub-project installs, which is harmless extra detail."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Includes root `bundle exec rake` and the sub-gem runs matching CI, with no contradiction of the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`(cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb)` matches the accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Says CI runs no linter and gives `bundle exec rubocop` as the local check, matching the accepted answer."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Says none are marked do-not-edit and mentions coverage/ and doc/ as ignored output, but also claims generated gemspec and version.rb files that the truth does not support, and admits uncertainty."
+    }
+  }
+}

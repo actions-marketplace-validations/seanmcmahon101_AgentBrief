@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "none",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Go modules with make (Makefile) and the go toolchain; there is no lockfile beyond go.sum and no vendor directory. Install dependencies with: make install_deps (which runs `go get -v ./...`). Plain `go mod download` also works.",
+    "q2": "make test (runs install_deps, then `go test -v ./...`). Without make: go test -v ./...",
+    "q3": "go test -v ./doc -run 'TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree'. The tests in md_docs_test.go are TestGenMdDoc, TestGenMdDocWithNoLongOrSynopsis, TestGenMdNoHiddenParents, TestGenMdNoTag and TestGenMdTree. Because TestGenMdDoc is an unanchored regex it also matches the others, so the shorter form `go test -v ./doc -run 'TestGenMd'` selects the same tests, provided no other file in ./doc has a test with a TestGenMd prefix.",
+    "q4": "CI runs three checks. (1) golangci-lint, version latest, with the config in .golangci.yml (gofmt and goimports formatters plus errcheck, goconst, gocritic, gosec, govet, ineffassign, misspell, nolintlint, staticcheck, unconvert and unused): `golangci-lint run --verbose` (or `make lint`). (2) License headers: `docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .`. (3) The Makefile has a `make fmt` target that checks gofmt, but the CI workflow does not call it. It is equivalent to `gofmt -l .`, which should print nothing.",
+    "q5": "None. I found no vendor/ directory and no 'Code generated' or 'DO NOT EDIT' markers in the repo. site/content and assets/ hold docs and an image, which are hand-maintained. Only go.sum is tool-managed, so change it with `go mod tidy` rather than by hand."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names Go modules, make install_deps (go get -v ./...) and go mod download, all accepted."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "make test and go test -v ./... both match accept criteria."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "go test -v ./doc -run with the five TestGenMd test names matches the accepted form; the extra note about the shorter regex is harmless."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Identifies golangci-lint run / make lint as the CI check, plus addlicense and optional make fmt, consistent with the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says none, mentions only go.sum as tool-managed, and does not claim doc/site/assets are generated or vendored."
+    }
+  }
+}

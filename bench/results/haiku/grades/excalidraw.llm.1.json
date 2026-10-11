@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "llm",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Yarn 1.22.22 (per the \"packageManager\" field in the root package.json, with yarn workspaces). Install with: yarn install",
+    "q2": "yarn test:app --watch=false (runs vitest once; plain `yarn test` or `yarn test:app` starts watch mode). This is the same command CI runs in .github/workflows/test.yml.",
+    "q3": "yarn test:app --watch=false packages/element/tests/bounds.test.ts",
+    "q4": "yarn test:other && yarn test:code && yarn test:typecheck. These are the three commands in .github/workflows/lint.yml, which expand to `yarn prettier --list-different`, `eslint --max-warnings=0 --ext .js,.ts,.tsx .`, and `tsc`.",
+    "q5": "Generated, do not hand-edit: packages/excalidraw/subset/harfbuzz/harfbuzz-wasm.ts and packages/excalidraw/subset/woff2/woff2-wasm.ts (both headed \"GENERATED CODE -- DO NOT EDIT!\", produced by scripts/buildWasm.js from wasm binaries). Build output that is gitignored: packages/excalidraw/types, plus dist/ and build/ directories. No vendored source directories were found."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from the root matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is an accepted one-shot form and is consistent with CI."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted form; flag order does not matter for vitest."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives test:other, test:code and test:typecheck, matching CI exactly."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Lists gitignored build output (packages/excalidraw/types, dist/, build/), which is an accepted category, and the wasm-generated files are plausibly generated; nothing matches REJECT."
+    }
+  }
+}

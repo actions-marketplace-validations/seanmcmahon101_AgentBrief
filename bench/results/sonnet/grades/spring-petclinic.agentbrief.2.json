@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Maven, using the checked-in wrapper (a Gradle build also exists, but the Maven wrapper is the primary one). Install dependencies with: ./mvnw dependency:resolve (or ./mvnw -B compile). Maven has no separate install step. Dependencies are also fetched automatically by any ./mvnw build.",
+    "q2": "./mvnw test (CI runs the full build with ./mvnw -B verify, which includes the tests and the format and checkstyle validation). The Gradle equivalent is ./gradlew test.",
+    "q3": "./mvnw test -Dtest=OwnerControllerTests (Gradle: ./gradlew test --tests org.springframework.samples.petclinic.owner.OwnerControllerTests)",
+    "q4": "CI runs ./mvnw -B verify. Its validate phase runs spring-javaformat:validate and the nohttp checkstyle check. To run only those, use: ./mvnw -B validate. To fix formatting, run ./mvnw spring-javaformat:apply. The Gradle workflow runs ./gradlew build.",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated from src/main/scss/ plus Bootstrap, via ./mvnw package -P css. Edit the scss and regenerate instead of editing the CSS by hand. The vendored font files in src/main/resources/static/resources/fonts/ and the Gradle and Maven wrapper files (gradle/wrapper/*, .mvn/wrapper/*, gradlew, gradlew.bat, mvnw, mvnw.cmd) should not be hand-edited either. target/ and build/ are build output and are not checked in."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names the Maven wrapper with ./mvnw dependency:resolve, matching ACCEPT, and mentions that Gradle also exists."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives ./mvnw test, mentions CI's ./mvnw -B verify, and ./gradlew test, all of which are accepted."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw test -Dtest=OwnerControllerTests and the fully qualified Gradle --tests form both match ACCEPT."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives ./mvnw -B validate (running spring-javaformat:validate and nohttp checkstyle) and ./mvnw -B verify, both accepted, with apply correctly framed as the fix step."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Identifies petclinic.css as generated from scss via ./mvnw package -P css; the extra items (fonts, wrapper files) are harmless and target/ and build/ are correctly noted as build output."
+    }
+  }
+}

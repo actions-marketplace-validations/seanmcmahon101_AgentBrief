@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pip with a virtualenv, driven by the repo's scripts (there is no uv, poetry or other lock file). Install with: scripts/install. This creates ./venv and runs 'pip install -U pip' and 'pip install -r requirements.txt'. The other scripts use venv/bin/ automatically when it exists.",
+    "q2": "scripts/test. Run locally, it first runs scripts/check, then 'coverage run -m pytest', then scripts/coverage, which enforces 100% coverage. To run only pytest, use: venv/bin/python -m pytest",
+    "q3": "venv/bin/python -m pytest tests/client/test_auth.py (or, if the venv is activated or not used: python -m pytest tests/client/test_auth.py)",
+    "q4": "scripts/check. This is what CI runs. It runs ./scripts/sync-version, then 'ruff format httpx tests --diff', then 'mypy httpx tests', then 'ruff check httpx tests'. Do not use scripts/lint for this, because it runs 'ruff check --fix' and 'ruff format', which rewrite files. CI also runs scripts/build and scripts/coverage as separate steps.",
+    "q5": "No vendored code. The generated or tool-managed items are: (1) the block in AGENTS.md between <!-- agentbrief:start --> and <!-- agentbrief:end -->, which agentbrief rewrites on 'agentbrief sync'. CLAUDE.md only contains '@AGENTS.md'. (2) Build and environment output if present: venv/, and the dist/, site/ and coverage output produced by scripts/build, scripts/docs and scripts/coverage. I did not check .gitignore for these."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names scripts/install, which creates ./venv and runs pip install -r requirements.txt, matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test with an accurate description of what it runs, and also offers a working pytest alternative."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/python -m pytest tests/client/test_auth.py matches the accepted python -m pytest form."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives scripts/check and correctly lists its steps including ruff format --diff, mypy and ruff check."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no vendored code and lists dist/, site/, coverage output and venv/ as build artifacts; the AGENTS.md agentbrief block is extra detail that does not contradict the truth or hit a REJECT item."
+    }
+  }
+}

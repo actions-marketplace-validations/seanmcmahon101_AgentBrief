@@ -1,0 +1,109 @@
+{
+  "duration_api_ms": 29559,
+  "stop_reason": "end_turn",
+  "session_id": "8a5a8b07-2776-4002-be22-f201d7dd78e3",
+  "total_cost_usd": 0.1574634,
+  "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 24215,
+    "cache_read_input_tokens": 247174,
+    "output_tokens": 3585,
+    "output_tokens_details": {
+      "thinking_tokens": 55
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 24215,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 368,
+        "cache_read_input_tokens": 34064,
+        "cache_creation_input_tokens": 321,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 321
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 18,
+      "outputTokens": 3585,
+      "cacheReadInputTokens": 247174,
+      "cacheCreationInputTokens": 24215,
+      "webSearchRequests": 0,
+      "costUSD": 0.1574634,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 55,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01TfJ9heTKtwJseVDhN6vSg7",
+      "tool_input": {
+        "command": "sed -i 's/#testProcessCreationFormSuccess/#processCreationFormSuccess/' AGENTS.md && grep -n processCreation AGENTS.md"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 9,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I created `AGENTS.md` at the repo root. It has two parts:\n\n- **Commands:** run, build, test, running a single test class or method, formatting, recompiling the CSS, and the Gradle equivalents.\n- **Architecture:** the cross-file pieces: how the database is chosen, vet caching, the i18n consistency test, native-image hints, and the test classes that double as app launchers.\n\nI read the build files, config, and README to write it. I did not run any of the commands, so none of them is confirmed to work. I did check that the test method named in the single-method example, `processCreationFormSuccess`, exists in `OwnerControllerTests`.\n\n- **Lint:** the repo has no separate lint command. Formatting and the `http://` URL check run as part of Maven's `validate` phase, so `./mvnw test` or `verify` fails on bad formatting. The file says this and gives `spring-javaformat:apply` as the fix.\n- **Docker:** `MySqlIntegrationTests` needs Docker (it uses Testcontainers). `PostgresIntegrationTests` starts Postgres through Docker Compose.",
+  "ttft_ms": 3077,
+  "type": "result",
+  "duration_ms": 29761,
+  "uuid": "70c9357a-0285-47ad-bde1-fa079c43ef24",
+  "ttft_stream_ms": 1144,
+  "time_to_request_ms": 39,
+  "first_content_frame_ms": 1144,
+  "queued_turn_count": 0,
+  "result_index": 0,
+  "_wall_s": 30.5,
+  "_returncode": 0
+}

@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "none",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pnpm (pinned as pnpm@12.9.1 in package.json 'packageManager'; the preinstall script enforces pnpm via only-allow). Node ^20.19.0 || >=22.12.0. Install with: pnpm install",
+    "q2": "pnpm run test (runs test-unit, then test-serve, then test-build). CI also runs `pnpm run build` first and `pnpm run test-serve-bundled`, and needs Playwright Chromium via `pnpm playwright install chromium`. Unit tests alone: pnpm run test-unit",
+    "q3": "pnpm exec vitest run packages/vite/src/node/__tests__/config.spec.ts",
+    "q4": "pnpm run build && pnpm run lint && pnpm format && git diff --exit-code && pnpm run typecheck && pnpm run test-docs (the CI lint job runs these in order: build, lint, format check, typecheck, docs build. 'pnpm format' runs oxfmt, and 'git diff --exit-code' fails if formatting changed anything.)",
+    "q5": "Generated or build output: any dist/ directory, playground-temp/, temp/, .vitepress/cache/, and pnpm-lock.yaml (managed by pnpm). Vendored or fixed files: packages/create-vite/template-* (ignored by eslint), **/fixtures/** and *.snap (test fixtures and snapshots, regenerate rather than hand-edit), packages/*/CHANGELOG.md (produced by the release tooling), and playground/external/public/slash@3.0.0.js and playground/ssr-html/public/slash@3.0.0.js (vendored third-party copies). I found no 'DO NOT EDIT' or '@generated' markers in the source."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and `pnpm install`, matching the accept criterion with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`pnpm run test` matches accept; extra CI details (build first, test-serve-bundled, Playwright) are consistent with truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm exec vitest run <file>` is an explicitly accepted form, run from the repo root."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes pnpm run lint, pnpm format && git diff --exit-code, plus typecheck and test-docs, matching CI; the extra build step is harmless."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names pnpm-lock.yaml plus dist/ outputs and generated CHANGELOG.md, satisfying the criterion; extra items are not among the rejected claims."
+    }
+  }
+}

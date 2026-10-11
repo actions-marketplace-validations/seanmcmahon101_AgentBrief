@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "llm",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "pip with a venv, using hatchling as the build backend (pyproject.toml). Run `scripts/install` from the repo root. It creates `venv/` with `python3 -m venv venv` and then runs `venv/bin/pip install -U pip` and `venv/bin/pip install -r requirements.txt`, which installs the package editable with extras `[brotli,cli,http2,socks,zstd]`.",
+    "q2": "`scripts/test` (from the repo root). It runs `venv/bin/coverage run -m pytest` and then `scripts/coverage`. Outside CI it also runs `scripts/check` first. To run pytest alone without coverage: `venv/bin/pytest`.",
+    "q3": "`venv/bin/pytest tests/client/test_auth.py`",
+    "q4": "`scripts/check` (from the repo root). CI runs it on every Python version. It runs `./scripts/sync-version`, then `venv/bin/ruff format httpx tests --diff`, `venv/bin/mypy httpx tests`, and `venv/bin/ruff check httpx tests`. Do not use `scripts/lint` for CI-style checks, because it rewrites files with `ruff check --fix` and `ruff format`.",
+    "q5": "none. The grep for 'generated', 'vendored', 'do not edit' and similar markers found no files. `httpx/__version__.py` is the version source and `CHANGELOG.md` must match it, which `scripts/sync-version` verifies, so edit both by hand. The `venv/` directory and coverage output are local build artifacts, not repo sources."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names scripts/install and correctly describes venv creation and pip install -r requirements.txt with the right extras."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test, which matches the accepted answer, and correctly describes its behavior."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/pytest tests/client/test_auth.py is the pytest command on the specified file, equivalent to an accepted answer."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives scripts/check and correctly lists its steps (ruff format --diff, mypy, ruff check); the scripts/lint remark is extra and not a contradiction."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Answers none and names only venv and coverage output as local artifacts; it does not claim any repo source is generated."
+    }
+  }
+}

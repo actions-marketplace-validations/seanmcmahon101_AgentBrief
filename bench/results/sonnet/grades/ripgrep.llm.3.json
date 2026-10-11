@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "llm",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Cargo (Rust workspace, edition 2024, MSRV 1.96). There is no separate install step, because Cargo fetches dependencies on build. Run: cargo build",
+    "q2": "cargo test --all",
+    "q3": "cargo test --test integration regression::",
+    "q4": "CI runs two checks. Formatting: cargo fmt --all --check. Docs: RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items --workspace. CI has no clippy step. For the zsh completion consistency check (needs a built rg and zsh), also run: ci/test-complete",
+    "q5": "No vendored directories. Generated or derived artifacts: target/ (build output, including the man page and shell completions that build.rs generates), and Cargo.lock (maintained by Cargo). The flag docs, --help text, man page and completions are all generated from crates/core/flags/defs.rs, so edit that file and not the generated outputs. HomebrewFormula and the other packaging files are release artifacts. I did not open them to confirm."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Cargo with no separate install step and `cargo build` matches the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`cargo test --all` is explicitly in the accept list."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`cargo test --test integration regression::` matches an accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check` plus the cargo doc check and correctly states CI has no clippy step."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Correctly names target/ and Cargo.lock and no vendored dirs, but adds unverified claims that man page/completions are generated from defs.rs and that HomebrewFormula/packaging files are release artifacts, which edges toward the rejected claim."
+    }
+  }
+}

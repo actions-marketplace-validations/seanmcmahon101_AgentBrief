@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "sinatra",
+    "arm": "llm",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Ruby with Bundler (Rake is the task runner). The repo holds three gems: the root `sinatra` gem, `rack-protection/` and `sinatra-contrib/`. Install the root dependencies with `bundle install`. The root Gemfile pulls in the other two via `path:`. CI also runs `bundle install` inside `sinatra-contrib`, which has its own Gemfile. To match that, run `bundle install && (cd sinatra-contrib && bundle install) && (cd rack-protection && bundle install)`.",
+    "q2": "There is no single command. CI runs three suites, one per gem: `bundle exec rake && (cd rack-protection && bundle exec rake) && (cd sinatra-contrib && bundle exec rake)`. The root `bundle exec rake` is the Minitest suite and is the default `test` task. The two `cd` calls run RSpec.",
+    "q3": "(cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb)",
+    "q4": "CI does not run any lint or formatting check. `.github/workflows/test.yml` only runs the three `bundle exec rake` suites. The repo's own lint command, from AGENTS.md, is `bundle exec rubocop`. It uses `.rubocop.yml`, which targets Ruby 2.7 and excludes `test/`, `rack-protection/` and `sinatra-contrib/`.",
+    "q5": "No vendored source is committed. These are generated or ignored by `.gitignore`: `pkg/` (built gems and tarballs), `coverage/`, `doc/` (including `doc/api`, which `yardoc` generates), `.yardoc`, `.bundle`, `vendor/`, `*.gem` and `*.lock` (Gemfile.lock). Don't hand-edit these. The `VERSION` file is also tied to release tasks. `rake release:commit_version` rewrites the `version.rb` files from it, so change the version through that workflow rather than editing the `version.rb` files directly."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives `bundle install` for the root, matching the accept criterion; the extra per-subproject installs are harmless and consistent with truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Root `bundle exec rake` is correct and it also covers the CI runs in rack-protection and sinatra-contrib, consistent with the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`(cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb)` matches the accepted command exactly."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "States CI runs no linter and gives `bundle exec rubocop` as the local check, matching the accept criteria."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no vendored source is committed and lists coverage/ and doc/api as generated; Gemfile.lock is described as ignored, not committed, so no reject item is matched."
+    }
+  }
+}

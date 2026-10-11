@@ -1,0 +1,109 @@
+{
+  "duration_api_ms": 29570,
+  "stop_reason": "end_turn",
+  "session_id": "705e4489-6cc6-46a8-a725-90000d870edf",
+  "total_cost_usd": 0.14667080000000002,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 23644,
+    "cache_read_input_tokens": 166968,
+    "output_tokens": 3537,
+    "output_tokens_details": {
+      "thinking_tokens": 144
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 23644,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 344,
+        "cache_read_input_tokens": 32734,
+        "cache_creation_input_tokens": 1080,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1080
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 14,
+      "outputTokens": 3537,
+      "cacheReadInputTokens": 166968,
+      "cacheCreationInputTokens": 23644,
+      "webSearchRequests": 0,
+      "costUSD": 0.14667080000000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 144,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01SmNVkgEW91ofvi4cwoC3Bd",
+      "tool_input": {
+        "command": "cat vitest.config.ts vitest.config.e2e.ts; grep -n -i -A12 \"test\\|debug\\|setup\" CONTRIBUTING.md | head -150; cat packages/vite/package.json | sed -n 1,80p; ls packages/vite packages/vite/src packages/vite/src/node packages/vite/src/node/server packages/vite/src/node/plugins; ls playground | grep -v '^[a-z-]*$'; ls playground/*.ts playground/vitestSetup.ts"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 7,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I've written `AGENTS.md` at the repo root. I checked its claims against `package.json`, the vitest configs, `CONTRIBUTING.md` and the source tree. I didn't run any of the commands, and the repo isn't a git repository.\n\nThe file covers these areas:\n- **Commands:** build, lint, format, typecheck, unit tests, and the playground serve, build and bundled-dev test runs.\n- **Single tests:** a path filter for unit tests (with vitest's `-t` to pick one case) and a name filter like `pnpm test-serve assets` for playground tests.\n- **Playground conventions:** the `~utils` alias, the `editFile` byte-length rule, and the `bundledDevExclude` list.\n- **Architecture:** how `packages/vite/src` splits into `node/`, `client/`, `module-runner/` and `shared/`, and how the dev server, build and SSR pieces fit together.\n\nI did not re-check the unit-test filter example, `-t`, or the line about how the plugin API relates to rolldown.",
+  "ttft_ms": 2371,
+  "type": "result",
+  "duration_ms": 29746,
+  "uuid": "b2783852-1481-4e91-aab9-6b1df2be6b63",
+  "ttft_stream_ms": 1427,
+  "time_to_request_ms": 39,
+  "first_content_frame_ms": 1428,
+  "queued_turn_count": 0,
+  "result_index": 0,
+  "_wall_s": 30.5,
+  "_returncode": 0
+}

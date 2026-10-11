@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "none",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pnpm (pinned by packageManager to pnpm@12.9.1; the preinstall script rejects npm and yarn; Node ^20.19.0 || >=22.12.0). Install with: pnpm install. CI also builds first with `pnpm run build`, which the tests need.",
+    "q2": "pnpm run test. This runs `pnpm test-unit && pnpm test-serve && pnpm test-build`. CI runs `pnpm run build` first and also runs `pnpm run test-serve-bundled`, which `test` does not include. Playwright's browser is needed for the e2e parts: `pnpm playwright install chromium`.",
+    "q3": "pnpm exec vitest run packages/vite/src/node/__tests__/config.spec.ts",
+    "q4": "pnpm run build && pnpm run lint && pnpm format && git diff --exit-code && pnpm run typecheck && pnpm run test-docs. These are the CI lint job's steps in order. Lint runs `eslint --cache . --concurrency auto` and format runs `oxfmt`. The `git diff --exit-code` after `pnpm format` fails if formatting changed any file, so it only works in a git checkout. This directory is not a git repository, so run that step in a real clone. For a formatting-only check, use `pnpm format` and then `git diff --exit-code`.",
+    "q5": "Generated, ignored by git and not to be edited by hand: any dist/ and dist-ssr/ build outputs, packages/vite/LICENSE (generated at build time, gitignored), playground-temp/, temp/, node_modules/, .pnpm-store/, .eslintcache, docs/.vitepress/cache and docs/.vitepress/.temp. Generated or machine-managed and excluded from formatting: pnpm-lock.yaml, and packages/*/CHANGELOG.md (written by the release tooling). The deliberately odd or vendored test fixtures and assets are playground/external/public/slash@3.0.0.js, playground/ssr-html/public/slash@3.0.0.js, playground/worker/classic-worker.js, the playground/html/*.html invalid and valid files, and everything under **/fixtures/ (ESLint ignores it). Also leave packages/create-vite/template-* alone, since ESLint skips it. The patches/ directory holds dependency patches managed by pnpm."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names pnpm and `pnpm install`, consistent with the truth; the extra build note is harmless."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`pnpm run test` is accepted, and the description of the chain and CI extras matches the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm exec vitest run <file>` is an explicitly accepted form, run from the repo root."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes `pnpm run lint` and `pnpm format && git diff --exit-code` plus typecheck and test-docs, matching CI and using oxfmt."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names pnpm-lock.yaml plus dist/ outputs and generated CHANGELOG.md, satisfying the criterion, and doesn't declare src/docs/playground generated."
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Cargo (Rust; edition 2024, rust-version 1.96 per Cargo.toml). Run `cargo fetch` from the repo root to download dependencies; Cargo.lock is committed, so it resolves the pinned versions. `cargo build --workspace` also fetches and builds.",
+    "q2": "`cargo test --workspace` (CI also runs `cargo test --workspace --features unstable-index` and `cargo test --workspace --features pcre2`).",
+    "q3": "`cargo test --test integration regression::` (tests/regression.rs is not its own target because the root Cargo.toml sets `autotests = false`; it is a module of the `integration` target declared in tests/tests.rs via `mod regression;`).",
+    "q4": "`cargo fmt --all --check` (the CI rustfmt job) and `RUSTDOCFLAGS=-D warnings cargo doc --no-deps --document-private-items --workspace` (the CI docs job). CI does not run clippy; `cargo clippy --all-targets --workspace` is only a cargo convention that AGENTS.md marks as unverified.",
+    "q5": "Yes: `Cargo.lock` and `fuzz/Cargo.lock` must not be edited by hand (AGENTS.md; regenerate through cargo). Nothing else in the repo is marked as generated or vendored. The man page and shell completions are produced by build.rs at build time and are not committed."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names Cargo and gives `cargo fetch` (and `cargo build --workspace`), matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `cargo test --workspace`, an accepted command; the extra feature runs are harmless."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`cargo test --test integration regression::` is an accepted command, and the explanation matches the truth."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check` plus the cargo doc check, and correctly states CI does not run clippy."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names Cargo.lock (and fuzz/Cargo.lock) as tool-managed files and says nothing else is generated or vendored, which matches the accepted answer."
+    }
+  }
+}

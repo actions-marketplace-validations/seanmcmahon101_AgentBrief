@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "none",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Go modules with make (Makefile wraps go). Install dependencies with: make install_deps (which runs `go get -v ./...`). Plain `go mod download` also works.",
+    "q2": "make test (runs install_deps, then `go test -v ./...`). Direct equivalent: go test -v ./...",
+    "q3": "go test -v ./doc/ -run 'TestGenMdDoc|TestGenMdDocWithNoLongOrSynopsis|TestGenMdNoHiddenParents|TestGenMdNoTag|TestGenMdTree'. Go can't select tests by file, so this lists the five Test functions in doc/md_docs_test.go. Any helpers or other tests in that file are not named in this pattern. A looser pattern is `go test -v ./doc/ -run 'TestGenMd'`.",
+    "q4": "CI runs golangci-lint (golangci-lint-action v8, version latest, args --verbose, config .golangci.yml, which enables gofmt and goimports as formatters): `golangci-lint run --verbose`. Locally the Makefile has `make lint` (`golangci-lint run -v`) and `make fmt` (gofmt check). CI also runs a license header check: `docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .`",
+    "q5": "None found. There is no vendor/ directory, and I saw no generated source files in the repo root listing. go.sum is tool-managed, so change it with `go mod tidy` rather than by hand. The Makefile's ./bin output directory is a build artifact created by the Makefile, and `make clean` removes it. The files under site/content are hand-written docs, not generated."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names Go modules, make install_deps (go get -v ./...) and go mod download, all accepted."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives make test and go test -v ./..., both accepted."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Uses go test ./doc with -run naming the five TestGenMd functions, and notes Go can't select by file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives golangci-lint run (CI) and make lint/make fmt, plus the addlicense check, matching the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says none, mentions go.sum as tool-managed, and does not claim docs are generated or vendored."
+    }
+  }
+}

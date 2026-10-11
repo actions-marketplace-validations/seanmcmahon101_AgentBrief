@@ -58,13 +58,14 @@ def judge_prompt(task, answers):
     return RUBRIC + f"\n\nRepository: {task['repo']} ({task['ecosystem']})\n\n" + "\n\n".join(blocks)
 
 
-def grade_one(path, model, force):
+def grade_one(path, model, force, tag):
     name = os.path.basename(path)
-    out_path = os.path.join(BENCH, "results", "grades", name)
+    out_path = os.path.join(BENCH, "results", tag, "grades", name)
     if os.path.exists(out_path) and not force:
         return name, "cached"
     raw = json.load(open(path))
-    task = json.load(open(os.path.join(BENCH, "tasks", raw["_meta"]["repo"] + ".json")))
+    sub = "drift" if raw["_meta"].get("drift") else ""
+    task = json.load(open(os.path.join(BENCH, "tasks", sub, raw["_meta"]["repo"] + ".json")))
     answers = extract_answers(raw.get("result", ""))
     grades = {}
     if answers or not raw.get("is_error"):
@@ -92,14 +93,15 @@ def grade_one(path, model, force):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="sonnet")
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--model", default="sonnet")
     ap.add_argument("--force", action="store_true", help="regrade even if cached")
     a = ap.parse_args()
-    os.makedirs(os.path.join(BENCH, "results", "grades"), exist_ok=True)
-    files = sorted(glob.glob(os.path.join(BENCH, "results", "raw", "*.json")))
+    os.makedirs(os.path.join(BENCH, "results", a.tag, "grades"), exist_ok=True)
+    files = sorted(glob.glob(os.path.join(BENCH, "results", a.tag, "raw", "*.json")))
     with ThreadPoolExecutor(a.jobs) as ex:
-        for name, status in ex.map(lambda f: grade_one(f, a.model, a.force), files):
+        for name, status in ex.map(lambda f: grade_one(f, a.model, a.force, a.tag), files):
             print(name, status, file=sys.stderr)
 
 

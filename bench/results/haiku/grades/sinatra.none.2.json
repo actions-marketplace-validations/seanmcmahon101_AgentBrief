@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "sinatra",
+    "arm": "none",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Bundler with Rake. The root Gemfile and Rakefile drive the main project. Install with: bundle install. sinatra-contrib and rack-protection have their own Gemfiles, so also run: (cd sinatra-contrib && bundle install) and (cd rack-protection && bundle install)",
+    "q2": "bundle exec rake && (cd sinatra-contrib && bundle exec rake) && (cd rack-protection && bundle exec rake). The root default task runs the Minitest suite in test/. CI runs these same three suites in test.yml.",
+    "q3": "(cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb)",
+    "q4": "CI runs no lint or formatting step (.github/workflows/test.yml only runs the rake test suites). The closest match is the RuboCop configured in .rubocop.yml, run from the root with: bundle exec rubocop",
+    "q5": "sinatra-contrib/sinatra-contrib.gemspec is generated: the 'sinatra-contrib.gemspec' rake task rewrites its authors, email and files lists from git. Regenerate it with: (cd sinatra-contrib && bundle exec rake sinatra-contrib.gemspec). Per the root Rakefile, the VERSION constants in lib/sinatra/version.rb, sinatra-contrib/lib/sinatra/contrib/version.rb and rack-protection/lib/rack/protection/version.rb are rewritten by rake release:commit_version from the VERSION file, so change the VERSION file rather than those constants. doc/ and pkg/ are rake build outputs. No vendored directories were found."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives `bundle install` and correctly notes the subprojects have their own Gemfiles."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`bundle exec rake` matches, and the extra sub-suite commands match what CI runs."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`(cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb)` is equivalent to the accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "States CI runs no lint and gives `bundle exec rubocop` as the local check."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Mentions doc/ and pkg/ build outputs and says no vendored dirs, but claims sinatra-contrib.gemspec and version constants are generated, which the truth does not support and doesn't name coverage/."
+    }
+  }
+}

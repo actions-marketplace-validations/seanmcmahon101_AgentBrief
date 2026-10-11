@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "fastapi",
+    "arm": "llm-stale",
+    "rep": 1,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "uv (uv.lock, .python-version=3.11). Install with: uv sync --group dev --extra all. CI test jobs use: uv sync --no-dev --group tests --extra all",
+    "q2": "uv run bash scripts/run-tests.sh (this runs: PYTHONPATH=./docs_src pytest -n auto --dist loadgroup tests scripts/tests/). CI runs it with coverage as: uv run --no-sync bash scripts/test-cov.sh",
+    "q3": "PYTHONPATH=./docs_src uv run pytest tests/test_application.py",
+    "q4": "CI's lint/format job runs pre-commit hooks through prek: uv sync --locked --extra all && uv run prek run --all-files (CI itself uses --from-ref origin/<base> --to-ref HEAD --show-diff-on-failure). The hooks include ruff check, ruff format, mypy fastapi, ty check, typos and zizmor. To run the checks directly without hooks, use: uv run bash scripts/check-style.sh (mypy fastapi; ty check; ruff check fastapi tests docs_src scripts; ruff format fastapi tests --check)",
+    "q5": "Don't edit by hand: uv.lock (use uv lock or uv add instead); README.md (generated from docs/en/docs/index.md by 'uv run ./scripts/docs.py generate-readme'); docs/en/overrides/partials/banner-sponsors.html (rendered from docs/en/data/sponsors.yml by 'scripts/docs.py render-banner-sponsors'); the Languages section of docs/en/mkdocs.yml (rewritten by 'scripts/docs.py update-languages'); translated docs under docs/<lang>/ for every lang except en (e.g. docs/de/), which are LLM-generated and fixed by scripts/translate.py and scripts/translation_fixer.py. A hook also checks that these are not edited by hand. No vendored directories found."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies uv and gives `uv sync --group dev --extra all`, which is a uv sync with the extras and matches the accepted form without contradicting the truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`uv run bash scripts/run-tests.sh` is an accepted command, and the CI note on scripts/test-cov.sh is also correct."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`PYTHONPATH=./docs_src uv run pytest tests/test_application.py` is the accepted pytest invocation with a harmless env var prefix."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `uv run prek run --all-files` and `uv run bash scripts/check-style.sh`, both accepted and consistent with the truth."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names uv.lock, README.md generated from docs/en/docs/index.md, and banner-sponsors.html, with no claim that fastapi/ or docs_src/ is generated."
+    }
+  }
+}

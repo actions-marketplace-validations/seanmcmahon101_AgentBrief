@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "none",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Cargo (Rust's built-in package manager and build tool; the workspace requires Rust 1.96 or newer, and no rust-toolchain file pins one). Install dependencies from the repo root with: cargo fetch (building with cargo build --workspace also downloads them).",
+    "q2": "cargo test --workspace (this is what CI runs; the README's cargo test --all is an older form of the same thing). CI also runs cargo test --workspace --features unstable-index and cargo test --workspace --features pcre2 as separate passes.",
+    "q3": "cargo test --test integration regression:: (tests/regression.rs is not its own Cargo target: autotests = false, and it is compiled as the regression module of the single 'integration' target from tests/tests.rs, so the test name filter is needed).",
+    "q4": "cargo fmt --all --check (the rustfmt CI job) and RUSTDOCFLAGS=-D warnings cargo doc --no-deps --document-private-items --workspace (the docs CI job). CI does not run clippy.",
+    "q5": "None are vendored: there is no vendor/ directory and every crate under crates/ is first-party workspace code. Cargo.lock is tool-generated and should be changed only through cargo commands, not by hand. The gitignored /deployment directory and build outputs under target/ are generated and should not be edited."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Cargo with `cargo fetch` (and mentions cargo build also downloads), matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `cargo test --workspace`, which matches CI, and the extra feature passes are harmless."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`cargo test --test integration regression::` exactly matches an accepted command and the explanation is correct."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check` plus the cargo doc command, and correctly says CI doesn't run clippy."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Correctly says nothing is vendored and names Cargo.lock and target/, but also claims a gitignored /deployment directory is generated, which is not in the ground truth."
+    }
+  }
+}

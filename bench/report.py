@@ -4,7 +4,7 @@ import glob, json, os, statistics as st
 from collections import defaultdict
 
 BENCH = os.path.dirname(os.path.abspath(__file__))
-ARMS = ["none", "llm", "agentbrief"]
+ARMS = ["none", "llm", "llm-stale", "agentbrief"]
 
 
 def usage_tokens(u):
@@ -13,11 +13,11 @@ def usage_tokens(u):
                                             "cache_read_input_tokens", "output_tokens"))
 
 
-def load():
+def load(tag):
     rows = []
-    for g in sorted(glob.glob(os.path.join(BENCH, "results", "grades", "*.json"))):
+    for g in sorted(glob.glob(os.path.join(BENCH, "results", tag, "grades", "*.json"))):
         gd = json.load(open(g))
-        raw = json.load(open(os.path.join(BENCH, "results", "raw", os.path.basename(g))))
+        raw = json.load(open(os.path.join(BENCH, "results", tag, "raw", os.path.basename(g))))
         m = gd["meta"]
         rows.append({"repo": m["repo"], "arm": m["arm"], "rep": m["rep"], "model": m.get("model"),
                      "acc": sum(v["score"] for v in gd["grades"].values()),
@@ -50,8 +50,12 @@ def table(rows, group_key, title):
 
 
 def main():
-    rows = load()
-    L = ["# AgentBrief orientation benchmark - results\n",
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="sonnet")
+    tag = ap.parse_args().tag
+    rows = load(tag)
+    L = [f"# AgentBrief orientation benchmark - results (tag: {tag})\n",
          f"{len(rows)} graded runs. Cells: mean (sd, min-max) across all runs in the group. "
          "Accuracy = sum of five question scores (0/0.5/1) from the LLM judge.\n"]
     L += table(rows, lambda r: "ALL", "Overall")
@@ -80,7 +84,7 @@ def main():
     for r in sorted(rows, key=lambda r: (r["repo"], r["arm"], r["rep"])):
         L.append(f"| {r['repo']} | {r['arm']} | {r['rep']} | {r['acc']} | " + " | ".join(str(r['q'][q]) for q in ("q1","q2","q3","q4","q5"))
                  + f" | {r['turns']} | {r['tokens']} | {r['cost']} | {r['dur']:.0f} |")
-    path = os.path.join(BENCH, "results", "summary.md")
+    path = os.path.join(BENCH, "results", tag, "summary.md")
     open(path, "w").write("\n".join(L) + "\n")
     print("wrote", path)
 

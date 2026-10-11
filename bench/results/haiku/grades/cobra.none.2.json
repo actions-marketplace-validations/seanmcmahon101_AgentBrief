@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "cobra",
+    "arm": "none",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Go modules (go.mod, module github.com/spf13/cobra, go 1.15). Install dependencies from the repository root with: make install_deps (this runs `go get -v ./...`; `make test` also runs it first).",
+    "q2": "make test (runs `go test -v $(GO_TEST_FLAGS) ./...` after install_deps). Equivalent direct command: go test -v ./...",
+    "q3": "go test -v -run 'TestGenMd' ./doc/ (the five tests in doc/md_docs_test.go are TestGenMdDoc, TestGenMdDocWithNoLongOrSynopsis, TestGenMdNoHiddenParents, TestGenMdNoTag, TestGenMdTree). A bare `go test doc/md_docs_test.go` will not compile because the file depends on doc/md_docs.go and doc/cmd_test.go.",
+    "q4": "CI runs: (1) make fmt, which runs `test -z $(gofmt -l $(SRC)) || (gofmt -d $(SRC); exit 1)`; (2) golangci-lint run --verbose (the golangci-lint-action in .github/workflows/test.yml; .golangci.yml enables gofmt and goimports formatters plus linters errcheck, goconst, gocritic, gosec, govet, ineffassign, misspell, nolintlint, staticcheck, unconvert, unused); (3) the license header check: docker run -v $(pwd):/wrk -w /wrk ghcr.io/google/addlicense -c 'The Cobra Authors' -y '2013-2023' -l apache -ignore '.github/**' -check .",
+    "q5": "None. The repo has no generated or vendored source files (no vendor/ directory, no 'Code generated ... DO NOT EDIT' headers). bin/ is build output from make, and it is gitignored."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Go modules with `make install_deps` (`go get -v ./...`) matches an ACCEPT criterion with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`make test` and `go test -v ./...` are both accepted commands."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`go test -v -run 'TestGenMd' ./doc/` matches the accepted form and correctly names the five tests and warns against the single-file invocation."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Includes `golangci-lint run --verbose` as the CI lint check, plus make fmt and addlicense as accepted extras."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Correctly answers none, with no vendor/ or generated files; the bin/ mention is harmless."
+    }
+  }
+}

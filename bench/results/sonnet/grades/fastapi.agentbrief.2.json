@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "fastapi",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "uv (lockfile uv.lock; do not use pip). Install with: uv sync. CI installs with `uv sync --locked --extra all` (lint job) or `uv sync --no-dev --group tests --extra all` (test job). Both CI forms need `--extra all`.",
+    "q2": "bash scripts/test.sh  (runs: PYTHONPATH=./docs_src pytest -n auto --dist loadgroup tests scripts/tests/). Run it as `uv run bash scripts/test.sh` if the venv isn't activated. CI runs it with coverage: `uv run --no-sync bash scripts/test-cov.sh`.",
+    "q3": "PYTHONPATH=./docs_src uv run pytest tests/test_application.py",
+    "q4": "CI lint is pre-commit, run via prek: `uv sync --locked --extra all && uv run prek run --from-ref origin/<base-branch> --to-ref HEAD --show-diff-on-failure`. To run the same checks locally, use `uv run bash scripts/lint.sh`, which runs `mypy fastapi`, `ty check`, `ruff check fastapi tests docs_src scripts` and `ruff format fastapi tests --check`. Hooks in .pre-commit-config.yaml also run typos, check-yaml/toml, whitespace fixers and zizmor. To auto-format, use `uv run bash scripts/format.sh`.",
+    "q5": "uv.lock is a generated lockfile; change it with uv commands, not by hand. README.md is generated from docs/en/docs/index.md (`uv run ./scripts/docs.py generate-readme`), so edit index.md instead. The sponsor banner partial docs/en/overrides/partials/banner-sponsors.html is rendered from docs/en/data/sponsors.yml by `scripts/docs.py render-banner-sponsors`. Translated docs under docs/<lang>/ (everything except docs/en/) are managed by the translation tooling (scripts/translate.py, translation_fixer.py), and the `ensure-non-translated` hook guards them, so don't hand-edit them. The docs/en/docs/release-notes.md latest-release date is also added by a hook. No vendored directories were found."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names uv and `uv sync`, and the CI forms mentioned include the accepted `uv sync --locked --extra all`; the extra test-job detail is harmless."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `bash scripts/test.sh` (also with uv run) and mentions scripts/test-cov.sh for CI, matching accept."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`PYTHONPATH=./docs_src uv run pytest tests/test_application.py` runs only that file; the extra PYTHONPATH is harmless."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `uv run bash scripts/lint.sh` and the prek CI command, both matching accept; format.sh is only mentioned as an extra."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names uv.lock, README.md generated from docs/en/docs/index.md, and the banner-sponsors.html partial, all matching truth."
+    }
+  }
+}

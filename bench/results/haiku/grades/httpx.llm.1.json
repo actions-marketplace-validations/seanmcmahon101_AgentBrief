@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "llm",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Setuptools-free Python project built with hatchling (pyproject.toml), installed via pip. Run `scripts/install` from the repo root. It creates `venv/` with `python3 -m venv venv` and then runs `venv/bin/pip install -U pip` and `venv/bin/pip install -r requirements.txt`, which does an editable install of `.[brotli,cli,http2,socks,zstd]` plus the tooling pins. Use `scripts/install -p <python>` to pick a specific interpreter.",
+    "q2": "`scripts/test` (run from the repo root). It runs `scripts/check`, then `venv/bin/coverage run -m pytest`, then `scripts/coverage`, which enforces 100% coverage. In CI, `scripts/test` runs only the pytest step and the coverage step.",
+    "q3": "`venv/bin/pytest tests/client/test_auth.py`. Don't use `scripts/test tests/client/test_auth.py`: it forwards the path to pytest, but it then also runs `scripts/coverage` with `--fail-under=100`, which fails on a partial run.",
+    "q4": "`scripts/check` (run from the repo root). It runs `./scripts/sync-version`, then `ruff format httpx tests --diff`, `mypy httpx tests`, and `ruff check httpx tests`. CI runs it as its lint step. The fix-up counterpart is `scripts/lint`, which runs `ruff check --fix` and `ruff format` in place.",
+    "q5": "None. The repo has no generated or vendored source directories. `httpx/__version__.py` is hand-edited (hatch reads it as the version source), and `scripts/sync-version` only checks that it matches the second version in `CHANGELOG.md`. Build outputs such as `dist/`, `site/`, and `venv/` are not tracked. Don't edit them by hand either."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names scripts/install and the pip install -r requirements.txt in a venv, matching the truth."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test, which matches the accepted command and describes it correctly."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/pytest tests/client/test_auth.py matches the accepted pytest form and correctly warns about the coverage gate."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "scripts/check is the accepted answer and its listed steps match the ground truth; the extra scripts/lint remark is harmless."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says none and lists dist/, site/ as untracked build outputs, consistent with the truth and not claiming any source is generated."
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "none",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Maven, using the checked-in wrapper (CI uses it; Gradle is an alternative). Install dependencies with: ./mvnw dependency:resolve (or ./mvnw -B compile). Maven also fetches dependencies automatically on the first build.",
+    "q2": "./mvnw test (the full CI build, which also runs the format and checkstyle checks, is ./mvnw -B verify)",
+    "q3": "./mvnw test -Dtest=OwnerControllerTests",
+    "q4": "./mvnw -B validate. This runs spring-javaformat:validate and the nohttp checkstyle check, both bound to the validate phase. CI runs ./mvnw -B verify, which includes them. To auto-fix formatting, run ./mvnw spring-javaformat:apply.",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated from petclinic.scss plus Bootstrap, and is rebuilt with ./mvnw package -P css. The vendored fonts in src/main/resources/static/resources/fonts/ and the images in src/main/resources/static/resources/images/ should not be edited by hand. The Maven and Gradle wrapper files should also be left alone: gradle/wrapper/gradle-wrapper.jar, mvnw, mvnw.cmd, gradlew, gradlew.bat and .mvn/wrapper/. Build output (target/, build/) is generated too. I did not check whether it exists, since the directory listing showed none."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names the Maven wrapper with ./mvnw dependency:resolve, which matches an ACCEPT criterion, and notes that Gradle is an alternative."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives ./mvnw test and also mentions CI's ./mvnw -B verify, both of which are accepted."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw test -Dtest=OwnerControllerTests matches the accepted command exactly."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "./mvnw -B validate runs the style checks, which matches ./mvnw validate, and it also correctly mentions CI's verify and the spring-javaformat:apply fix."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Correctly identifies petclinic.css as generated from scss with ./mvnw package -P css and also mentions target/ and build/; the extra items such as fonts and wrapper files are harmless extras and not claims that src/main/java or templates are generated."
+    }
+  }
+}

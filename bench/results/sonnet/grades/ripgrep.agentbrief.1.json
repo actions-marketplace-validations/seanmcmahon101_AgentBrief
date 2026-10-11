@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Cargo (Rust). Cargo has no separate install step, so the command is `cargo build --workspace`. It fetches the dependencies and builds, using the committed Cargo.lock. If you only want to fetch dependencies, run `cargo fetch --locked`.",
+    "q2": "cargo test --workspace   (CI also runs it with features: `cargo test --workspace --features unstable-index` and `cargo test --workspace --features pcre2`)",
+    "q3": "cargo test --test integration regression   (tests/tests.rs is the 'integration' test target, because Cargo.toml sets autotests=false. regression.rs is the `regression` module inside it, so this filter selects its tests.)",
+    "q4": "cargo fmt --all --check   (this is the only lint/format check CI runs. CI also runs `cargo doc --no-deps --document-private-items --workspace`. There is no clippy step in CI.)",
+    "q5": "Do not edit these by hand: Cargo.lock and fuzz/Cargo.lock (lockfiles). Also do not edit the AgentBrief-generated block between the `agentbrief:start` and `agentbrief:end` markers in AGENTS.md; refresh it with `agentbrief sync`. There is no vendored directory. Shell completions are generated from the flag definitions in crates/core/flags/complete/, not stored as files."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies Cargo, notes no separate install step, and gives `cargo build --workspace` / `cargo fetch`, matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`cargo test --workspace` matches the accept list; the extra mention of the unstable-index feature is harmless extra detail."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`cargo test --test integration regression` exactly matches the accepted command and the explanation is correct."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check`, correctly notes the cargo doc step and that CI has no clippy."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Correctly names Cargo.lock (plus fuzz/Cargo.lock) and says nothing is vendored, but adds claims about an AgentBrief-generated block and generated completions that are not supported by the ground truth."
+    }
+  }
+}

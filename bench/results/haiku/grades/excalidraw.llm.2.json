@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "llm",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Yarn 1 (yarn@1.22.22, per the packageManager field in the root package.json; yarn.lock is the lockfile). Install with: yarn install",
+    "q2": "yarn test:all (runs test:typecheck, test:code, test:other, then vitest once via test:app --watch=false). The vitest suite alone is: yarn test:app --watch=false",
+    "q3": "yarn test:app --watch=false packages/element/tests/bounds.test.ts",
+    "q4": "yarn test:other && yarn test:code && yarn test:typecheck (the Lint job in .github/workflows/lint.yml; test:other is prettier --list-different, test:code is eslint --max-warnings=0 --ext .js,.ts,.tsx ., test:typecheck is tsc)",
+    "q5": "packages/excalidraw/subset/woff2/woff2-wasm.ts and packages/excalidraw/subset/harfbuzz/harfbuzz-wasm.ts are marked 'GENERATED CODE -- DO NOT EDIT!' (produced by scripts/buildWasm.js). Build output that must not be hand-edited: build/, dist/, dev-dist/, coverage/, packages/excalidraw/types (all listed in .eslintignore). yarn.lock should be changed only through yarn, and package-lock.json is ignored. I found no vendored third-party source directories."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` matches the accepted answer."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `yarn test:all` (accepted superset) and `yarn test:app --watch=false` (accepted one-shot form)."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted form; flag order does not matter."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Lists test:other, test:code and test:typecheck, which matches what CI runs."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names build output dirs (build/, dist/, dev-dist/, packages/excalidraw/types) and yarn.lock as generated or managed, which matches ACCEPT. The wasm-generated files are extra detail and do not contradict the truth, and it does not say 'none'."
+    }
+  }
+}

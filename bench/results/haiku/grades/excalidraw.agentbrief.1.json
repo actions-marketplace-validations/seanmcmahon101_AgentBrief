@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "agentbrief",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Yarn 1.22.22 (Yarn workspaces, pinned via the \"packageManager\" field in package.json; use yarn, not npm or pnpm). Install dependencies with: yarn install",
+    "q2": "yarn test:app --watch=false (runs the full Vitest suite once; plain `yarn test` / `yarn test:app` starts watch mode locally). CI's test.yml runs the same `yarn test:app` step.",
+    "q3": "yarn test:app --watch=false packages/element/tests/bounds.test.ts",
+    "q4": "yarn test:other (prettier --list-different) && yarn test:code (eslint --max-warnings=0 --ext .js,.ts,.tsx .) && yarn test:typecheck (tsc). CI's lint.yml runs these three commands in that order; `yarn fix` can auto-fix formatting and lint issues.",
+    "q5": "Do not hand-edit lockfiles: yarn.lock and dev-docs/yarn.lock. Also do not hand-edit the generated/vendored WASM wrappers packages/excalidraw/subset/woff2/woff2-wasm.ts and packages/excalidraw/subset/harfbuzz/harfbuzz-wasm.ts, which are marked as generated (do not edit). Build outputs such as packages/*/dist, packages/excalidraw/types, and build/ are also generated and git-ignored (per .eslintignore and the rm:build script)."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies yarn classic with workspaces and gives `yarn install`, matching the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is an explicitly accepted one-shot form, and the CI note is correct."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted form (flag order doesn't matter) and runs only that file."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives yarn test:other, test:code and test:typecheck, matching CI's lint.yml; mentioning `yarn fix` is only extra detail."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names yarn.lock and gitignored build outputs (dist, types, build), which match the accept criterion; the extra WASM wrapper claims don't contradict the truth or hit a REJECT item."
+    }
+  }
+}

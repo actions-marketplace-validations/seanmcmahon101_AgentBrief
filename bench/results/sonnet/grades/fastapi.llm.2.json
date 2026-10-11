@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "fastapi",
+    "arm": "llm",
+    "rep": 2,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "uv (lockfile uv.lock, config in pyproject.toml). CI installs with: `uv sync --no-dev --group tests --extra all`. For a full dev setup, use `uv sync --extra all`, which includes the default dev groups. This is what the pre-commit CI job runs, with `--locked` added.",
+    "q2": "`uv run bash scripts/test.sh`. This runs `PYTHONPATH=./docs_src pytest -n auto --dist loadgroup tests scripts/tests/`. CI uses `uv run --no-sync bash scripts/test-cov.sh`, which adds coverage.",
+    "q3": "`PYTHONPATH=./docs_src uv run pytest tests/test_application.py`",
+    "q4": "CI runs pre-commit through prek, limited to the changed files: `uv run prek run --from-ref origin/master --to-ref HEAD --show-diff-on-failure`. To run all hooks on every file, use `uv run prek run --all-files`. The hooks include ruff check, ruff format, mypy, ty, typos, zizmor and the file-hygiene checks. The equivalent direct commands are `uv run ruff check fastapi tests docs_src scripts`, `uv run ruff format fastapi tests --check`, `uv run mypy fastapi`, and `uv run ty check`. The last four are what `bash scripts/lint.sh` runs.",
+    "q5": "Generated, so edit the source instead: `uv.lock` (change pyproject.toml and run `uv lock`); `README.md` (generated from docs/en/docs/index.md via `scripts/docs.py generate-readme`); `docs/en/overrides/partials/banner-sponsors.html` (rendered from docs/en/data/sponsors.yml); the language list and permalinks that `scripts/docs.py` maintains. Translated docs under `docs/<lang>/` (everything except `docs/en/`) are LLM-generated and checked by the `ensure-non-translated` and `fix-translations` hooks, so don't hand-edit non-English files that should stay untouched. I found no vendored directories."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies uv and gives `uv sync --extra all`, which matches an ACCEPT command, with no contradiction."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`uv run bash scripts/test.sh` matches ACCEPT and the described contents and CI script are correct."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`PYTHONPATH=./docs_src uv run pytest tests/test_application.py` runs only that file, matching the accepted command with a harmless env prefix."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives the prek CI command, `uv run prek run --all-files`, and the explicit equivalents matching scripts/lint.sh, all in ACCEPT."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names uv.lock, README.md generated from docs/en/docs/index.md, and banner-sponsors.html, and does not claim fastapi/ or docs_src/ are generated."
+    }
+  }
+}

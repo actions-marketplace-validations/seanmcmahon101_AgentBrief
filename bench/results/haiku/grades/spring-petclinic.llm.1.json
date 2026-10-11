@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "llm",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Maven, through the committed Maven Wrapper (pom.xml, Java 17, Spring Boot 4.1.0 parent). Install dependencies with: ./mvnw dependency:resolve (Gradle is also present via build.gradle and gradlew, where ./gradlew build is the equivalent CI command, but Maven is the primary build).",
+    "q2": "./mvnw test",
+    "q3": "./mvnw test -Dtest=OwnerControllerTests",
+    "q4": "./mvnw -B verify (this is the exact CI step in .github/workflows/maven-build.yml. The lint/format checks run in the validate phase: spring-javaformat:validate and the nohttp-checkstyle check configured in pom.xml. There is no separate lint command in CI.)",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated: it is compiled by libsass from src/main/scss/*.scss via ./mvnw package -P css, so edit the .scss sources and regenerate instead. Vendored third-party assets: src/main/resources/static/resources/fonts/ (Montserrat and Varela Round webfonts). Bootstrap and Font Awesome come in as webjar Maven dependencies, not as files in the repo, so they are not hand-edited. target/ is build output and is git-ignored."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names the Maven wrapper with ./mvnw dependency:resolve and also mentions ./gradlew build, matching the accept criteria with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw test is an accepted command."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw test -Dtest=OwnerControllerTests exactly matches the accepted filter."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "./mvnw -B verify is accepted, and the answer correctly explains that spring-javaformat:validate and nohttp checkstyle run in the validate phase."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Identifies petclinic.css as generated from the scss sources via ./mvnw package -P css and notes target/ is build output; the extra fonts detail is harmless."
+    }
+  }
+}

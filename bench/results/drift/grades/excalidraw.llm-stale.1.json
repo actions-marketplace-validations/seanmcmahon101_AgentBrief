@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "llm-stale",
+    "rep": 1,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Yarn classic (yarn@1.22.22, set in package.json's packageManager field), with Node >=18 (CI uses Node 20.x). The repo is a Yarn workspaces monorepo covering excalidraw-app, packages/* and examples/*. Install dependencies with: yarn install",
+    "q2": "yarn test:unit --watch=false   (this runs vitest once without watch mode. `yarn test` is an alias for `yarn test:unit`, which starts vitest in watch mode on a TTY. `yarn test:all` also runs types, lint and format checks before the unit tests.)",
+    "q3": "yarn vitest run packages/element/tests/bounds.test.ts   (equivalent: yarn test:unit --watch=false packages/element/tests/bounds.test.ts)",
+    "q4": "yarn test:format && yarn test:lint && yarn test:types   (CI's lint.yml runs yarn install, then these three in this order. They expand to: prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore --list-different, then eslint --max-warnings=0 --ext .js,.ts,.tsx ., then tsc.)",
+    "q5": "Don't hand-edit these. Build output and dependencies: node_modules/, build/, dist/, dev-dist/, coverage/, public/workbox, packages/excalidraw/types and examples/**/public (all listed in .eslintignore), plus per-package packages/*/dist and packages/*/build. Lockfile: yarn.lock, which yarn manages. I did not check for it, but it is probably in the repo root. Translations: files in packages/excalidraw/locales/ other than en.json are managed through Crowdin (crowdin.yml is in the root). This is from my general knowledge of the project, and I did not open that directory to confirm."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from the root matches the accept criterion, with no contradictions."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:unit --watch=false` is explicitly accepted, and the extra detail about `yarn test` and `yarn test:all` is consistent with the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn vitest run packages/element/tests/bounds.test.ts` matches the accepted command exactly, and the equivalent given is also valid."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "`yarn test:format && yarn test:lint && yarn test:types` covers lint and format plus types, matching the CI workflow."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "It names yarn.lock, the non-en locale files managed by Crowdin, and build output directories (dist/, build/, dev-dist, packages/excalidraw/types), all of which are accepted and none of which match a reject item. The hedging about not having verified is only a caveat."
+    }
+  }
+}

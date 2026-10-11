@@ -1,0 +1,101 @@
+{
+  "duration_api_ms": 28917,
+  "stop_reason": "end_turn",
+  "session_id": "e7fb2bca-4db9-48cd-92aa-afaf9b7795b1",
+  "total_cost_usd": 0.1353712,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 21539,
+    "cache_read_input_tokens": 164472,
+    "output_tokens": 3274,
+    "output_tokens_details": {
+      "thinking_tokens": 134
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 21539,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 373,
+        "cache_read_input_tokens": 30378,
+        "cache_creation_input_tokens": 1331,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1331
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 14,
+      "outputTokens": 3274,
+      "cacheReadInputTokens": 164472,
+      "cacheCreationInputTokens": 21539,
+      "webSearchRequests": 0,
+      "costUSD": 0.1353712,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 134,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 7,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I created `AGENTS.md` at the repository root. I checked the architecture claims against the source: `lexopt` parsing, `HiArgs` building the matcher, searcher, printer and walker, and the `unstable-index` feature switch. I haven't run any of the commands in it.\n\nIt has four parts:\n- **Commands:** build, test (with a single-test example), crate-level tests, the CI format and docs checks, and `ci/test-complete`.\n- **Architecture:** how the library crates fit together, and how the flag pipeline in `crates/core` ties them to the `rg` binary.\n- **Tests:** how the integration tests are laid out and where new tests go.\n- **Policy:** a pointer to `AI_POLICY.md`, which says autonomous agents aren't allowed to contribute to this project.\n\nTwo limitations:\n- **Single-test command:** the `cargo test --test integration <name>` form follows from the `[[test]] name = \"integration\"` entry in `Cargo.toml`, not from a documented example in the repo.\n- **No lint step:** I found no clippy config or CI step, so I said so instead of inventing a lint command.",
+  "ttft_ms": 2420,
+  "type": "result",
+  "duration_ms": 29122,
+  "uuid": "553f23e4-0306-4a2a-9a68-00adfd5ecd40",
+  "ttft_stream_ms": 1302,
+  "time_to_request_ms": 38,
+  "first_content_frame_ms": 1302,
+  "queued_turn_count": 0,
+  "result_index": 0,
+  "_wall_s": 29.9,
+  "_returncode": 0
+}

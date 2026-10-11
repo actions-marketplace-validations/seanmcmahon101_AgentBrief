@@ -1,0 +1,116 @@
+{
+  "duration_api_ms": 27853,
+  "stop_reason": "end_turn",
+  "session_id": "fd02841a-1a39-40f0-8221-dc10bf4bef1c",
+  "total_cost_usd": 0.1089232,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 15467,
+    "cache_read_input_tokens": 145972,
+    "output_tokens": 3243,
+    "output_tokens_details": {
+      "thinking_tokens": 74
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 15467,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 445,
+        "cache_read_input_tokens": 24641,
+        "cache_creation_input_tokens": 996,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 996
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 14,
+      "outputTokens": 3243,
+      "cacheReadInputTokens": 145972,
+      "cacheCreationInputTokens": 15467,
+      "webSearchRequests": 0,
+      "costUSD": 0.1089232,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 74,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01N5XW1vyZHX5yVtuxM86ZSv",
+      "tool_input": {
+        "command": "sed -i 's/flag-level completion helpers (e.g. marking flags required for completion)/`MarkFlagRequired`\\/`MarkFlagCustom`-style flag annotations used by the completion generators/; /^- Tests sit beside/d; s/ (mousetrap \"started from explorer\" check)//' AGENTS.md && grep -n \"__complete\\|ShellCompDirective \" completions.go | head -3"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01NpPSDWXzv8eyf6rvbEraJi",
+      "tool_input": {
+        "command": "cd /tmp/claude-1000/-home-sm/dc3a09a6-ed56-427c-a632-10969d6c9cdc/scratchpad/bench-work/gen/cobra; sed -i 's/flag-level completion helpers (e.g. marking flags required for completion)/`MarkFlagRequired`\\/`MarkFlagCustom` flag annotations used by the completion generators/; /^- Tests sit beside/d; s/ (mousetrap \"started from explorer\" check)//' AGENTS.md; grep -c \"\" AGENTS.md"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 9,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I created `AGENTS.md` at the repo root. I didn't run any of the commands in it, so none of them are tested.\n\n- **Commands:** it lists the `make fmt`, `make lint`, `make test` and `make richtest` targets and the default `make` target. It also has the plain `go test ./...` run and the single-test form, `go test -run '^TestName$' .`. For the `doc/` package, replace the `.` with `./doc`.\n- **Architecture:** it covers four parts:\n  - the core `Command` type and execution flow in `command.go`;\n  - the arg validators and flag groups;\n  - how shell completion is split across the engine and the per-shell generators;\n  - the `doc/` generators.\n\nI took the commands and the file layout from the `Makefile`, `.golangci.yml`, the CI workflow and `go.mod`. I removed two claims I couldn't confirm from the code: one about shared test helpers and one about the Windows-specific file. I also reworded the `shell_completions.go` description to match what it contains, the `MarkFlagRequired` and `MarkFlagCustom` flag annotations.\n\nOne claim I didn't re-check: the file says `completions.go` holds the hidden `__complete` command. I saw `initCompleteCmd` and `getCompletions` there, but my last grep for `__complete` never ran because the command was blocked.",
+  "ttft_ms": 2553,
+  "type": "result",
+  "duration_ms": 28021,
+  "uuid": "9347f42b-d92e-4c95-a98c-96678b8349c6",
+  "ttft_stream_ms": 1385,
+  "time_to_request_ms": 38,
+  "first_content_frame_ms": 1385,
+  "queued_turn_count": 0,
+  "result_index": 0,
+  "_wall_s": 28.8,
+  "_returncode": 0
+}

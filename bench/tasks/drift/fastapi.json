@@ -1,0 +1,104 @@
+{
+  "repo": "fastapi",
+  "ecosystem": "Python (uv)",
+  "test_file": "tests/test_application.py",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which package manager / build tool should be used, and what exact command installs dependencies?",
+      "truth": "uv. `uv sync` (CI: `uv sync --locked --extra all`; the dev dependency group installs by default). uv.lock is committed.",
+      "accept": [
+        "uv sync",
+        "uv sync --extra all",
+        "uv sync --locked --extra all"
+      ],
+      "reject": [
+        "pip install -r requirements.txt (no such file)",
+        "poetry / pipenv / hatch",
+        "pip install -e . or pip install -e '.[all]' = 0.5 (works, ignores uv.lock and dev groups)"
+      ],
+      "evidence": [
+        "pyproject.toml",
+        "uv.lock",
+        ".github/workflows/test.yml",
+        ".github/workflows/pre-commit.yml"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What exact command runs the full test suite?",
+      "truth": "`bash scripts/run-tests.sh` (renamed from scripts/test.sh; same pytest -n auto --dist loadgroup tests scripts/tests/). CI uses scripts/test-cov.sh, which calls run-tests.sh. `uv run pytest` also works.",
+      "accept": [
+        "bash scripts/run-tests.sh / uv run bash scripts/run-tests.sh",
+        "scripts/test-cov.sh",
+        "uv run pytest",
+        "pytest"
+      ],
+      "reject": [
+        "bash scripts/test.sh (file no longer exists)",
+        "make test / tox"
+      ],
+      "evidence": [
+        "scripts/run-tests.sh",
+        "scripts/test-cov.sh",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What exact command runs only the tests in tests/test_application.py?",
+      "truth": "`uv run pytest tests/test_application.py`. `scripts/run-tests.sh <file>` still runs everything; `scripts/test.sh` no longer exists.",
+      "accept": [
+        "uv run pytest tests/test_application.py",
+        "pytest tests/test_application.py",
+        "python -m pytest tests/test_application.py"
+      ],
+      "reject": [
+        "bash scripts/test.sh ... (no such file)",
+        "bash scripts/run-tests.sh <file> (whole suite)",
+        "whole suite"
+      ],
+      "evidence": [
+        "scripts/run-tests.sh",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What exact command(s) check lint/formatting the way CI does?",
+      "truth": "CI runs pre-commit via prek (ruff check, ruff format, mypy fastapi, ty check, ...). Local equivalent: `bash scripts/check-style.sh` (renamed from scripts/lint.sh) = mypy fastapi; ty check; ruff check ...; ruff format --check.",
+      "accept": [
+        "bash scripts/check-style.sh",
+        "uv run prek run --all-files (or pre-commit run --all-files)",
+        "explicit ruff check + ruff format --check + mypy fastapi (ty check a bonus)"
+      ],
+      "reject": [
+        "bash scripts/lint.sh (file no longer exists)",
+        "scripts/format.sh as the only answer",
+        "only ruff check = 0.5"
+      ],
+      "evidence": [
+        "scripts/check-style.sh",
+        ".pre-commit-config.yaml"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "Name files or directories in this repo that are generated or vendored and must not be edited by hand (or say none).",
+      "truth": "uv.lock (tool-managed); README.md is generated from docs/en/docs/index.md (pre-commit hook generate-readme); docs/en/overrides/partials/banner-sponsors.html is generated from docs/en/data/sponsors.yml (render-banner-sponsors hook); coverage/ and htmlcov are build outputs.",
+      "accept": [
+        "Score 1 if it names at least one of: uv.lock, README.md (generated from docs/en/docs/index.md), banner-sponsors.html partial, coverage/htmlcov outputs"
+      ],
+      "reject": [
+        "'none' = 0",
+        "claiming fastapi/ or docs_src/ source is generated"
+      ],
+      "evidence": [
+        ".pre-commit-config.yaml",
+        "scripts/docs.py",
+        "uv.lock"
+      ]
+    }
+  ],
+  "drift": "scripts/test.sh->scripts/run-tests.sh, scripts/lint.sh->scripts/check-style.sh"
+}

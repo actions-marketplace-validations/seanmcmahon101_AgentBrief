@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "vite",
+    "arm": "llm",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "pnpm. The root package.json sets \"packageManager\": \"pnpm@12.9.1\", and its preinstall script runs `npx only-allow pnpm`. Install dependencies from the repo root with `pnpm install` (CONTRIBUTING.md writes it as `pnpm i`).",
+    "q2": "`pnpm test`, which runs `pnpm test-unit && pnpm test-serve && pnpm test-build`. CI runs `pnpm run build` before the tests, so run that first.",
+    "q3": "`pnpm run test-unit packages/vite/src/node/__tests__/config.spec.ts` (the test-unit script is `vitest run`, so the path is passed through as a filter).",
+    "q4": "`pnpm run lint`, then `pnpm format && git diff --exit-code`, then `pnpm run typecheck`. The CI lint job also runs `pnpm run build` before these and `pnpm run test-docs` after them.",
+    "q5": "Not a single directory. Do not hand-edit: `dist/` directories (build output, gitignored); the inlined third-party type copies in `packages/vite/src/types/*.d.ts` (CONTRIBUTING says these are inlined from dependencies); and the `ESBUILD_BASELINE_WIDELY_AVAILABLE_TARGET` array in `packages/vite/src/node/constants.ts`, whose value comes from `pnpm generate-target` (`packages/vite/scripts/generateTarget.ts`). `node_modules/` is installed, not edited."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies pnpm and `pnpm install` from the root, consistent with the truth and no rejected items."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`pnpm test` with the correct chain and building first matches the accept criteria."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`pnpm run test-unit <file>` is an accepted form (test-unit is `vitest run`), so only that file's tests run."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `pnpm run lint` plus `pnpm format && git diff --exit-code` and typecheck, matching CI with no contradictions."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Names dist/ and the vendored d.ts files but omits pnpm-lock.yaml, so it does not meet the full criterion; the extra constants.ts item is harmless."
+    }
+  }
+}

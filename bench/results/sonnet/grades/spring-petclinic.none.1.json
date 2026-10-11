@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "none",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Maven, using the bundled wrapper (the repo also has a Gradle build, but CI's Maven workflow uses ./mvnw). Install dependencies with: ./mvnw -B dependency:go-offline",
+    "q2": "./mvnw -B test (CI runs the full build with ./mvnw -B verify, which includes the tests plus the format and checkstyle validation)",
+    "q3": "./mvnw -B test -Dtest=OwnerControllerTests",
+    "q4": "./mvnw -B validate. This runs spring-javaformat:validate and the nohttp checkstyle check, both bound to the validate phase, and CI's ./mvnw -B verify runs them too. To auto-fix formatting, run ./mvnw spring-javaformat:apply.",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated from src/main/scss/*.scss by the 'css' Maven profile (libsass), so edit the SCSS instead. target/ and build/ are build output. .gradle, .idea and .settings are IDE or tool state. Don't hand-edit the wrapper files (mvnw, mvnw.cmd, gradlew, gradlew.bat, .mvn/wrapper/, gradle/wrapper/), and src/main/resources/static/resources/fonts/ holds vendored font files. No node_modules or vendor directories are checked in."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Uses the Maven wrapper ./mvnw with dependency resolution (dependency:go-offline), matching the accepted Maven wrapper approach, and acknowledges Gradle exists."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw -B test is the wrapper test command and the answer correctly cites CI's ./mvnw -B verify."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw -B test -Dtest=OwnerControllerTests matches the accepted class-filter command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "./mvnw -B validate runs the spring-javaformat and nohttp checks as in the truth, and it also correctly mentions CI's verify and the apply auto-fix."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Correctly identifies petclinic.css as generated from the SCSS and also lists target/ and build/; the extra items (fonts, wrapper files) are harmless extra detail and not contradicted by the truth."
+    }
+  }
+}

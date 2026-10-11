@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "spring-petclinic",
+    "arm": "none",
+    "rep": 1,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Maven, via the Maven Wrapper (Java 17+ required). Install dependencies with: ./mvnw dependency:resolve (Gradle is also present, via ./gradlew, but CI uses Maven).",
+    "q2": "./mvnw -B verify",
+    "q3": "./mvnw -Dtest=OwnerControllerTests test",
+    "q4": "./mvnw -B validate (runs the spring-javaformat validate goal and the nohttp checkstyle check, both bound to the validate phase; CI's ./mvnw -B verify includes these). The Gradle equivalent is ./gradlew checkstyleMain checkstyleTest checkstyleNohttp checkFormatMain checkFormatTest, but CI does not run it.",
+    "q5": "src/main/resources/static/resources/css/petclinic.css is generated from src/main/scss/*.scss by the Maven 'css' profile (./mvnw package -P css), so edit the .scss sources and regenerate instead. src/main/resources/static/resources/fonts/* are vendored third-party webfonts (Montserrat, Varela Round). The Maven and Gradle wrapper files (mvnw, .mvn/wrapper/, gradlew, gradle/wrapper/) are also vendored tooling. No target/ or build/ output is checked in."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names the Maven wrapper with ./mvnw dependency:resolve, which matches an ACCEPT criterion, and mentions ./gradlew too."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "./mvnw -B verify is exactly the CI command and is in the ACCEPT list."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "./mvnw -Dtest=OwnerControllerTests test filters by class and is equivalent to the accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "./mvnw -B validate matches the accepted ./mvnw validate, and the answer correctly notes that CI's verify includes these checks and gives valid Gradle tasks."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Identifies petclinic.css as generated from the scss sources via ./mvnw package -P css; the extra vendored-file details do not contradict the truth."
+    }
+  }
+}

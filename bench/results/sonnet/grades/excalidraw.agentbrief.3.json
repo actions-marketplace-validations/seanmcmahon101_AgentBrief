@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "agentbrief",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Yarn classic (yarn@1.22.22, set in package.json) with Yarn workspaces. Node >=18 is required, and CI uses Node 20. Install with: yarn install",
+    "q2": "yarn test:app --watch=false   (CI runs this as `yarn test:app`. `yarn test` is an alias for it, and plain vitest starts in watch mode. The broader `yarn test:all` also runs typecheck, eslint and prettier.)",
+    "q3": "yarn vitest run packages/element/tests/bounds.test.ts",
+    "q4": "yarn install && yarn test:other && yarn test:code && yarn test:typecheck   (test:other = prettier --list-different on css/scss/json/md/html/yml; test:code = eslint --max-warnings=0 --ext .js,.ts,.tsx .; test:typecheck = tsc. To auto-fix, run: yarn fix)",
+    "q5": "yarn.lock and dev-docs/yarn.lock (lockfiles). Build and generated output: node_modules/, build/, dist/, dev-dist/, coverage/, public/workbox, packages/excalidraw/types, examples/**/public. Vendored or binary assets under packages/excalidraw/subset/ (harfbuzz and woff2 wasm) and packages/excalidraw/fonts/ (font binaries). I did not inspect the contents of these two directories closely. Translations in packages/excalidraw/locales/*.json other than en.json are managed through Crowdin (crowdin.yml). Edit only en.json by hand."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` from root matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is an explicitly accepted one-shot form, with correct notes on CI and test:all."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn vitest run packages/element/tests/bounds.test.ts` exactly matches an accepted command."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives yarn test:other, test:code and test:typecheck matching CI; the fix mention is only supplementary."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names yarn.lock, build output dirs (build/, dist/, dev-dist/) and non-en locale files managed by Crowdin; extras like subset/fonts are hedged and harmless."
+    }
+  }
+}

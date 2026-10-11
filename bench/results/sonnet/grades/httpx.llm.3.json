@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "llm",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pip with a venv, driven by the repo's scripts (no uv/poetry). Install with: scripts/install (creates ./venv with python3 -m venv, then runs pip install -U pip and pip install -r requirements.txt). To use a specific interpreter: scripts/install -p python3.12",
+    "q2": "scripts/test (this runs scripts/check first, then 'coverage run -m pytest', then scripts/coverage, which fails if coverage is under 100%). To run pytest alone without the lint and coverage gates: venv/bin/pytest",
+    "q3": "venv/bin/pytest tests/client/test_auth.py (or, if the venv is already activated, pytest tests/client/test_auth.py). Using the wrapper instead: scripts/test tests/client/test_auth.py. The wrapper also runs scripts/check first and then the coverage gate, which will fail on a partial run.",
+    "q4": "scripts/check. This is what CI runs in its 'Run linting checks' step, and it runs these commands: ./scripts/sync-version; venv/bin/ruff format httpx tests --diff; venv/bin/mypy httpx tests; venv/bin/ruff check httpx tests. CI also runs scripts/build and scripts/coverage as separate steps. To auto-fix instead of just check, run scripts/lint.",
+    "q5": "None are committed. The repo has no vendored or generated source files that must not be edited by hand, and httpx/_status_codes.py is ordinary source. The only generated directories are git-ignored build outputs: venv*/, build/, dist/, site/ (mkdocs output), htmlcov/, .coverage, *.egg-info/, .mypy_cache/, .pytest_cache/ and __pycache__/. httpx/__version__.py is hand-edited but must match the latest CHANGELOG.md entry (checked by scripts/sync-version)."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives scripts/install, which creates the venv and runs pip install -r requirements.txt, and rules out uv and poetry."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test and correctly describes what it runs, and also offers venv/bin/pytest, which is accepted."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/pytest tests/client/test_auth.py is an accepted form, and the answer correctly notes that the wrapper's coverage gate fails on a partial run."
+    },
+    "q4": {
+      "score": 0.5,
+      "reason": "scripts/check and its commands are correct, but the answer also recommends scripts/lint, which the ground truth says does not exist."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no generated or vendored source is committed and lists the build artifacts (dist/, site/, htmlcov/, *.egg-info) as git-ignored output."
+    }
+  }
+}

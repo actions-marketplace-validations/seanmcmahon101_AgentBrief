@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "excalidraw",
+    "arm": "none",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Yarn classic (v1.22.22, a workspaces monorepo; package.json pins `packageManager: yarn@1.22.22`). Install with: `yarn install`",
+    "q2": "`yarn test:app --watch=false`. Plain `yarn test` or `yarn test:app` runs vitest in watch mode. CI runs `yarn test:app` on pushes to master. To also include typecheck, lint and prettier, run `yarn test:all`.",
+    "q3": "`yarn test:app --watch=false packages/element/tests/bounds.test.ts`",
+    "q4": "These are the commands from .github/workflows/lint.yml, run after `yarn install`: `yarn test:other && yarn test:code && yarn test:typecheck`. They expand to: `prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore --list-different`, then `eslint --max-warnings=0 --ext .js,.ts,.tsx .`, then `tsc`. To auto-fix, run `yarn fix`.",
+    "q5": "I didn't run anything, so this comes from .eslintignore and the build scripts, not from inspecting the tree. Don't hand-edit these generated or build-output paths: node_modules/, build/ and dist/ directories (such as excalidraw-app/build, packages/*/dist and examples/*/build), dev-dist, coverage, public/workbox, packages/excalidraw/types, examples/**/public, and yarn.lock (edit it only through yarn). Locale files in packages/excalidraw/locales are most likely synced from a translation service, so edit only en.json by hand. This is an assumption I haven't verified. I didn't confirm whether packages/fractional-indexing and packages/laser-pointer are vendored, so check them before editing."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Yarn classic with `yarn install` matches the accept criterion."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false` is an accepted one-shot form, and the extra detail about `yarn test:all` is correct."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`yarn test:app --watch=false packages/element/tests/bounds.test.ts` is equivalent to the accepted form, with only the argument order differing."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `yarn test:other`, `yarn test:code` and `yarn test:typecheck` exactly as CI runs them; the mention of `yarn fix` is only an extra for auto-fixing, not the answer."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names yarn.lock, build/dist/dev-dist output dirs, packages/excalidraw/types, and says only locales/en.json is hand-edited; the hedging is honest and the extra vendored-package uncertainty does not contradict the truth."
+    }
+  }
+}

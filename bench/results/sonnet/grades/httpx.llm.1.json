@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "llm",
+    "rep": 1,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "pip with a venv, driven by the repo's scripts (requirements.txt, no uv/poetry). Install with: scripts/install. It creates ./venv and runs pip install -U pip and pip install -r requirements.txt. The other scripts use venv/bin/ automatically once venv exists.",
+    "q2": "scripts/test. Locally this runs scripts/check first, then 'coverage run -m pytest', then scripts/coverage, which fails if coverage is under 100%. To run only pytest, use: venv/bin/coverage run -m pytest. You can also use plain 'venv/bin/pytest'.",
+    "q3": "venv/bin/pytest tests/client/test_auth.py. This skips lint and the coverage gate. The wrapper 'scripts/test tests/client/test_auth.py' also works, but it runs scripts/check first and then the 100% coverage check, which a single-file run will fail.",
+    "q4": "scripts/check. It is what CI runs ('Run linting checks'). It expands to: ./scripts/sync-version && venv/bin/ruff format httpx tests --diff && venv/bin/mypy httpx tests && venv/bin/ruff check httpx tests. The ruff and mypy calls drop the venv/bin/ prefix in CI, where there is no venv. scripts/lint is the auto-fix version, not the check.",
+    "q5": "No vendored code that I found. Don't hand-edit these generated or build artifacts: site/ (mkdocs output), build/ and dist/ (packaging output), *.egg-info/, htmlcov/, .coverage, .mypy_cache/, .pytest_cache/, __pycache__/ and venv/. All of them are in .gitignore. httpx/__version__.py is hand-edited, but sync-version requires it to match the latest CHANGELOG.md entry. tests/fixtures/ is empty. Test certificates are generated at runtime by trustme in tests/conftest.py."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Names scripts/install with venv and pip install -r requirements.txt, matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives scripts/test with accurate description of check, coverage run -m pytest, and the 100% gate; also mentions plain pytest."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/pytest tests/client/test_auth.py is the accepted pytest invocation; the scripts/test note is accurate."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "scripts/check is correct, and the expansion matches truth including ruff format --diff, mypy and ruff check."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says no vendored code and lists build artifacts (site/, dist/, htmlcov/, egg-info) as generated, matching the accept criteria without claiming source files are generated."
+    }
+  }
+}

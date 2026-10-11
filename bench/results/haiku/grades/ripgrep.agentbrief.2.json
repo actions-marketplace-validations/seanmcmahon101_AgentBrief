@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Cargo (Rust toolchain >=1.96, per Cargo.toml and AGENTS.md). Install by fetching dependencies: `cargo fetch` (run from the repo root). `cargo build --workspace` also pulls and compiles them.",
+    "q2": "`cargo test --workspace` (from the repo root). CI also runs `cargo test --workspace --features unstable-index` and `cargo test --workspace --features pcre2`.",
+    "q3": "`cargo test --test tests regression::`. Cargo.toml sets `autotests = false`, and tests/regression.rs is compiled as `mod regression;` inside the `integration` target (tests/tests.rs), so `cargo test --test regression` will not work.",
+    "q4": "`cargo fmt --all --check` (the only lint/format step in .github/workflows/ci.yml). CI does not run clippy. AGENTS.md lists `cargo clippy --all-targets --workspace` but marks it as unverified. CI also checks docs with `RUSTDOCFLAGS=\"-D warnings\" cargo doc --no-deps --document-private-items --workspace`.",
+    "q5": "Cargo.lock and fuzz/Cargo.lock, per the AGENTS.md block that says not to edit them by hand. No vendor/ directory exists in the repo. Files under benchsuite/runs/ are recorded data, not generated code."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies Cargo and gives `cargo fetch` (and `cargo build --workspace`), both accepted."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "`cargo test --workspace` matches the accept criterion; extra CI detail is harmless."
+    },
+    "q3": {
+      "score": 0,
+      "reason": "`cargo test --test tests regression::` uses the wrong target name; the target is `integration`, so the command would fail."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives `cargo fmt --all --check`, states CI doesn't run clippy, and correctly mentions the cargo doc check."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Names Cargo.lock (accepted) and doesn't claim crates/tests data/pkg are generated or vendored."
+    }
+  }
+}

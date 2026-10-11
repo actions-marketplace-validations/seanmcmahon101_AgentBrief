@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "httpx",
+    "arm": "none",
+    "rep": 2,
+    "model": "haiku",
+    "tag": "haiku",
+    "drift": false
+  },
+  "answers": {
+    "q1": "Python project built with hatchling (pyproject.toml), dependencies pinned in requirements.txt and installed into a local venv by the repo's script. Run from the repo root: `scripts/install` (equivalent to `python3 -m venv venv && venv/bin/pip install -U pip && venv/bin/pip install -r requirements.txt`).",
+    "q2": "`scripts/test`. It runs `scripts/check` first when GITHUB_ACTIONS is unset, then `coverage run -m pytest`, then `scripts/coverage`. For pytest alone without those steps: `venv/bin/pytest`.",
+    "q3": "`venv/bin/pytest tests/client/test_auth.py` (run `scripts/test tests/client/test_auth.py` instead if you want the lint and coverage steps as well; the extra arguments are passed through to pytest).",
+    "q4": "`scripts/check`. CI (.github/workflows/test-suite.yml) runs this script, which runs `./scripts/sync-version`, `ruff format httpx tests --diff`, `mypy httpx tests`, and `ruff check httpx tests`. To apply fixes locally, `scripts/lint` runs `ruff check --fix` and `ruff format`.",
+    "q5": "None. I found no generated or vendored directories and no 'do not edit' markers in the repo. httpx/__version__.py is the version source that scripts/sync-version checks against CHANGELOG.md, so it is edited by hand. The local venv/ directory and build outputs are not repo content and should not be committed."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives scripts/install and the equivalent venv + pip install -r requirements.txt, matching ACCEPT with no contradiction."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Answers scripts/test and accurately describes its steps, with venv/bin/pytest as an accepted alternative."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "venv/bin/pytest tests/client/test_auth.py is an accepted form, and scripts/test with the path is also accepted."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives scripts/check with the correct steps (ruff format --diff, mypy, ruff check); the extra scripts/lint mention is harmless fix-applying detail."
+    },
+    "q5": {
+      "score": 1,
+      "reason": "Says none, matching truth, and notes venv/build outputs are not repo content without claiming any source is generated."
+    }
+  }
+}

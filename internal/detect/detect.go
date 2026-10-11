@@ -334,7 +334,7 @@ func slash(p string) string {
 var taskKinds = map[string]string{
 	"install": model.KindInstall, "setup": model.KindInstall, "bootstrap": model.KindInstall, "deps": model.KindInstall,
 	"build": model.KindBuild, "compile": model.KindBuild,
-	"test": model.KindTest, "tests": model.KindTest, "unit": model.KindTest, "test:unit": model.KindTest, "unittest": model.KindTest,
+	"test": model.KindTest, "tests": model.KindTest, "run-tests": model.KindTest, "run_tests": model.KindTest, "test-all": model.KindTest, "unit": model.KindTest, "test:unit": model.KindTest, "unittest": model.KindTest,
 	"lint": model.KindLint, "linter": model.KindLint, "eslint": model.KindLint, "clippy": model.KindLint,
 	"fmt": model.KindFormat, "format": model.KindFormat, "fix": model.KindFormat,
 	"typecheck": model.KindTypecheck, "type-check": model.KindTypecheck, "types": model.KindTypecheck,

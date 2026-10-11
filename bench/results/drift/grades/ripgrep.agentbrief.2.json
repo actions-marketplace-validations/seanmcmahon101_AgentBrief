@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "repo": "ripgrep",
+    "arm": "agentbrief",
+    "rep": 2,
+    "model": "sonnet",
+    "tag": "drift",
+    "drift": true
+  },
+  "answers": {
+    "q1": "Cargo (Rust). Pinned toolchain in CI is 1.96.0 and Cargo.toml requires Rust >=1.96. There is no separate install step: `cargo build --workspace` fetches and builds the dependencies. On Ubuntu, CI first runs `ci/ubuntu-install-packages` for system packages.",
+    "q2": "cargo test --workspace   (CI also runs it with features: `cargo test --workspace --features unstable-index` and `cargo test --workspace --features pcre2`)",
+    "q3": "cargo test --test it regression::   (tests/regression.rs is the `regression` module of the single integration-test binary `it`, defined in Cargo.toml as path tests/tests.rs. There is no `--test regression` target.)",
+    "q4": "cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings   (CI also runs docs with: RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items --workspace)",
+    "q5": "Cargo.lock and fuzz/Cargo.lock (lockfiles, per AGENTS.md). The AgentBrief-generated block between the `agentbrief:start` and `agentbrief:end` markers in AGENTS.md/CLAUDE.md (refresh it with `agentbrief sync`). The man page and shell completions are produced by build.rs at build time and live under target/, so don't hand-edit them. Nothing else is vendored."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Identifies Cargo, says no separate install step and that `cargo build --workspace` fetches dependencies, matching the accept criteria."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Gives `cargo test --workspace`, which matches an accept item; the extra feature variants are harmless."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "`cargo test --test it regression::` is an accepted command and correctly explains the `it` target."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "Gives both `cargo fmt --all --check` and `cargo clippy --workspace --all-targets -- -D warnings`, plus the cargo doc bonus."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Cargo.lock is accepted and the build.rs outputs under target/ are fine, but also listing fuzz/Cargo.lock and the AgentBrief-generated block in AGENTS.md/CLAUDE.md goes beyond the truth of 'none apart from Cargo.lock and target/', so it is only partly verified."
+    }
+  }
+}

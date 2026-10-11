@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "repo": "sinatra",
+    "arm": "llm",
+    "rep": 3,
+    "model": "sonnet"
+  },
+  "answers": {
+    "q1": "Ruby with Bundler and Rake. From the repo root run: `bundle install`. The root Gemfile pulls in rack-protection and sinatra-contrib through `path:`. CI also runs `bundle install` separately inside sinatra-contrib, because that directory has its own Gemfile: `(cd sinatra-contrib && bundle install)`.",
+    "q2": "The repo has three separate suites, and CI runs all three. From the root: `bundle exec rake && (cd rack-protection && bundle exec rake) && (cd sinatra-contrib && bundle exec rake)`. Run alone, `bundle exec rake` from the root covers only the core Minitest suite in `test/`.",
+    "q3": "`cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb`",
+    "q4": "CI (.github/workflows/test.yml) runs no lint or formatting step. It only runs the `bundle exec rake` suites. The repo's own lint command, from AGENTS.md, is `bundle exec rubocop`, which reads `.rubocop.yml`. That config excludes `test/`, `rack-protection/` and `sinatra-contrib/`, so it only checks the root gem's code.",
+    "q5": "I found no generated directories. The one vendored file is `sinatra-contrib/spec/okjson.rb`, a third-party JSON library (Copyright Keith Rarick), so don't edit it by hand. Build and coverage output is gitignored and shouldn't be edited or committed: `pkg/`, `coverage/`, `doc/`, `.yardoc`, `.bundle`, `vendor/`, `*.gem` and `*.lock`."
+  },
+  "grades": {
+    "q1": {
+      "score": 1,
+      "reason": "Gives `bundle install` from the root, matching the accept criterion, with accurate extra detail about sinatra-contrib's own Gemfile."
+    },
+    "q2": {
+      "score": 1,
+      "reason": "Includes `bundle exec rake` for core and also runs the rack-protection and sinatra-contrib suites as CI does, matching the truth."
+    },
+    "q3": {
+      "score": 1,
+      "reason": "Exactly matches the accepted command `cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb`."
+    },
+    "q4": {
+      "score": 1,
+      "reason": "States CI runs no linter and gives `bundle exec rubocop` as the local check, matching the accept criteria."
+    },
+    "q5": {
+      "score": 0.5,
+      "reason": "Says no generated directories and lists gitignored coverage/ and doc/ outputs (acceptable), but claims sinatra-contrib/spec/okjson.rb is vendored, which contradicts the truth of no vendored code."
+    }
+  }
+}
