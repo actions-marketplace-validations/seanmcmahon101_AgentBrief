@@ -39,8 +39,9 @@ const (
 	KindTypecheck = "typecheck"
 	KindDev       = "dev" // start a dev server / watch mode
 	KindRun       = "run"
-	KindGenerate  = "generate" // codegen
-	KindCheck     = "check"    // aggregate "run everything CI runs" command
+	KindGenerate  = "generate"  // codegen
+	KindCheck     = "check"     // aggregate "run everything CI runs" command
+	KindConfigure = "configure" // configure a build directory (cmake, meson)
 )
 
 // Repo is the complete set of facts for one repository.

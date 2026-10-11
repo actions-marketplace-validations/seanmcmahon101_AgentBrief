@@ -38,6 +38,7 @@ type Repo struct {
 	mem       map[string][]byte // in-memory contents (FromMap only)
 	truncated bool
 	readFile  func(rel string) ([]byte, error) // disk reader (Open only)
+	readHead  func(rel string, n int) ([]byte, error)
 }
 
 // Root returns the absolute repository root, or "" for an in-memory repo.
@@ -93,16 +94,27 @@ func (r *Repo) ReadString(rel string) string {
 	return string(b)
 }
 
-// Head returns at most n bytes from the start of a file.
+// Head returns at most n bytes from the start of a file. On disk it reads only
+// those n bytes, which keeps header scans over thousands of files cheap.
 func (r *Repo) Head(rel string, n int) ([]byte, error) {
-	b, err := r.Read(rel)
-	if err != nil {
-		return nil, err
+	rel = clean(rel)
+	if r.mem != nil || n >= MaxReadBytes {
+		b, err := r.Read(rel)
+		if err != nil {
+			return nil, err
+		}
+		if len(b) > n {
+			b = b[:n]
+		}
+		return b, nil
 	}
-	if len(b) > n {
-		b = b[:n]
+	if !r.fileSet[rel] {
+		return nil, ErrNotFound
 	}
-	return b, nil
+	if IsSensitive(rel) {
+		return nil, ErrSensitive
+	}
+	return r.readHead(rel, n)
 }
 
 // Glob returns sorted files matching a slash-separated pattern. In addition to

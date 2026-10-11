@@ -2,7 +2,6 @@ package scan
 
 import (
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -26,47 +25,29 @@ var skipDirs = map[string]bool{
 	"Pods": true, "DerivedData": true, ".build": true,
 }
 
-// Open walks root and returns a Repo of the files found.
-// TODO(scan): honour .gitignore files (root and nested) and .git/info/exclude.
+// Open walks root and returns a Repo of the files found. Files excluded by the
+// root and nested .gitignore files and by .git/info/exclude are left out, as are
+// the heavy directories in skipDirs. Symlinks are never followed.
 func Open(root string, opts Options) (*Repo, error) {
 	abs, err := filepath.Abs(root)
 	if err != nil {
 		return nil, err
 	}
+	if _, err := os.Stat(abs); err != nil {
+		return nil, err
+	}
 	if opts.MaxFiles <= 0 {
 		opts.MaxFiles = DefaultMaxFiles
 	}
-	var files []string
-	truncated := false
-	err = filepath.WalkDir(abs, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return nil // unreadable entries are skipped, not fatal
-		}
-		if d.IsDir() {
-			if p != abs && skipDirs[d.Name()] {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if !d.Type().IsRegular() { // symlinks, sockets, devices: never followed
-			return nil
-		}
-		if len(files) >= opts.MaxFiles {
-			truncated = true
-			return filepath.SkipAll
-		}
-		rel, err := filepath.Rel(abs, p)
-		if err != nil {
-			return nil
-		}
-		files = append(files, filepath.ToSlash(rel))
-		return nil
-	})
-	if err != nil {
-		return nil, err
+	w := &walker{abs: abs, max: opts.MaxFiles}
+	var stack ignoreStack
+	if b, err := readCapped(filepath.Join(abs, ".git", "info", "exclude")); err == nil {
+		stack = append(stack, parseIgnore("", string(b)))
 	}
+	w.walk("", stack)
+	files := w.files
 	r := newRepo(abs, files)
-	r.truncated = truncated
+	r.truncated = w.truncated
 	r.readFile = func(rel string) ([]byte, error) {
 		f, err := os.Open(filepath.Join(abs, filepath.FromSlash(rel)))
 		if err != nil {
@@ -75,5 +56,71 @@ func Open(root string, opts Options) (*Repo, error) {
 		defer f.Close()
 		return io.ReadAll(io.LimitReader(f, MaxReadBytes))
 	}
+	r.readHead = func(rel string, n int) ([]byte, error) {
+		f, err := os.Open(filepath.Join(abs, filepath.FromSlash(rel)))
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		return io.ReadAll(io.LimitReader(f, int64(n)))
+	}
 	return r, nil
+}
+
+type walker struct {
+	abs       string
+	max       int
+	files     []string
+	truncated bool
+}
+
+// walk lists dir (relative, "" for the root) depth-first. The ignore stack
+// grows by the directory's own .gitignore, so deeper files take precedence.
+func (w *walker) walk(dir string, stack ignoreStack) {
+	entries, err := os.ReadDir(filepath.Join(w.abs, filepath.FromSlash(dir)))
+	if err != nil {
+		return // unreadable directories are skipped, not fatal
+	}
+	for _, e := range entries {
+		if e.Name() == ".gitignore" && e.Type().IsRegular() {
+			if b, err := readCapped(filepath.Join(w.abs, filepath.FromSlash(dir), ".gitignore")); err == nil {
+				stack = append(stack[:len(stack):len(stack)], parseIgnore(dir, string(b)))
+			}
+			break
+		}
+	}
+	for _, e := range entries {
+		if w.truncated {
+			return
+		}
+		rel := e.Name()
+		if dir != "" {
+			rel = dir + "/" + rel
+		}
+		switch {
+		case e.IsDir():
+			if skipDirs[e.Name()] || stack.entryIgnored(rel, true) {
+				continue
+			}
+			w.walk(rel, stack)
+		case e.Type().IsRegular(): // symlinks, sockets, devices: never followed
+			if stack.entryIgnored(rel, false) {
+				continue
+			}
+			if len(w.files) >= w.max {
+				w.truncated = true
+				return
+			}
+			w.files = append(w.files, rel)
+		}
+	}
+}
+
+func readCapped(p string) ([]byte, error) {
+	f, err := os.Open(p)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(io.LimitReader(f, MaxReadBytes))
 }

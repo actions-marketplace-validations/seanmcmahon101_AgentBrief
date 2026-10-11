@@ -1,0 +1,96 @@
+{
+  "repo": "sinatra",
+  "ecosystem": "Ruby (Bundler, Rake, Minitest + RSpec subprojects)",
+  "test_file": "sinatra-contrib/spec/capture_spec.rb",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which package manager / build tool should be used, and what exact command installs dependencies?",
+      "truth": "Ruby with Bundler: `bundle install` (Gemfile + sinatra.gemspec; no Gemfile.lock committed). sinatra-contrib and rack-protection have their own Gemfiles.",
+      "accept": [
+        "bundle install"
+      ],
+      "reject": [
+        "gem install sinatra",
+        "npm / pip"
+      ],
+      "evidence": [
+        "Gemfile",
+        "sinatra.gemspec",
+        ".github/workflows/test.yml"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What exact command runs the full test suite?",
+      "truth": "`bundle exec rake` (default task is :test, Minitest::TestTask) for core; CI also runs `bundle exec rake` inside sinatra-contrib/ and rack-protection/ (RSpec).",
+      "accept": [
+        "bundle exec rake",
+        "bundle exec rake test",
+        "rake"
+      ],
+      "reject": [
+        "rspec at the root (core suite is Minitest)",
+        "npm / pytest"
+      ],
+      "evidence": [
+        "Rakefile",
+        ".github/workflows/test.yml"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What exact command runs only the tests in sinatra-contrib/spec/capture_spec.rb?",
+      "truth": "sinatra-contrib is an RSpec subproject with its own Gemfile and .rspec: `cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb`. The root Gemfile has no rspec.",
+      "accept": [
+        "cd sinatra-contrib && bundle exec rspec spec/capture_spec.rb",
+        "BUNDLE_GEMFILE=sinatra-contrib/Gemfile bundle exec rspec sinatra-contrib/spec/capture_spec.rb"
+      ],
+      "reject": [
+        "bundle exec rspec sinatra-contrib/spec/capture_spec.rb from the root = 0.5 (root bundle lacks rspec)",
+        "ruby -Itest ... or rake test TEST=... (Minitest style, wrong framework) = 0",
+        "bundle exec rake (whole suite)"
+      ],
+      "evidence": [
+        "sinatra-contrib/Gemfile",
+        "sinatra-contrib/.rspec",
+        "sinatra-contrib/Rakefile"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What exact command(s) check lint/formatting the way CI does?",
+      "truth": "CI does not run any linter (test.yml only runs rake). RuboCop is configured (.rubocop.yml; gem 'rubocop' ~> 1.32.0 in Gemfile), so `bundle exec rubocop` is the local check.",
+      "accept": [
+        "bundle exec rubocop (noting it is not in CI)",
+        "none in CI / not run in CI"
+      ],
+      "reject": [
+        "standardrb / reek / eslint",
+        "claiming CI runs rubocop = 0.5 even with the right command"
+      ],
+      "evidence": [
+        ".github/workflows/test.yml",
+        ".rubocop.yml",
+        "Gemfile"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "Name files or directories in this repo that are generated or vendored and must not be edited by hand (or say none).",
+      "truth": "None committed (no Gemfile.lock, no vendored code). Rake outputs coverage/ and doc/api (yardoc) are cleanup targets.",
+      "accept": [
+        "none",
+        "coverage/ or doc/api output dirs"
+      ],
+      "reject": [
+        "claiming lib/ or rack-protection/ are vendored/generated",
+        "Gemfile.lock as committed (does not exist)"
+      ],
+      "evidence": [
+        "Rakefile",
+        ".gitignore"
+      ]
+    }
+  ]
+}

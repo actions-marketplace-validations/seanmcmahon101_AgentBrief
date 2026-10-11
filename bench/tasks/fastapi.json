@@ -1,0 +1,105 @@
+{
+  "repo": "fastapi",
+  "ecosystem": "Python (uv)",
+  "test_file": "tests/test_application.py",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which package manager / build tool should be used, and what exact command installs dependencies?",
+      "truth": "uv. `uv sync` (CI: `uv sync --locked --extra all`; the dev dependency group installs by default). uv.lock is committed.",
+      "accept": [
+        "uv sync",
+        "uv sync --extra all",
+        "uv sync --locked --extra all"
+      ],
+      "reject": [
+        "pip install -r requirements.txt (no such file)",
+        "poetry / pipenv / hatch",
+        "pip install -e . or pip install -e '.[all]' = 0.5 (works, ignores uv.lock and dev groups)"
+      ],
+      "evidence": [
+        "pyproject.toml",
+        "uv.lock",
+        ".github/workflows/test.yml",
+        ".github/workflows/pre-commit.yml"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What exact command runs the full test suite?",
+      "truth": "`bash scripts/test.sh` (pytest -n auto --dist loadgroup tests scripts/tests/, PYTHONPATH=./docs_src), run via `uv run`. CI uses scripts/test-cov.sh.",
+      "accept": [
+        "bash scripts/test.sh / uv run bash scripts/test.sh",
+        "scripts/test-cov.sh",
+        "uv run pytest",
+        "pytest"
+      ],
+      "reject": [
+        "make test",
+        "tox / nox",
+        "npm"
+      ],
+      "evidence": [
+        "scripts/test.sh",
+        "scripts/test-cov.sh",
+        "pyproject.toml",
+        ".github/workflows/test.yml"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What exact command runs only the tests in tests/test_application.py?",
+      "truth": "`uv run pytest tests/test_application.py`. NOT `scripts/test.sh <file>`: the script hardcodes `tests scripts/tests/` and appends the file, so it still runs everything.",
+      "accept": [
+        "uv run pytest tests/test_application.py",
+        "pytest tests/test_application.py",
+        "python -m pytest tests/test_application.py"
+      ],
+      "reject": [
+        "bash scripts/test.sh tests/test_application.py (still runs the entire suite)",
+        "running the whole suite"
+      ],
+      "evidence": [
+        "scripts/test.sh",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What exact command(s) check lint/formatting the way CI does?",
+      "truth": "CI runs pre-commit via prek (`uv run prek run --from-ref ... --to-ref HEAD`); hooks include ruff check, ruff format, mypy fastapi, ty check (plus typos and docs-consistency hooks). Local equivalent: `bash scripts/lint.sh` = mypy fastapi; ty check; ruff check fastapi tests docs_src scripts; ruff format fastapi tests --check.",
+      "accept": [
+        "bash scripts/lint.sh",
+        "uv run prek run --all-files (or pre-commit run --all-files)",
+        "explicit ruff check + ruff format --check + mypy fastapi (ty check a bonus)"
+      ],
+      "reject": [
+        "black / flake8 / isort / pylint",
+        "scripts/format.sh as the only answer (rewrites files)",
+        "only ruff check = 0.5"
+      ],
+      "evidence": [
+        "scripts/lint.sh",
+        ".pre-commit-config.yaml",
+        ".github/workflows/pre-commit.yml"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "Name files or directories in this repo that are generated or vendored and must not be edited by hand (or say none).",
+      "truth": "uv.lock (tool-managed); README.md is generated from docs/en/docs/index.md (pre-commit hook generate-readme); docs/en/overrides/partials/banner-sponsors.html is generated from docs/en/data/sponsors.yml (render-banner-sponsors hook); coverage/ and htmlcov are build outputs.",
+      "accept": [
+        "Score 1 if it names at least one of: uv.lock, README.md (generated from docs/en/docs/index.md), banner-sponsors.html partial, coverage/htmlcov outputs"
+      ],
+      "reject": [
+        "'none' = 0",
+        "claiming fastapi/ or docs_src/ source is generated"
+      ],
+      "evidence": [
+        ".pre-commit-config.yaml",
+        "scripts/docs.py",
+        "uv.lock"
+      ]
+    }
+  ]
+}

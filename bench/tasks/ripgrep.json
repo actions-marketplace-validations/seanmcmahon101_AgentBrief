@@ -1,0 +1,95 @@
+{
+  "repo": "ripgrep",
+  "ecosystem": "Rust cargo workspace",
+  "test_file": "tests/regression.rs",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which package manager / build tool should be used, and what exact command installs dependencies?",
+      "truth": "Cargo (rust-version 1.96, edition 2024). No separate install step: `cargo build` (add --release) fetches dependencies; `cargo fetch` just prefetches.",
+      "accept": [
+        "cargo build / cargo build --release / cargo fetch",
+        "saying cargo fetches dependencies automatically"
+      ],
+      "reject": [
+        "npm / pip / make install",
+        "cargo install ripgrep = 0.5"
+      ],
+      "evidence": [
+        "Cargo.toml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What exact command runs the full test suite?",
+      "truth": "CI: `cargo test --verbose --workspace` (also with `--features pcre2`; ci/test-complete for zsh completions). The workspace flag matters: the root package alone is only `rg`.",
+      "accept": [
+        "cargo test --workspace",
+        "cargo test --all",
+        "cargo test --workspace --features pcre2"
+      ],
+      "reject": [
+        "`cargo test` without --workspace = 0.5 (root package only)",
+        "make test / npm test"
+      ],
+      "evidence": [
+        ".github/workflows/ci.yml",
+        "Cargo.toml"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What exact command runs only the tests in tests/regression.rs?",
+      "truth": "tests/regression.rs is a module (`mod regression;`) of the single integration test binary `integration` (tests/tests.rs; [[test]] name = \"integration\", autotests = false). So: `cargo test --test integration regression`.",
+      "accept": [
+        "cargo test --test integration regression",
+        "cargo test --test integration regression::",
+        "cargo test --test integration -- regression"
+      ],
+      "reject": [
+        "cargo test --test regression (no such test target; fails)",
+        "cargo test regression = 0.5 (works loosely, across all binaries)",
+        "running the whole suite"
+      ],
+      "evidence": [
+        "Cargo.toml",
+        "tests/tests.rs",
+        "tests/regression.rs"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What exact command(s) check lint/formatting the way CI does?",
+      "truth": "CI runs `cargo fmt --all --check` (rustfmt.toml) and `cargo doc --no-deps --document-private-items --workspace`. CI does NOT run clippy.",
+      "accept": [
+        "cargo fmt --all --check / cargo fmt --all -- --check / cargo fmt --check (cargo doc check a bonus)"
+      ],
+      "reject": [
+        "claiming CI runs cargo clippy",
+        "`cargo fmt` without --check = 0.5 (rewrites files)",
+        "only clippy = 0.5"
+      ],
+      "evidence": [
+        ".github/workflows/ci.yml",
+        "rustfmt.toml"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "Name files or directories in this repo that are generated or vendored and must not be edited by hand (or say none).",
+      "truth": "None that must not be hand-edited, apart from tool-managed Cargo.lock and gitignored target/.",
+      "accept": [
+        "none",
+        "Cargo.lock and/or target/"
+      ],
+      "reject": [
+        "claiming crates/*, tests/data or pkg/ are generated or vendored"
+      ],
+      "evidence": [
+        "Cargo.lock",
+        ".gitignore"
+      ]
+    }
+  ]
+}

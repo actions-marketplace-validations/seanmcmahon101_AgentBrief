@@ -1,0 +1,98 @@
+{
+  "repo": "cobra",
+  "ecosystem": "Go modules library",
+  "test_file": "doc/md_docs_test.go",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which package manager / build tool should be used, and what exact command installs dependencies?",
+      "truth": "Go modules (go.mod). `make install_deps` runs `go get -v ./...`; `go mod download` is the plain equivalent. `go test` also fetches automatically.",
+      "accept": [
+        "go mod download",
+        "go get -v ./... / make install_deps",
+        "saying no separate install step is needed because go build/test fetches modules"
+      ],
+      "reject": [
+        "npm / pip / cargo",
+        "dep / glide / govendor",
+        "go install ./... = 0.5"
+      ],
+      "evidence": [
+        "go.mod",
+        "Makefile"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What exact command runs the full test suite?",
+      "truth": "`make test` (install_deps then `go test -v ./...`); CI runs `make richtest` (richgo wrapper of the same). Plain: `go test ./...`.",
+      "accept": [
+        "make test",
+        "go test ./...",
+        "go test -v ./...",
+        "make richtest",
+        "make (default: fmt + test)"
+      ],
+      "reject": [
+        "`go test` with no ./... (root package only) = 0.5",
+        "npm / pytest / cargo"
+      ],
+      "evidence": [
+        "Makefile",
+        ".github/workflows/test.yml"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What exact command runs only the tests in doc/md_docs_test.go?",
+      "truth": "Go cannot select tests by file. The tests in doc/md_docs_test.go are TestGenMdDoc, TestGenMdDocWithNoLongOrSynopsis, TestGenMdNoHiddenParents, TestGenMdNoTag, TestGenMdTree, all in package ./doc: `go test ./doc -run 'TestGenMd'` (or naming them).",
+      "accept": [
+        "go test ./doc -run <regex matching/naming the TestGenMd* functions> (e.g. -run TestGenMd or the five names)"
+      ],
+      "reject": [
+        "go test ./doc alone = 0.5 (also runs tests from the other doc test files)",
+        "go test doc/md_docs_test.go = 0 (fails: helpers live in other files)",
+        "go test ./... -run X where X is not from that file"
+      ],
+      "evidence": [
+        "doc/md_docs_test.go",
+        "Makefile"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What exact command(s) check lint/formatting the way CI does?",
+      "truth": "CI: golangci-lint run (config .golangci.yml enables gofmt/goimports formatters + linters) via golangci-lint-action; also an addlicense -check for license headers. Local: `make lint` (golangci-lint run -v) and `make fmt` (gofmt -l check).",
+      "accept": [
+        "make lint / golangci-lint run (make fmt / gofmt -l an optional extra; addlicense a bonus)"
+      ],
+      "reject": [
+        "only `go vet` = 0.5",
+        "only gofmt = 0.5",
+        "golint / standalone staticcheck as the CI check"
+      ],
+      "evidence": [
+        ".github/workflows/test.yml",
+        ".golangci.yml",
+        "Makefile"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "Name files or directories in this repo that are generated or vendored and must not be edited by hand (or say none).",
+      "truth": "None. No committed generated or vendored code (no vendor/ dir, no DO NOT EDIT files besides tool-maintained go.sum).",
+      "accept": [
+        "none",
+        "go.sum is tool-managed (fine to mention)"
+      ],
+      "reject": [
+        "claiming doc/, site/ or assets/ are generated or vendored",
+        "a vendor/ directory (does not exist)"
+      ],
+      "evidence": [
+        "go.mod",
+        ".gitignore"
+      ]
+    }
+  ]
+}

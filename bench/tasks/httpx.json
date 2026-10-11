@@ -1,0 +1,102 @@
+{
+  "repo": "httpx",
+  "ecosystem": "Python (pip + venv + scripts/)",
+  "test_file": "tests/client/test_auth.py",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which package manager / build tool should be used, and what exact command installs dependencies?",
+      "truth": "pip in a venv. `scripts/install` creates ./venv and runs `pip install -r requirements.txt` (which does `-e .[brotli,cli,http2,socks,zstd]` plus pinned tooling).",
+      "accept": [
+        "scripts/install",
+        "pip install -r requirements.txt (optionally in a venv)",
+        "uv pip install -r requirements.txt"
+      ],
+      "reject": [
+        "poetry / pipenv / hatch",
+        "pip install -e . alone = 0.5 (misses test and lint tooling)",
+        "npm"
+      ],
+      "evidence": [
+        "scripts/install",
+        "requirements.txt",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What exact command runs the full test suite?",
+      "truth": "`scripts/test` (locally runs scripts/check, `coverage run -m pytest`, then a 100% coverage gate). Plain `pytest` also runs the suite.",
+      "accept": [
+        "scripts/test",
+        "pytest",
+        "python -m pytest",
+        "venv/bin/pytest"
+      ],
+      "reject": [
+        "tox / nox",
+        "unittest",
+        "make test (no Makefile)"
+      ],
+      "evidence": [
+        "scripts/test",
+        "pyproject.toml",
+        ".github/workflows/test-suite.yml"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What exact command runs only the tests in tests/client/test_auth.py?",
+      "truth": "`pytest tests/client/test_auth.py`. (`scripts/test` forwards args to pytest but also runs lint and a 100% coverage gate that a partial run would fail.)",
+      "accept": [
+        "pytest tests/client/test_auth.py",
+        "python -m pytest tests/client/test_auth.py",
+        "scripts/test tests/client/test_auth.py"
+      ],
+      "reject": [
+        "running the whole suite",
+        "unittest / tox"
+      ],
+      "evidence": [
+        "scripts/test",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What exact command(s) check lint/formatting the way CI does?",
+      "truth": "`scripts/check` = sync-version check, `ruff format httpx tests --diff`, `mypy httpx tests`, `ruff check httpx tests`. CI runs scripts/check.",
+      "accept": [
+        "scripts/check",
+        "ruff format --diff/--check + ruff check (+ mypy) on httpx tests. Score 1 requires both ruff format check and ruff check; mypy optional"
+      ],
+      "reject": [
+        "black / flake8 / isort / pylint",
+        "scripts/lint (does not exist)",
+        "ruff format without --check/--diff = 0.5 (rewrites files)"
+      ],
+      "evidence": [
+        "scripts/check",
+        ".github/workflows/test-suite.yml",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "Name files or directories in this repo that are generated or vendored and must not be edited by hand (or say none).",
+      "truth": "No generated or vendored source files are committed. Build artifacts (dist/, site/, htmlcov/, httpx.egg-info) are created by scripts/build and removed by scripts/clean.",
+      "accept": [
+        "none",
+        "dist/, site/, htmlcov/, *.egg-info build artifacts"
+      ],
+      "reject": [
+        "claiming docs/, httpx/_*.py or tests/ are generated"
+      ],
+      "evidence": [
+        "scripts/clean",
+        "scripts/build",
+        ".gitignore"
+      ]
+    }
+  ]
+}
