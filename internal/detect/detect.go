@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/seanmcmahon101/AgentBrief/internal/model"
+	"github.com/seanmcmahon101/AgentBrief/internal/redact"
 	"github.com/seanmcmahon101/AgentBrief/internal/scan"
 )
 
@@ -193,6 +194,18 @@ func mergeEvidence(a, b []string) []string {
 // normalize sorts every slice so output is byte-for-byte deterministic and
 // replaces nil slices with empty ones so JSON never contains null arrays.
 func normalize(m *model.Repo) {
+	// Redact at the model level so no output path (--json --all included)
+	// can leak a secret that appeared in a recipe, script or CI step.
+	for i := range m.Commands {
+		m.Commands[i].Run = redact.String(m.Commands[i].Run)
+	}
+	for i := range m.Tasks {
+		m.Tasks[i].Body = redact.String(m.Tasks[i].Body)
+		m.Tasks[i].Desc = redact.String(m.Tasks[i].Desc)
+	}
+	for i := range m.CI {
+		m.CI[i].Run = redact.String(m.CI[i].Run)
+	}
 	sort.SliceStable(m.Languages, func(i, j int) bool {
 		if m.Languages[i].Files != m.Languages[j].Files {
 			return m.Languages[i].Files > m.Languages[j].Files
@@ -322,7 +335,7 @@ var taskKinds = map[string]string{
 	"build": model.KindBuild, "compile": model.KindBuild,
 	"test": model.KindTest, "tests": model.KindTest, "unit": model.KindTest, "test:unit": model.KindTest, "unittest": model.KindTest,
 	"lint": model.KindLint, "linter": model.KindLint, "eslint": model.KindLint, "clippy": model.KindLint,
-	"fmt": model.KindFormat, "format": model.KindFormat, "prettier": model.KindFormat,
+	"fmt": model.KindFormat, "format": model.KindFormat, "fix": model.KindFormat,
 	"typecheck": model.KindTypecheck, "type-check": model.KindTypecheck, "types": model.KindTypecheck,
 	"tsc": model.KindTypecheck, "check-types": model.KindTypecheck, "test:typecheck": model.KindTypecheck,
 	"mypy": model.KindTypecheck, "pyright": model.KindTypecheck,
