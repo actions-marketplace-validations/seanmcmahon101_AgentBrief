@@ -137,16 +137,17 @@ func detectTaskRunners(r *scan.Repo, f *Facts) {
 
 // addRunnerCommand turns a conventional task name into a declared command.
 func addRunnerCommand(f *Facts, name, run, dir string, src model.Source) {
-	kind := KindForTaskNameOrEmpty(name)
+	kind := KindForTaskName(name)
 	if kind == "" {
+		return
+	}
+	// By long-standing convention `make install` installs the built artifact
+	// (PREFIX=/usr/local), not the project's dependencies.
+	if kind == model.KindInstall && strings.EqualFold(name, "install") && strings.HasPrefix(run, "make") {
 		return
 	}
 	f.AddCommand(model.Command{Kind: kind, Run: run, Dir: dir, Evidence: cmdEvidence(model.EvidenceDeclared), Source: src})
 }
-
-// KindForTaskNameOrEmpty exists so detectors read naturally; it is just
-// KindForTaskName.
-func KindForTaskNameOrEmpty(name string) string { return KindForTaskName(name) }
 
 // ===================== Makefile =====================
 
