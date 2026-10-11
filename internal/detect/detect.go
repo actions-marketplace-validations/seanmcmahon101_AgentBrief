@@ -12,6 +12,7 @@ package detect
 import (
 	"path"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/seanmcmahon101/AgentBrief/internal/model"
@@ -312,4 +313,27 @@ func slash(p string) string {
 		}
 	}
 	return string(out)
+}
+
+// taskKinds maps conventional task names (npm scripts, make targets, just
+// recipes, ...) to command kinds. Names are matched case-insensitively.
+var taskKinds = map[string]string{
+	"install": model.KindInstall, "setup": model.KindInstall, "bootstrap": model.KindInstall, "deps": model.KindInstall,
+	"build": model.KindBuild, "compile": model.KindBuild,
+	"test": model.KindTest, "tests": model.KindTest, "unit": model.KindTest, "test:unit": model.KindTest, "unittest": model.KindTest,
+	"lint": model.KindLint, "linter": model.KindLint, "eslint": model.KindLint, "clippy": model.KindLint,
+	"fmt": model.KindFormat, "format": model.KindFormat, "prettier": model.KindFormat,
+	"typecheck": model.KindTypecheck, "type-check": model.KindTypecheck, "types": model.KindTypecheck,
+	"tsc": model.KindTypecheck, "check-types": model.KindTypecheck, "test:typecheck": model.KindTypecheck,
+	"mypy": model.KindTypecheck, "pyright": model.KindTypecheck,
+	"dev": model.KindDev, "start": model.KindDev, "serve": model.KindDev, "watch": model.KindDev,
+	"run": model.KindRun,
+	"generate": model.KindGenerate, "gen": model.KindGenerate, "codegen": model.KindGenerate,
+	"check": model.KindCheck, "ci": model.KindCheck, "verify": model.KindCheck, "precommit": model.KindCheck, "pre-commit": model.KindCheck,
+}
+
+// KindForTaskName returns the command kind for a conventional task name, or ""
+// if the name is not conventional (such tasks stay in the Task inventory only).
+func KindForTaskName(name string) string {
+	return taskKinds[strings.ToLower(name)]
 }
