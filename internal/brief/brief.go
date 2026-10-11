@@ -75,7 +75,9 @@ type Command struct {
 	Dir      string   `json:"dir"`
 	Label    string   `json:"source"` // short provenance label, e.g. "package.json, CI"
 	Evidence []string `json:"evidence"`
-	Note     string   `json:"note,omitempty"`
+	// Verified is true when the command is declared in the repo or run in CI.
+	Verified bool   `json:"verified"`
+	Note     string `json:"note,omitempty"`
 }
 
 // Workspace summarises sub-projects.
@@ -194,6 +196,53 @@ func sourceRank(p string) int {
 
 // ---- toolchain -------------------------------------------------------------
 
+// primaryDirs are the directories whose pins count for the repo-wide brief: the
+// root plus top-level projects that are workspace roots or the only project of
+// their ecosystem (e.g. codex-rs for Rust).
+func primaryDirs(repo *model.Repo) map[string]bool {
+	out := map[string]bool{".": true}
+	perEco := map[string]int{}
+	type cand struct {
+		dir  string
+		size int
+	}
+	best := map[string]cand{}
+	rootEco := map[string]bool{}
+	for _, p := range repo.Projects {
+		perEco[p.Ecosystem]++
+		if p.Dir == "." {
+			rootEco[p.Ecosystem] = true
+		}
+	}
+	for _, p := range repo.Projects {
+		if p.Dir == "." || rootEco[p.Ecosystem] {
+			continue
+		}
+		nested := false
+		for _, q := range repo.Projects {
+			if q.Dir != "." && q.Dir != p.Dir && within(p.Dir, q.Dir) {
+				nested = true
+			}
+		}
+		if !nested && (p.IsWorkspaceRoot || perEco[p.Ecosystem] == 1) {
+			size := 0
+			for _, q := range repo.Projects {
+				if within(q.Dir, p.Dir) {
+					size++
+				}
+			}
+			cur, ok := best[p.Ecosystem]
+			if !ok || size > cur.size || (size == cur.size && p.Dir < cur.dir) {
+				best[p.Ecosystem] = cand{p.Dir, size}
+			}
+		}
+	}
+	for _, c := range best {
+		out[c.dir] = true
+	}
+	return out
+}
+
 func buildToolchain(repo *model.Repo, pdir string) []Tool {
 	byName := map[string][]model.Toolchain{}
 	var names []string
@@ -211,6 +260,7 @@ func buildToolchain(repo *model.Repo, pdir string) []Tool {
 	for _, p := range repo.Projects {
 		ecos[p.Ecosystem] = true
 	}
+	primary := primaryDirs(repo)
 	var out []Tool
 	for _, n := range names {
 		cands := byName[n]
@@ -223,16 +273,42 @@ func buildToolchain(repo *model.Repo, pdir string) []Tool {
 		if onlyCI && !ecos[n] {
 			continue
 		}
+		// File-sourced pins beat CI-workflow pins.
+		var filePins []model.Toolchain
+		for _, t := range cands {
+			if !isCIPath(t.Source.Path) {
+				filePins = append(filePins, t)
+			}
+		}
+		if len(filePins) > 0 {
+			cands = filePins
+		}
 		sort.SliceStable(cands, func(i, j int) bool { return sourceRank(cands[i].Source.Path) < sourceRank(cands[j].Source.Path) })
 		// Prefer pins that apply to the scope (source dir is an ancestor of, or equal to, pdir).
 		var applicable []model.Toolchain
 		for _, t := range cands {
-			if within(pdir, path.Dir(t.Source.Path)) {
+			d := path.Dir(t.Source.Path)
+			if isCIPath(t.Source.Path) {
+				d = "."
+			}
+			if pdir == "." {
+				if primary[d] {
+					applicable = append(applicable, t)
+				}
+			} else if within(pdir, d) {
 				applicable = append(applicable, t)
 			}
 		}
-		if len(applicable) == 0 && pdir == "." {
-			applicable = cands
+		if pdir == "." {
+			var root []model.Toolchain
+			for _, t := range applicable {
+				if path.Dir(t.Source.Path) == "." {
+					root = append(root, t)
+				}
+			}
+			if len(root) > 0 {
+				applicable = root
+			}
 		}
 		// If the scope itself pins the tool, ignore ancestors' pins.
 		var own []model.Toolchain
@@ -422,6 +498,14 @@ func buildCommands(repo *model.Repo, pdir string) []Command {
 				if ea, eb := evidenceScore(a.Evidence), evidenceScore(b.Evidence); ea != eb {
 					return ea < eb
 				}
+				if kind == model.KindInstall {
+					if ra, rb := restrictsDeps(a.Run), restrictsDeps(b.Run); ra != rb {
+						return !ra
+					}
+					if len(a.Run) != len(b.Run) {
+						return len(a.Run) < len(b.Run)
+					}
+				}
 				if ra, rb := isRunnerCommand(a.Run), isRunnerCommand(b.Run); ra != rb {
 					return ra
 				}
@@ -434,7 +518,7 @@ func buildCommands(repo *model.Repo, pdir string) []Command {
 			run, _ := usableRun(c.Run)
 			out = append(out, Command{
 				Kind: kind, Run: run, Dir: dir, Label: commandLabel(c),
-				Evidence: nonNil(c.Evidence), Note: safeNote(c.Note),
+				Evidence: nonNil(c.Evidence), Verified: evidenceScore(c.Evidence) < 3, Note: safeNote(c.Note),
 			})
 			seen[kind] = true
 		}
@@ -447,6 +531,26 @@ func buildCommands(repo *model.Repo, pdir string) []Command {
 		return []Command{}
 	}
 	return out
+}
+
+// restrictsDeps reports whether an install command skips some dependencies.
+func restrictsDeps(run string) bool {
+	f := strings.Fields(run)
+	for i, w := range f {
+		switch {
+		case w == "--no-dev" || w == "--only" || strings.HasPrefix(w, "--only=") || w == "--production" || w == "--prod" ||
+			w == "--omit=dev" || w == "--no-default-groups" || w == "--without" || strings.HasPrefix(w, "--without=") ||
+			w == "--no-group" || w == "--production=true":
+			return true
+		case w == "--omit" && i+1 < len(f) && f[i+1] == "dev":
+			return true
+		case (w == "--group" || w == "--with") && i+1 < len(f) && f[i+1] != "dev":
+			return true
+		case strings.HasPrefix(w, "--group=") && w != "--group=dev":
+			return true
+		}
+	}
+	return false
 }
 
 func commandLabel(c model.Command) string {

@@ -379,10 +379,12 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 }
 
 type checkOutput struct {
-	Schema   string          `json:"schema"`
-	Findings []model.Finding `json:"findings"`
-	Errors   int             `json:"errors"`
-	Warnings int             `json:"warnings"`
+	Schema       string          `json:"schema"`
+	Findings     []model.Finding `json:"findings"`
+	ManagedBlock bool            `json:"managed_block"`
+	FilesChecked int             `json:"files_checked"`
+	Errors       int             `json:"errors"`
+	Warnings     int             `json:"warnings"`
 }
 
 func runCheck(args []string, stdout, stderr io.Writer) int {
@@ -408,7 +410,11 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 	if findings == nil {
 		findings = []model.Finding{}
 	}
-	out := checkOutput{Schema: CheckSchema, Findings: findings}
+	out := checkOutput{Schema: CheckSchema, Findings: findings, FilesChecked: len(repo.Instructions)}
+	if b, err := os.ReadFile(filepath.Join(root, "AGENTS.md")); err == nil {
+		_, ferr := instructions.FindBlock(string(b))
+		out.ManagedBlock = ferr == nil
+	}
 	for _, f := range findings {
 		if f.Severity == model.SeverityError {
 			out.Errors++

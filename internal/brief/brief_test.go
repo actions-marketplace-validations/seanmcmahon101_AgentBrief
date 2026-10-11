@@ -195,3 +195,56 @@ func TestWorkspaceTruncationAndPolyglot(t *testing.T) {
 		t.Error(md)
 	}
 }
+
+func TestToolchainPrimaryDirsAndCIDrop(t *testing.T) {
+	r := &model.Repo{
+		Projects: []model.Project{
+			{Dir: ".", Ecosystem: "node"},
+			{Dir: "codex-rs", Ecosystem: "rust", IsWorkspaceRoot: true},
+			{Dir: "codex-rs/core", Ecosystem: "rust", Workspace: "codex-rs"},
+			{Dir: "tools/lint", Ecosystem: "rust"},
+			{Dir: "scripts", Ecosystem: "python"}, {Dir: "sdk", Ecosystem: "python"},
+		},
+		Toolchains: []model.Toolchain{
+			{Name: "rust", Version: "1.95.0", Source: src("codex-rs/rust-toolchain.toml")},
+			{Name: "rust", Version: "1.95.0", Source: src(".github/workflows/x.yml")},
+			{Name: "rust", Version: "nightly", Source: src("tools/lint/rust-toolchain")},
+			{Name: "python", Version: ">=3.10", Source: src("scripts/pyproject.toml")},
+			{Name: "python", Version: "3.12", Source: src(".github/workflows/y.yml")},
+			{Name: "node", Version: "22", Source: src("package.json")},
+		},
+	}
+	md := Build(r, ".").Body()
+	if !strings.Contains(md, "Rust 1.95.0 (`codex-rs/rust-toolchain.toml`)") || strings.Contains(md, "nightly") ||
+		strings.Contains(md, "Python") || strings.Contains(md, ".github") {
+		t.Error(md)
+	}
+	if md := Build(r, "tools/lint").Body(); !strings.Contains(md, "nightly") {
+		t.Error(md)
+	}
+}
+
+func TestInstallPrefersUnrestricted(t *testing.T) {
+	ev := []string{"declared"}
+	r := &model.Repo{Commands: []model.Command{
+		{Kind: "install", Run: "uv sync --no-dev", Dir: ".", Evidence: ev},
+		{Kind: "install", Run: "uv sync --all-extras --group docs", Dir: ".", Evidence: ev},
+		{Kind: "install", Run: "uv sync --all-groups", Dir: ".", Evidence: ev},
+		{Kind: "install", Run: "pnpm install --prod", Dir: ".", Evidence: []string{"ci", "declared"}},
+	}}
+	b := Build(r, ".")
+	if b.Commands[0].Run != "pnpm install --prod" { // stronger evidence still wins
+		t.Errorf("%+v", b.Commands)
+	}
+	r.Commands = r.Commands[:3]
+	if got := Build(r, ".").Commands[0].Run; got != "uv sync --all-groups" {
+		t.Error(got)
+	}
+	if !Build(r, ".").Commands[0].Verified {
+		t.Error("declared command should be verified")
+	}
+	r.Commands = []model.Command{{Kind: "build", Run: "cargo build", Dir: ".", Evidence: []string{"convention"}}}
+	if Build(r, ".").Commands[0].Verified {
+		t.Error("convention must not be verified")
+	}
+}

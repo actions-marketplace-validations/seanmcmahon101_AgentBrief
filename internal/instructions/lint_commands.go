@@ -79,15 +79,55 @@ func editDistance(a, b string) int {
 	return prev[len(rb)]
 }
 
-// closest returns the nearest candidate within distance 2 (ties: first sorted).
+func lastSeg(n string) string {
+	if i := strings.LastIndexByte(n, ':'); i >= 0 {
+		return n[i+1:]
+	}
+	return n
+}
+
+// closest returns the single best-matching candidate, or "" when there is none
+// or the choice is ambiguous. It tries edit distance <= 2 first, then
+// last-":"-segment equality and prefix/suffix containment.
 func closest(name string, cands []string) string {
-	best, bd := "", 3
+	best, bd, tie := "", 3, false
 	for _, c := range cands {
-		if d := editDistance(name, c); d < bd {
-			best, bd = c, d
+		if c == name {
+			continue
+		}
+		switch d := editDistance(name, c); {
+		case d < bd:
+			best, bd, tie = c, d, false
+		case d == bd:
+			tie = true
 		}
 	}
-	return best
+	if best != "" && !tie {
+		return best
+	}
+	if best != "" {
+		return ""
+	}
+	var seg, sub []string
+	for _, c := range cands {
+		if c == name || len(c) < 3 || len(name) < 3 {
+			continue
+		}
+		if lastSeg(c) == lastSeg(name) || lastSeg(c) == name || lastSeg(name) == c {
+			seg = append(seg, c)
+		} else if strings.HasPrefix(c, name) || strings.HasSuffix(c, name) || strings.HasPrefix(name, c) || strings.HasSuffix(name, c) {
+			sub = append(sub, c)
+		}
+	}
+	for _, tier := range [][]string{seg, sub} {
+		if len(tier) == 1 {
+			return tier[0]
+		}
+		if len(tier) > 1 {
+			return ""
+		}
+	}
+	return ""
 }
 
 var segSplit = regexp.MustCompile(`&&|\|\||;|\|`)

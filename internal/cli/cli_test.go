@@ -214,7 +214,7 @@ func TestSyncThenCheck(t *testing.T) {
 func TestCheckJSONEmptyFindingsNotNull(t *testing.T) {
 	root := mkrepo(t, pnpmRepo())
 	code, out, _ := run(t, "check", "-C", root, "--json")
-	if code != 0 || !strings.Contains(out, `"findings": []`) || !strings.Contains(out, `"errors": 0`) {
+	if code != 0 || !strings.Contains(out, `"findings": []`) || !strings.Contains(out, `"errors": 0`) || !strings.Contains(out, `"managed_block": false`) || !strings.Contains(out, `"files_checked": 0`) {
 		t.Errorf("%d %s", code, out)
 	}
 }

@@ -68,7 +68,7 @@ func (p *pathIndex) suffixMatch(rel string) bool {
 
 func (p *pathIndex) topLevel(name string) bool { p.build(); return p.top[name] }
 
-var knownExts = set(`.md .mdx .ts .tsx .js .jsx .mjs .cjs .go .py .rs .json .jsonc .yml .yaml .toml .sh .bash .txt .css .scss .html .java .kt .rb .php .c .h .cpp .hpp .cs .swift .sql .lock .cfg .ini .mod .sum .gradle .xml .proto .mdc .vue .svelte .rst .tf .env`)
+var knownExts = set(`.md .mdx .ts .tsx .js .jsx .mjs .cjs .go .py .rs .json .jsonc .yml .yaml .toml .sh .bash .txt .css .scss .html .java .kt .rb .php .c .h .cpp .hpp .cs .swift .sql .lock .cfg .ini .mod .sum .gradle .xml .proto .mdc .vue .svelte .rst .tf .env .mts .cts .pyi .ex .exs .kts .scala .dart .lua .conf .properties .ps1 .bat .cmd .gemspec .rake .csproj .sln .ipynb`)
 
 var placeholderSegs = set(`xxx yyy zzz foo bar baz my_project my-project myproject my_app my-app myapp your-project your_project example filename myfile my_file my-file name project-name app-name java javax jakarta org com android kotlin scala`)
 

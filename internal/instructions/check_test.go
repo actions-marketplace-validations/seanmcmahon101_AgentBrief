@@ -318,3 +318,31 @@ func TestScopedCursorRulesPaths(t *testing.T) {
 		t.Errorf("%+v", f)
 	}
 }
+
+func TestBareFilenameWithModernExtension(t *testing.T) {
+	f := checkDoc(t, model.Repo{}, map[string]string{
+		"CLAUDE.md":        "@AGENTS.md\nsee `vitest.config.mts`, `package.json`, `README.md`, `foo.py`, `my_app/x.ts`\n",
+		"AGENTS.md":        "a\n",
+		"README.md":        "r",
+		"vitest.config.ts": "x",
+	})
+	if count(f, RuleMissingPath) != 2 || !has(f, RuleMissingPath, "`vitest.config.mts`") || !has(f, RuleMissingPath, "`package.json`") {
+		t.Errorf("%+v", f)
+	}
+}
+
+func TestSuggestionBeyondEditDistance(t *testing.T) {
+	repo := model.Repo{
+		PackageManagers: []model.PackageManager{{Name: "yarn", Ecosystem: "node", Dir: ".", Source: model.Source{Path: "yarn.lock"}}},
+		Tasks:           []model.Task{npmTask("typecheck", "."), npmTask("test", "."), npmTask("build:app", "."), npmTask("build:lib", ".")},
+	}
+	f := checkDoc(t, repo, map[string]string{"package.json": "{}", "AGENTS.md": "`yarn test:typecheck` and `yarn run build`\n"})
+	if !has(f, RuleUnknownScript, "did you mean `yarn typecheck`?") {
+		t.Errorf("%+v", f)
+	}
+	for _, x := range f {
+		if strings.Contains(x.Message, "`build`") && x.Suggestion != "" {
+			t.Errorf("ambiguous suggestion must be empty: %+v", x)
+		}
+	}
+}
