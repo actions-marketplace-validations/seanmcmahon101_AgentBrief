@@ -50,6 +50,14 @@ Why a tool instead of asking an agent to write `AGENTS.md`:
    shims (`@AGENTS.md`) for agents that would otherwise not read it. Agents can
    also query it on demand: `agentbrief brief <path> --json`.
 
+What the evaluation changed (see `bench/results/FINDINGS.md` and the README's
+Evaluation section): on well-documented repositories a frontier model writes an
+accurate `AGENTS.md` (89/89 commands correct in an independent audit of 8
+repos) and orients itself fine without one. So the durable value is points 3–5
+— keeping any instruction file true, cheaply and deterministically — and the
+generated block is a small, self-checking baseline rather than a replacement
+for a well-written file. Product and docs lead with `check` accordingly.
+
 Non-goals:
 - Repository dumps or symbol maps (Repomix and Aider already do these well).
 - LLM calls.

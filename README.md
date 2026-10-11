@@ -1,21 +1,47 @@
 # AgentBrief
 
-Verified repo facts for coding agents: derived from your files, written into `AGENTS.md`, and checked in CI so they stay true.
+Keep your agent instruction files true. AgentBrief checks `AGENTS.md`, `CLAUDE.md`, Cursor rules and Copilot instructions against the repository in CI, and can maintain a small, sourced block of operational facts for you.
 
-Coding agents burn turns rediscovering, and often getting wrong, the same operational facts about a repository: which package manager to use, the exact build / test / lint commands, how to run a single test, which files are generated. An `AGENTS.md` helps only when it contains verified facts of that kind, and it rots silently when scripts get renamed. AgentBrief derives those facts from manifests, lockfiles, task runners and CI workflows, deterministically and locally (no LLM, no API key, no network), writes them into a small managed block in `AGENTS.md`, and `agentbrief check` fails CI when that block, or any agent instruction file (`CLAUDE.md`, Cursor rules, Copilot instructions and so on), drifts from the repository.
+Instruction files for coding agents are usually right on the day they are written, whether a person or an agent wrote them. Then scripts get renamed, test directories move, the package manager changes, and nothing tells you. Agents follow stale instructions faithfully. AgentBrief reads your manifests, lockfiles, task runners and CI workflows (statically: no LLM, no API key, no network, never executing repository code) and:
 
-- [Example](#example)
-- [Why not just ask an agent to write AGENTS.md?](#why-not-just-ask-an-agent-to-write-agentsmd)
-- [Install](#install)
-- [Usage](#usage)
-- [For coding agents](#for-coding-agents)
-- [CI and pre-commit](#ci-and-pre-commit)
+- **`agentbrief check`** fails CI when an instruction file tells agents to run a script, target, crate, task or service that no longer exists, points at a missing path, names the wrong package manager or a runtime version that disagrees with the repo's pin, or isn't loaded by Claude Code at all. It works on any instruction file, however it was written.
+- **`agentbrief sync`** writes a small managed block of verified facts into `AGENTS.md` (package manager and toolchain, the exact install / build / test / single-test / lint commands, files not to edit), each with its source. `check` fails when the block is out of date, so this part of your instructions cannot rot.
+- **`agentbrief brief <path> --json`** gives an agent the same facts on demand, scoped to the package it is about to change.
+
+- [Catching drift](#catching-drift)
+- [The facts block](#the-facts-block)
+- [Should I use this, or just ask an agent to write AGENTS.md?](#should-i-use-this-or-just-ask-an-agent-to-write-agentsmd)
+- [Install](#install) / [Usage](#usage) / [For coding agents](#for-coding-agents) / [CI and pre-commit](#ci-and-pre-commit)
 - [What it detects](#what-it-detects) / [Check rules](#check-rules) / [Evidence labels](#evidence-labels)
-- [Benchmark](#benchmark)
+- [Evaluation](#evaluation)
 - [Security model](#security-model) / [Limitations](#limitations)
 
-## Example
+## Catching drift
+Excalidraw's `CLAUDE.md` tells agents to run `yarn test:typecheck`. In a scratch copy, rename that script in `package.json` to `typecheck`, and `agentbrief check` reports it (see [`examples/check-drift.md`](examples/check-drift.md)):
 
+```console
+$ agentbrief check
+CLAUDE.md:1: warning: CLAUDE.md does not import AGENTS.md, so Claude Code will not read it [agents-md-not-loaded]
+  add `@AGENTS.md` as the first line (`agentbrief sync` does this)
+CLAUDE.md:17: error: `yarn test:typecheck` runs script `test:typecheck`, which is not defined in any package.json [unknown-script]
+  did you mean `yarn typecheck`?
+CLAUDE.md:22: error: `yarn test:typecheck` runs script `test:typecheck`, which is not defined in any package.json [unknown-script]
+  did you mean `yarn typecheck`?
+2 errors, 1 warning
+$ echo $?
+1
+```
+
+The same applies to the generated block. After `agentbrief sync` on Vite, renaming the `typecheck` script gives:
+
+```console
+$ agentbrief check
+AGENTS.md:5: error: the AgentBrief block no longer matches the repository [stale-block]
+  run `agentbrief sync` and commit the result
+1 error, 0 warnings
+```
+
+## The facts block
 Running `agentbrief` in a checkout of [Vite](https://github.com/vitejs/vite) (shallow clone, 2026-10-11, output verbatim):
 
 ```console
@@ -45,52 +71,23 @@ Other agent instructions: `.github/copilot-instructions.md`.
 
 Every command carries its source in parentheses. `agentbrief sync` writes exactly this between `<!-- agentbrief:start -->` and `<!-- agentbrief:end -->` markers in `AGENTS.md`. More generated briefs are in [`examples/`](examples/): [httpx](examples/httpx.md), [ripgrep](examples/ripgrep.md), [Spring PetClinic](examples/spring-petclinic.md).
 
-### Catching drift
+## Should I use this, or just ask an agent to write AGENTS.md?
 
-Excalidraw's `CLAUDE.md` tells agents to run `yarn test:typecheck`. In a scratch copy, rename that script in `package.json` to `typecheck`, and `agentbrief check` reports it (see [`examples/check-drift.md`](examples/check-drift.md)):
+Use both: they do different jobs. We measured this rather than assuming it (details in [Evaluation](#evaluation)):
 
-```console
-$ agentbrief check
-CLAUDE.md:1: warning: CLAUDE.md does not import AGENTS.md, so Claude Code will not read it [agents-md-not-loaded]
-  add `@AGENTS.md` as the first line (`agentbrief sync` does this)
-CLAUDE.md:17: error: `yarn test:typecheck` runs script `test:typecheck`, which is not defined in any package.json [unknown-script]
-  did you mean `yarn typecheck`?
-CLAUDE.md:22: error: `yarn test:typecheck` runs script `test:typecheck`, which is not defined in any package.json [unknown-script]
-  did you mean `yarn typecheck`?
-2 errors, 1 warning
-$ echo $?
-1
-```
+- **A frontier model writes an accurate AGENTS.md.** An independent audit of `AGENTS.md` files that Claude Sonnet wrote for 8 well-known repositories found 89 of 89 commands correct, and the files held things AgentBrief deliberately leaves out: gotchas that block a test run, real single-test examples, architecture notes, contribution policy. Write that kind of file, by hand or with `/init`.
+- **Nothing keeps it true afterwards.** That is what `agentbrief check` is for. It is deterministic, takes milliseconds, costs no tokens, and runs on every pull request.
+- **The AgentBrief block is a small, self-checking baseline.** It covers only operational facts, carries the source of each one, and is about a third the size of a generated file (8 KB against 24 KB across those 8 repos). If you have no `AGENTS.md` yet, it is a correct place to start. If you have a good one, the block is optional, and `check` alone is the main value.
 
-The same applies to the generated block. After `agentbrief sync` on Vite, renaming the `typecheck` script gives:
-
-```console
-$ agentbrief check
-AGENTS.md:5: error: the AgentBrief block no longer matches the repository [stale-block]
-  run `agentbrief sync` and commit the result
-1 error, 0 warnings
-```
-
-## Why not just ask an agent to write AGENTS.md?
-
-You can, and for architecture notes or house style you should write those by hand. For operational facts, a tool has some advantages:
-
-| | Asking an agent (e.g. `/init`) | AgentBrief |
-|---|---|---|
-| Where facts come from | The model's reading of the repo; may be guessed or stale | Parsed from named files; each fact shows its source |
-| Cost | Tokens on every regeneration | None: local, millisecond scans, no API key |
-| Reproducible | No | Byte-for-byte identical output for the same repo |
-| Stays current | Rots until someone notices | `agentbrief check` fails CI on drift |
-| Size | Tends to grow into overviews and directory listings | Small by construction: a block of roughly 40 lines or fewer, no prose |
-| Multiple agents | Separate files that diverge | One canonical `AGENTS.md`, plus `@AGENTS.md` import lines for tools that need them |
-
-The research on context files points the same way. Gloaguen et al. (ETH Zurich, ICLR 2026, [arXiv 2602.11988](https://arxiv.org/abs/2602.11988)) found that LLM-generated context files slightly reduced task success and raised cost by about 20%, while developer-written files with minimal operational facts helped by about 4%. Overviews and directory listings did not help agents find the right files; concrete tool instructions (naming `uv`, for example) were followed.
+Two things the research and our own runs agree on:
+- **More context is not automatically better.** Gloaguen et al. (ETH Zurich, ICLR 2026, [arXiv 2602.11988](https://arxiv.org/abs/2602.11988)) found LLM-generated context files slightly reduced task success and raised cost by about 20%. Developer-written files with minimal operational facts helped by about 4%. Keep instruction files short and specific.
+- **On well-documented repositories, a strong agent orients itself fine without any file.** In our benchmark, no file, an LLM-written file and an AgentBrief block all scored about 4.8-4.9 out of 5 on orientation questions, at the same cost. AgentBrief does not make agents faster there, and this README does not claim it does.
 
 Claude Code reads `CLAUDE.md`, not `AGENTS.md`, and ignores `AGENTS.md` when a `CLAUDE.md` exists that does not import it. `agentbrief sync` adds an `@AGENTS.md` line to an existing root `CLAUDE.md` / `GEMINI.md`, and `check` warns if it is missing.
 
 ### When not to use it
 
-AgentBrief writes no architecture prose, no code maps and no style advice, and it will not tell an agent what your project is for. If you already maintain a good `AGENTS.md`, you do not need `sync` at all: run `agentbrief check` alone to keep it honest. The check rules lint hand-written files without requiring the managed block.
+AgentBrief writes no architecture prose, no code maps and no style advice, and it will not tell an agent what your project is for. If you already maintain a good `AGENTS.md`, you may not need `sync` at all: run `agentbrief check` alone to keep it honest. The check rules lint hand-written files without requiring the managed block.
 
 ## Install
 
@@ -286,11 +283,24 @@ The parentheses after each command say where it came from:
 
 When several candidates exist for one kind of command, the best is shown in this order: declared and run in CI; declared; run in CI; convention. At equal evidence, the repository's own task runner wins over the raw tool. Convention-only commands are shown only when nothing better exists.
 
-## Benchmark
+## Evaluation
 
-<!-- BENCHMARK RESULTS -->
+All numbers come from runs in [`bench/`](bench/), which holds the harness, the hand-written ground truth, every graded result and a plain-language write-up ([`bench/results/FINDINGS.md`](bench/results/FINDINGS.md)).
 
-The benchmark harness and its threats to validity are described in [bench/README.md](bench/README.md).
+**Accuracy of the facts block.** An independent reviewer judged every command AgentBrief emitted for 17 real repositories (Node, Python, Go, Rust, Java, Ruby, PHP, .NET, Elixir; monorepos and polyglot repos): 94 of 105 correct (89%). The remaining 11 were convention commands that the repository does not actually use (for example `go vet` as the lint command where none is configured); they are labelled `convention, unverified` in the output. On the 8 benchmark repositories the block had about 48 of 50 commands correct.
+
+**Drift detection.** The same reviewer planted 15 realistic kinds of drift in instruction files; `check` caught 10 (missing scripts, Makefile targets, crates, poe tasks, tox environments, compose services, test files, scripts and Go packages). It did not catch commands of unknown tools (`uv run nothing`, `mage build`). On the 17 repositories as they are, `check` raised one finding (a real one: Excalidraw's `CLAUDE.md` does not import its `AGENTS.md`). On a stress file made of every README and CONTRIBUTING file in the corpus (8,400 lines of prose and examples), every error it raised was a genuinely missing file.
+
+**Agent orientation benchmark.** A read-only Claude Code session answered five questions (install, full test suite, single test file, CI lint, generated files) about 8 repositories, graded blind against hand-written ground truth. Three arms: no instruction file, an `AGENTS.md` written by Claude Code, and the AgentBrief block.
+
+| Model | Runs per arm | No file | LLM-written file | AgentBrief | Turns (no file / AgentBrief) |
+|---|---|---|---|---|---|
+| Claude Sonnet | 24 | 4.88 / 5 | 4.79 / 5 | 4.88 / 5 | 6.6 / 6.1 |
+| Claude Haiku | 16 | 4.91 / 5 | 4.88 / 5 | 4.81 / 5 | 12.3 / 13.2 |
+
+Differences in accuracy, turns, tokens and cost are all within noise. A constructed drift experiment (the LLM-written file left stale after renaming scripts in 4 repositories) was also null: agents re-read the manifests and mostly ignored the stale lines. The honest summary: on well-documented repositories, today's agents do not need help answering these questions, and AgentBrief's value is in keeping instruction files correct and cheap to maintain, not in speeding agents up. The benchmark did not test end-to-end coding tasks, poorly documented repositories, or long-running drift in real projects.
+
+The harness, ground truth and threats to validity are described in [bench/README.md](bench/README.md).
 
 ## Security model
 
