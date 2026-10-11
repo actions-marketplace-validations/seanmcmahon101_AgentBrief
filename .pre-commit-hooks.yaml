@@ -1,0 +1,14 @@
+- id: agentbrief-check
+  name: agentbrief check
+  description: Fail when agent instruction files (AGENTS.md, CLAUDE.md, ...) drift from the repository.
+  entry: agentbrief check
+  language: golang
+  pass_filenames: false
+  always_run: true
+- id: agentbrief-sync
+  name: agentbrief sync
+  description: Refresh the AgentBrief block in AGENTS.md (fails the commit if it had to change a file).
+  entry: agentbrief sync
+  language: golang
+  pass_filenames: false
+  always_run: true

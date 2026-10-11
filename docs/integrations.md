@@ -29,28 +29,37 @@ Gemini CLI reads `GEMINI.md` by default. Either set `context.fileName` in its se
 ## GitHub Actions
 
 ```yaml
+- uses: actions/checkout@v4
+- uses: seanmcmahon101/AgentBrief@v0.1.0
+  # with:
+  #   args: check --strict        # fail on warnings too
+  #   working-directory: path/to/repo
+```
+
+Without the action:
+
+```yaml
 - uses: actions/setup-go@v5
   with:
-    go-version: "1.23"
-- run: go install github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@latest
+    go-version: stable
+- run: go install github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@v0.1.0
 - run: agentbrief check
 ```
 
-Add `--strict` to fail on warnings. Use `agentbrief check --json` if you want to post findings elsewhere; the schema is `agentbrief/check/v1`.
+Use `agentbrief check --json` if you want to post findings elsewhere; the schema is `agentbrief/check/v1`.
 
 ## pre-commit
 
 ```yaml
 repos:
-  - repo: local
+  - repo: https://github.com/seanmcmahon101/AgentBrief
+    rev: v0.1.0
     hooks:
       - id: agentbrief-check
-        name: agentbrief check
-        entry: agentbrief check
-        language: system
-        pass_filenames: false
-        always_run: true
+      - id: agentbrief-sync   # optional
 ```
+
+pre-commit builds the hook with Go, so Go must be installed. With a prebuilt binary on `PATH` instead, use a `repo: local` hook with `entry: agentbrief check`, `language: system`, `pass_filenames: false`.
 
 ## Monorepos
 

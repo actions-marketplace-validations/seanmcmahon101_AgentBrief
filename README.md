@@ -97,7 +97,7 @@ Go 1.23 or newer:
 go install github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@latest
 ```
 
-Prebuilt binaries for linux, darwin and windows on amd64 and arm64 will be attached to GitHub Releases once a release is published (the [GoReleaser](.goreleaser.yaml) configuration is in the repository).
+Prebuilt binaries for Linux, macOS and Windows (amd64 and arm64) are attached to each [GitHub Release](https://github.com/seanmcmahon101/AgentBrief/releases): download, extract, and put `agentbrief` on your `PATH`.
 
 From source:
 
@@ -196,40 +196,30 @@ Excerpt of `agentbrief brief packages/vite --json` in Vite (trimmed with `…`):
 
 ## CI and pre-commit
 
-GitHub Actions:
+GitHub Actions, one step:
 
 ```yaml
 name: agentbrief
-on:
-  pull_request:
-  push:
-    branches: [main]
+on: [pull_request, push]
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-      - run: go install github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@latest
-      - run: agentbrief check
+      - uses: seanmcmahon101/AgentBrief@v0.1.0
 ```
 
-Pin a version instead of `@latest` once releases exist. Add `--strict` to fail on warnings too (for example a `CLAUDE.md` that does not import `AGENTS.md`, a wrong package manager mentioned in the instructions, or an oversized file). Without `--strict`, warnings are printed and the exit code stays 0.
+The action installs the matching AgentBrief version and runs `agentbrief check`. Pass `with: { args: "check --strict" }` to fail on warnings too (a `CLAUDE.md` that does not import `AGENTS.md`, a wrong package manager or runtime version in the instructions, an oversized file). Without `--strict`, warnings are printed and the step passes.
 
-pre-commit (`.pre-commit-config.yaml`):
+[pre-commit](https://pre-commit.com) (`.pre-commit-config.yaml`):
 
 ```yaml
 repos:
-  - repo: local
+  - repo: https://github.com/seanmcmahon101/AgentBrief
+    rev: v0.1.0
     hooks:
       - id: agentbrief-check
-        name: agentbrief check
-        entry: agentbrief check
-        language: system
-        pass_filenames: false
-        always_run: true
+      # - id: agentbrief-sync   # optional: refresh the AGENTS.md block on every commit
 ```
 
 More setups, including per-agent notes, are in [docs/integrations.md](docs/integrations.md).

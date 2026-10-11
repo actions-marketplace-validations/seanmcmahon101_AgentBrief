@@ -1,0 +1,36 @@
+name: AgentBrief check
+description: Fail CI when AGENTS.md, CLAUDE.md, Cursor or Copilot instructions drift from the repository.
+author: Sean McMahon
+branding:
+  icon: check-circle
+  color: green
+inputs:
+  args:
+    description: Arguments passed to agentbrief (default runs the drift check).
+    default: check
+  version:
+    description: AgentBrief version to install, e.g. v0.1.0. Defaults to the ref the action is used at.
+    default: ""
+  working-directory:
+    description: Repository root to check.
+    default: .
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v5
+      with:
+        go-version: stable
+        cache: false
+    - name: Install agentbrief
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        ACTION_REF: ${{ github.action_ref }}
+      run: |
+        v="${VERSION:-$ACTION_REF}"
+        case "$v" in v[0-9]*|main) ;; *) v=latest ;; esac
+        go install "github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@$v"
+    - name: Run agentbrief
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: agentbrief ${{ inputs.args }}

@@ -30,3 +30,12 @@ jobs:
         run: go run honnef.co/go/tools/cmd/staticcheck@2025.1.1 ./...
       - name: AgentBrief checks its own AGENTS.md
         run: go run ./cmd/agentbrief check
+
+  action:
+    # Dogfood the composite action exactly as users call it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          version: main
