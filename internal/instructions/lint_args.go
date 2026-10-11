@@ -231,6 +231,9 @@ func (x cmdCtx) checkPathArg(raw string, o pathOpts) {
 	if (explicit || parentExists || (strings.Contains(clean, "/") && x.c.idx.topLevel(first))) && !(!explicit && x.c.idx.suffixMatch(clean)) {
 		sev = model.SeverityError
 	}
+	if x.c.ignored(clean) {
+		return
+	}
 	x.reportPath(sev, fmt.Sprintf("`%s` refers to `%s`, which does not exist in the repository", x.text, raw))
 }
 

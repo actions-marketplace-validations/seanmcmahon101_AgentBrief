@@ -9,7 +9,7 @@ import argparse, glob, json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 
 BENCH = os.path.dirname(os.path.abspath(__file__))
-JUDGE_CWD = "/tmp/claude-1000/-home-sm/dc3a09a6-ed56-427c-a632-10969d6c9cdc/scratchpad/bench-work/judge"
+JUDGE_CWD = os.path.join(os.environ.get("AGENTBRIEF_BENCH_WORK", "/tmp/agentbrief-bench"), "judge")
 
 RUBRIC = """You are a strict, impartial grader for a benchmark about repository orientation. You will be given \
 questions about a software repository, the verified ground truth for each (derived from the repo's manifests, \

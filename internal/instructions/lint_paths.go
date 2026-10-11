@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/seanmcmahon101/AgentBrief/internal/model"
+	"github.com/seanmcmahon101/AgentBrief/internal/scan"
 )
 
 // pathIndex lazily indexes every file and directory under root by basename,
@@ -225,6 +226,9 @@ func (c *checker) checkSpanPath(f model.InstructionFile, line int, span string) 
 	} else if c.idx.suffixMatch(trim) {
 		return
 	}
+	if c.ignored(trim) {
+		return
+	}
 	c.add(model.Finding{Rule: RuleMissingPath, Severity: model.SeverityWarning, Path: f.Path, Line: line,
 		Message:    "`" + strings.TrimSuffix(span, "\n") + "` does not exist in the repository",
 		Suggestion: ""})
@@ -276,7 +280,7 @@ func (c *checker) checkProsePaths(f model.InstructionFile, it mdItem) {
 		if isGeneratedPath(rel) || spanPlaceholderProse(clean) || strings.ContainsAny(clean, "*{}$|") || strings.Contains(clean, "..") {
 			continue
 		}
-		if c.existsAny(f, clean, false) {
+		if c.existsAny(f, clean, false) || c.ignored(clean) {
 			continue
 		}
 		c.add(model.Finding{Rule: RuleMissingPath, Severity: model.SeverityWarning, Path: f.Path, Line: it.line,
@@ -285,3 +289,12 @@ func (c *checker) checkProsePaths(f model.InstructionFile, it mdItem) {
 }
 
 func spanPlaceholderProse(p string) bool { return pathPlaceholder(p) }
+
+// ignored reports whether a missing path is one the repository's ignore files
+// cover (build output, test scratch directories): those legitimately do not
+// exist in a clean checkout, so they are never reported as missing.
+func (c *checker) ignored(rel string) bool {
+	rel = strings.TrimPrefix(rel, "./")
+	isDir := strings.HasSuffix(rel, "/")
+	return scan.IsIgnored(c.root, strings.TrimSuffix(rel, "/"), isDir)
+}

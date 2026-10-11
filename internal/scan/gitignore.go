@@ -2,6 +2,7 @@ package scan
 
 import (
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -184,4 +185,28 @@ func (s ignoreStack) Ignored(rel string, isDir bool) bool {
 		}
 	}
 	return s.entryIgnored(rel, isDir)
+}
+
+// IsIgnored reports whether rel (slash-separated, relative to root) is ignored
+// by .git/info/exclude or by any .gitignore between root and rel. It lets
+// `check` excuse paths an instruction file mentions that legitimately do not
+// exist yet, such as build output or test scratch directories.
+func IsIgnored(root, rel string, isDir bool) bool {
+	rel = clean(rel)
+	var stack ignoreStack
+	if b, err := readCapped(filepath.Join(root, ".git", "info", "exclude")); err == nil {
+		stack = append(stack, parseIgnore("", string(b)))
+	}
+	dir := ""
+	parts := strings.Split(rel, "/")
+	for i := 0; i < len(parts); i++ {
+		if b, err := readCapped(filepath.Join(root, filepath.FromSlash(dir), ".gitignore")); err == nil {
+			stack = append(stack, parseIgnore(dir, string(b)))
+		}
+		if i == len(parts)-1 {
+			break
+		}
+		dir = path.Join(dir, parts[i])
+	}
+	return stack.Ignored(rel, isDir)
 }

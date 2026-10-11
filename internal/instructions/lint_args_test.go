@@ -270,3 +270,13 @@ func TestProsePaths(t *testing.T) {
 		}
 	}
 }
+
+func TestIgnoredPathsAreNotMissing(t *testing.T) {
+	f := checkDoc(t, model.Repo{}, map[string]string{
+		".gitignore": "playground-temp/\n/dist\n*.log\n",
+		"AGENTS.md":  "Scratch output goes to `playground-temp/` and `dist/bundle.js`; see `debug.log`. Run `python dist/gen.py`. But `src/gone.ts` is missing.\n",
+	})
+	if count(f, RuleMissingPath) != 1 || !has(f, RuleMissingPath, "src/gone.ts") {
+		t.Errorf("want only src/gone.ts reported:\n%s", lines(f))
+	}
+}

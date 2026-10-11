@@ -5,7 +5,7 @@ orient itself in an unfamiliar repo, compared with no instruction file or an LLM
 
 ## Method
 - 8 repos (excalidraw, vite, httpx, fastapi, cobra, ripgrep, spring-petclinic, sinatra), shallow clones in
-  `/home/sm/Work/agentbrief-corpus` (read-only; nothing is ever built or executed).
+  `$AGENTBRIEF_CORPUS` (default `~/agentbrief-corpus`; create it with `bench/corpus.sh`, which pins each repository to the commit used for the published results) (read-only; nothing is ever built or executed).
 - 5 questions per repo (`tasks/<repo>.json`): package manager + install, full test command, single-file
   test command, CI lint/format commands, generated/vendored files. Ground truth was written by hand from
   manifests, lockfiles, task runners and CI workflows, before looking at any AgentBrief output. Each
@@ -13,7 +13,7 @@ orient itself in an unfamiliar repo, compared with no instruction file or an LLM
 - Arms: `none` (all instruction files and .git removed), `llm` (AGENTS.md written once per repo by Claude
   Code/sonnet from an /init-style prompt, cached in `generated/`), `agentbrief` (output of
   `agentbrief sync` on the stripped copy). For llm/agentbrief, `CLAUDE.md` is just `@AGENTS.md`.
-- Each run: fresh copy under `/tmp/...` (never under /home/sm, because Claude Code loads ancestor
+- Each run: fresh copy under `/tmp/...` (never under your home directory, because Claude Code loads ancestor
   CLAUDE.md files), `claude -p` with read-only tools (Read, Glob, Grep, ls/find/cat/head/grep), sonnet,
   max 30 turns, all five questions in one session. Raw JSON goes to `results/raw/` (gitignored).
 - Grading (`grade.py`): an LLM judge (sonnet, no tools) sees question, ground truth and answer only, blind

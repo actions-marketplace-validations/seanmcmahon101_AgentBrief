@@ -291,6 +291,8 @@ All numbers come from runs in [`bench/`](bench/), which holds the harness, the h
 
 **Drift detection.** The same reviewer planted 15 realistic kinds of drift in instruction files; `check` caught 10 (missing scripts, Makefile targets, crates, poe tasks, tox environments, compose services, test files, scripts and Go packages). It did not catch commands of unknown tools (`uv run nothing`, `mage build`). On the 17 repositories as they are, `check` raised one finding (a real one: Excalidraw's `CLAUDE.md` does not import its `AGENTS.md`). On a stress file made of every README and CONTRIBUTING file in the corpus (8,400 lines of prose and examples), every error it raised was a genuinely missing file.
 
+**`check` on LLM-written files.** On the 8 `AGENTS.md` files Claude Code wrote for the benchmark, `check` reported nothing (8 of 8 clean, no false positives). After the drift experiment renamed scripts and test targets in 4 of those repositories, it flagged the stale instructions in 3 of them with 10 errors, all genuine ([`bench/results/check-llm-files.md`](bench/results/check-llm-files.md)). The benchmark's agents mostly worked around those stale lines by re-reading manifests; `check` makes the file itself correct again.
+
 **Agent orientation benchmark.** A read-only Claude Code session answered five questions (install, full test suite, single test file, CI lint, generated files) about 8 repositories, graded blind against hand-written ground truth. Three arms: no instruction file, an `AGENTS.md` written by Claude Code, and the AgentBrief block.
 
 | Model | Runs per arm | No file | LLM-written file | AgentBrief | Turns (no file / AgentBrief) |

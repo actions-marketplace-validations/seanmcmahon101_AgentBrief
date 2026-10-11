@@ -11,8 +11,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 BENCH = os.path.dirname(os.path.abspath(__file__))
-WORK_DEFAULT = "/tmp/claude-1000/-home-sm/dc3a09a6-ed56-427c-a632-10969d6c9cdc/scratchpad/bench-work"
-CORPUS_DEFAULT = "/home/sm/Work/agentbrief-corpus"
+WORK_DEFAULT = os.environ.get("AGENTBRIEF_BENCH_WORK", "/tmp/agentbrief-bench")
+CORPUS_DEFAULT = os.environ.get("AGENTBRIEF_CORPUS", os.path.expanduser("~/agentbrief-corpus"))
 REPOS = ["excalidraw", "vite", "httpx", "fastapi", "cobra", "ripgrep", "spring-petclinic", "sinatra"]
 ARMS = ["none", "llm", "agentbrief"]
 DRIFT_REPOS = ["excalidraw", "vite", "fastapi", "ripgrep"]
