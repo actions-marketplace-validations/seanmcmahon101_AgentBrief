@@ -268,6 +268,7 @@ Instruction files that `check` lints include `AGENTS.md`, `CLAUDE.md`, `GEMINI.m
 | `unknown-script` | error | An instruction file tells agents to run a script, target or task that does not exist: `npm run X` / `pnpm X` / `yarn X` / `bun run X`, `make X` (including `make -C dir X`), `just X`, `task X`, `mise run X`, `composer X`, `poe X`, `tox -e X`, `nox -s X`, `cargo … -p X` (workspace crates), `docker compose up X` (services). Warning instead of error when the inventory may be incomplete. |
 | `missing-path` | error for Markdown links and paths inside commands; warning for code spans and prose | A referenced repository path does not exist: Markdown links, code spans that look like paths, and path arguments of commands such as `pytest tests/x.py`, `python scripts/x.py`, `bash scripts/x.sh`, `go test ./pkg/...`. |
 | `wrong-package-manager` | warning | Instructions use one JS/Python package manager but the lockfile says another. |
+| `stale-version` | warning | Prose names a runtime version (Node, Python, Go, Ruby, Java) that disagrees with the repository's exact pin (`.nvmrc`, `.python-version`, …). Floors ("Node 18+"), history and compatibility sentences, code fences and the managed block are ignored. |
 | `agents-md-not-loaded` | warning | A root `CLAUDE.md` (or `GEMINI.md`) exists next to `AGENTS.md` but does not import it. |
 | `oversized` | warning | A file is over 32 KiB (Codex's default cap) or `CLAUDE.md` is over 200 lines. |
 

@@ -64,6 +64,7 @@ func Check(root string, repo *model.Repo, opts CheckOptions) []model.Finding {
 		texts[f.Path] = text
 		c.checkOversized(f, text)
 		c.lintMarkdown(f, text)
+		c.checkVersions(f, text)
 	}
 	c.checkStale(files, texts)
 	c.checkLoaded(files, texts)
