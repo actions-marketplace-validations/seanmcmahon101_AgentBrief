@@ -1,0 +1,108 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "java",
+      "version": "17",
+      "sources": [
+        "build.gradle",
+        "pom.xml"
+      ]
+    }
+  ],
+  "package_managers": [
+    {
+      "name": "maven",
+      "version": "3.9.16",
+      "ecosystem": "java",
+      "source": ".mvn/wrapper/maven-wrapper.properties"
+    }
+  ],
+  "commands": [
+    {
+      "kind": "build",
+      "run": "./mvnw package",
+      "dir": ".",
+      "source": "./mvnw convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "./mvnw test",
+      "dir": ".",
+      "source": "./mvnw convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test-single",
+      "run": "./mvnw test -Dtest=ClassName#method",
+      "dir": ".",
+      "source": "./mvnw convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false,
+      "note": "replace ClassName and method"
+    },
+    {
+      "kind": "lint",
+      "run": "./mvnw checkstyle:check",
+      "dir": ".",
+      "source": "pom.xml",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "format",
+      "run": "./mvnw spring-javaformat:apply",
+      "dir": ".",
+      "source": "pom.xml",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "check",
+      "run": "./mvnw -B verify",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "dev",
+      "run": "./mvnw spring-boot:run",
+      "dir": ".",
+      "source": "pom.xml",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "do_not_edit": [],
+  "instruction_files": [],
+  "notes": [
+    "both pom.xml and Gradle build files exist in .; Maven and Gradle commands are both listed",
+    "docker compose services: mysql (mysql:9.7), postgres (postgres:18.4)"
+  ],
+  "other_build_tool": {
+    "tool": "Gradle",
+    "run": "./gradlew build",
+    "source": "CI"
+  }
+}

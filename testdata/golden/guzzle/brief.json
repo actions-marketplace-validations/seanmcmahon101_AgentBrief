@@ -1,0 +1,89 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "php",
+      "version": "^7.4 || ^8.0",
+      "sources": [
+        "composer.json"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "install",
+      "run": "composer install",
+      "dir": ".",
+      "source": "composer convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "vendor/bin/phpunit",
+      "dir": ".",
+      "source": "phpunit.xml.dist, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true,
+      "alternate": {
+        "run": "make test",
+        "source": "Makefile"
+      }
+    },
+    {
+      "kind": "test-single",
+      "run": "vendor/bin/phpunit --filter <testName> <file>",
+      "dir": ".",
+      "source": "phpunit.xml.dist",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true,
+      "note": "replace <testName> and <file>"
+    },
+    {
+      "kind": "lint",
+      "run": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+      "dir": ".",
+      "source": ".php-cs-fixer.dist.php",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "format",
+      "run": "vendor/bin/php-cs-fixer fix",
+      "dir": ".",
+      "source": ".php-cs-fixer.dist.php, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "typecheck",
+      "run": "vendor/bin/phpstan analyse",
+      "dir": ".",
+      "source": "phpstan.neon.dist",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "do_not_edit": [],
+  "instruction_files": [
+    "CLAUDE.md"
+  ],
+  "notes": []
+}

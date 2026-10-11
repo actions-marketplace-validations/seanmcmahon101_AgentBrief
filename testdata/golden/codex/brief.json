@@ -1,0 +1,196 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "bazel",
+      "version": "9.2.0",
+      "sources": [
+        ".bazelversion"
+      ]
+    },
+    {
+      "name": "node",
+      "version": ">=22",
+      "sources": [
+        "package.json"
+      ]
+    },
+    {
+      "name": "rust",
+      "version": "1.95.0",
+      "sources": [
+        "codex-rs/rust-toolchain.toml"
+      ]
+    }
+  ],
+  "package_managers": [
+    {
+      "name": "pnpm",
+      "version": "10.34.5",
+      "ecosystem": "node",
+      "source": "package.json",
+      "avoid": [
+        "npm",
+        "yarn"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "kind": "install",
+      "run": "just install",
+      "dir": ".",
+      "source": "justfile",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "build",
+      "run": "bazel build //...",
+      "dir": ".",
+      "source": "bazel convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "just test",
+      "dir": ".",
+      "source": "justfile",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "lint",
+      "run": "just clippy",
+      "dir": ".",
+      "source": "justfile",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "format",
+      "run": "pnpm format",
+      "dir": ".",
+      "source": "package.json, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true,
+      "alternate": {
+        "run": "just fix",
+        "source": "justfile"
+      }
+    },
+    {
+      "kind": "test-single",
+      "run": "cargo nextest run <test_name>",
+      "dir": "codex-rs",
+      "source": ".config/nextest.toml",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true,
+      "note": "replace <test_name> with a test name filter"
+    }
+  ],
+  "ecosystems": [
+    {
+      "dir": ".",
+      "name": "bazel",
+      "ecosystem": "bazel",
+      "manifest": "MODULE.bazel"
+    },
+    {
+      "dir": ".",
+      "name": "codex-monorepo",
+      "ecosystem": "node",
+      "manifest": "package.json"
+    }
+  ],
+  "workspace": {
+    "kind": "workspace",
+    "count": 168,
+    "members": [
+      {
+        "dir": "codex-cli",
+        "name": "@openai/codex",
+        "ecosystem": "node"
+      },
+      {
+        "dir": "codex-rs",
+        "name": "codex-rs",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "codex-rs/agent-graph-store",
+        "name": "codex-agent-graph-store",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "codex-rs/agent-identity",
+        "name": "codex-agent-identity",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "codex-rs/agent-message-board-client",
+        "name": "codex-agent-message-board-client",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "codex-rs/agent-roles",
+        "name": "codex-agent-roles",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "codex-rs/analytics",
+        "name": "codex-analytics",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "codex-rs/ansi-escape",
+        "name": "codex-ansi-escape",
+        "ecosystem": "rust"
+      }
+    ],
+    "omitted": 160
+  },
+  "do_not_edit": [
+    {
+      "pattern": "codex-rs/app-server-protocol/schema/**",
+      "reason": "generated"
+    },
+    {
+      "pattern": "codex-rs/hooks/schema/generated/**",
+      "reason": "generated"
+    },
+    {
+      "pattern": "codex-rs/config/src/thread_config/proto/codex.thread_config.v1.rs",
+      "reason": "generated"
+    },
+    {
+      "pattern": "flake.lock",
+      "reason": "lockfile",
+      "patterns": [
+        "flake.lock",
+        "pnpm-lock.yaml",
+        "codex-rs/Cargo.lock"
+      ]
+    }
+  ],
+  "instruction_files": [
+    "codex-rs/exec-server/src/sandbox_integrity/AGENTS.md",
+    "codex-rs/tui/src/bottom_pane/AGENTS.md"
+  ],
+  "notes": []
+}

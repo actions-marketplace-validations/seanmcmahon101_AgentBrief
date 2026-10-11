@@ -5,3 +5,4 @@
 *.out
 coverage.txt
 __pycache__/
+/.claude/worktrees/

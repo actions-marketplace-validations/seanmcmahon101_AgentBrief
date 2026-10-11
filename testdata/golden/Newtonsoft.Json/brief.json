@@ -1,0 +1,112 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "dotnet",
+      "version": "10.0.300",
+      "sources": [
+        "Src/global.json"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "install",
+      "run": "dotnet restore",
+      "dir": "Src",
+      "source": "dotnet convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "build",
+      "run": "dotnet build",
+      "dir": "Src",
+      "source": "dotnet convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "dotnet test",
+      "dir": "Src",
+      "source": "dotnet convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test-single",
+      "run": "dotnet test --filter \"FullyQualifiedName~Namespace.Class.Method\"",
+      "dir": "Src",
+      "source": "dotnet convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false,
+      "note": "replace Namespace.Class.Method"
+    },
+    {
+      "kind": "format",
+      "run": "dotnet format --verify-no-changes",
+      "dir": "Src",
+      "source": "dotnet convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    }
+  ],
+  "ecosystems": [],
+  "workspace": {
+    "kind": "workspace",
+    "count": 5,
+    "members": [
+      {
+        "dir": "Src",
+        "name": "Newtonsoft.Json",
+        "ecosystem": "dotnet"
+      },
+      {
+        "dir": "Src/Newtonsoft.Json",
+        "name": "Newtonsoft.Json",
+        "ecosystem": "dotnet"
+      },
+      {
+        "dir": "Src/Newtonsoft.Json.FuzzTests",
+        "name": "Newtonsoft.Json.FuzzTests",
+        "ecosystem": "dotnet"
+      },
+      {
+        "dir": "Src/Newtonsoft.Json.TestConsole",
+        "name": "Newtonsoft.Json.TestConsole",
+        "ecosystem": "dotnet"
+      },
+      {
+        "dir": "Src/Newtonsoft.Json.Tests",
+        "name": "Newtonsoft.Json.Tests",
+        "ecosystem": "dotnet"
+      }
+    ],
+    "omitted": 0
+  },
+  "do_not_edit": [
+    {
+      "pattern": "*.Designer.cs",
+      "reason": "generated"
+    },
+    {
+      "pattern": "Src/Newtonsoft.Json.Tests/LinqToSql/LinqToSqlClasses.designer.cs",
+      "reason": "generated"
+    }
+  ],
+  "instruction_files": [],
+  "notes": []
+}

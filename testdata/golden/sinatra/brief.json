@@ -1,0 +1,70 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "install",
+      "run": "bundle install",
+      "dir": ".",
+      "source": "bundle convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "bundle exec rake test",
+      "dir": ".",
+      "source": "Rakefile",
+      "evidence": [
+        "declared",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test-single",
+      "run": "bundle exec ruby -Itest <file>",
+      "dir": ".",
+      "source": "bundle convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "lint",
+      "run": "bundle exec rubocop",
+      "dir": ".",
+      "source": ".rubocop.yml",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "workspace": {
+    "kind": "projects",
+    "count": 2,
+    "members": [
+      {
+        "dir": "rack-protection",
+        "name": "rack-protection",
+        "ecosystem": "ruby"
+      },
+      {
+        "dir": "sinatra-contrib",
+        "name": "sinatra-contrib",
+        "ecosystem": "ruby"
+      }
+    ],
+    "omitted": 0
+  },
+  "do_not_edit": [],
+  "instruction_files": [],
+  "notes": []
+}

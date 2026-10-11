@@ -1,0 +1,104 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "python",
+      "version": ">=3.9",
+      "sources": [
+        "pyproject.toml"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "install",
+      "run": "scripts/install",
+      "dir": ".",
+      "source": "scripts/install, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "build",
+      "run": "scripts/build",
+      "dir": ".",
+      "source": "scripts/build, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test",
+      "run": "scripts/test",
+      "dir": ".",
+      "source": "scripts/test, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test-single",
+      "run": "python -m pytest <file>::<test_name>",
+      "dir": ".",
+      "source": "pytest convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "lint",
+      "run": "scripts/lint",
+      "dir": ".",
+      "source": "scripts/lint",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "format",
+      "run": "ruff format .",
+      "dir": ".",
+      "source": "ruff convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "typecheck",
+      "run": "mypy .",
+      "dir": ".",
+      "source": "mypy convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "check",
+      "run": "scripts/check",
+      "dir": ".",
+      "source": "scripts/check, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "do_not_edit": [],
+  "instruction_files": [],
+  "notes": []
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "go",
+      "version": "1.15",
+      "sources": [
+        "go.mod"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "build",
+      "run": "go build ./...",
+      "dir": ".",
+      "source": "go convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "make test",
+      "dir": ".",
+      "source": "Makefile",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test-single",
+      "run": "go test ./<pkg> -run '^TestName$'",
+      "dir": ".",
+      "source": "go convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false,
+      "note": "replace <pkg> and TestName"
+    },
+    {
+      "kind": "lint",
+      "run": "make lint",
+      "dir": ".",
+      "source": "Makefile",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true,
+      "alternate": {
+        "run": "golangci-lint run",
+        "source": ".golangci.yml"
+      }
+    },
+    {
+      "kind": "format",
+      "run": "make fmt",
+      "dir": ".",
+      "source": "Makefile",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "do_not_edit": [
+    {
+      "pattern": "go.sum",
+      "reason": "lockfile",
+      "patterns": [
+        "go.sum"
+      ]
+    }
+  ],
+  "instruction_files": [],
+  "notes": []
+}

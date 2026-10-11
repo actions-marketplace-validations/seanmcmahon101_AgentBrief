@@ -1,0 +1,3 @@
+ok: 0 instruction files checked, no problems found
+note: AGENTS.md has no AgentBrief block, so only hand-written instructions were checked; run `agentbrief sync` to add one
+exit code: 0

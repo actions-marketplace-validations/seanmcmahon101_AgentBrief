@@ -1,0 +1,82 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "go",
+      "version": "1.24",
+      "sources": [
+        "go.mod"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "build",
+      "run": "go build ./...",
+      "dir": ".",
+      "source": "go convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "make test",
+      "dir": ".",
+      "source": "Makefile, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test-single",
+      "run": "go test ./<pkg> -run '^TestName$'",
+      "dir": ".",
+      "source": "go convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false,
+      "note": "replace <pkg> and TestName"
+    },
+    {
+      "kind": "lint",
+      "run": "go vet ./...",
+      "dir": ".",
+      "source": "go convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "format",
+      "run": "gofmt -l .",
+      "dir": ".",
+      "source": "gofmt convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false,
+      "note": "lists files needing formatting"
+    }
+  ],
+  "ecosystems": [],
+  "do_not_edit": [
+    {
+      "pattern": "_examples/rest/go.sum",
+      "reason": "lockfile",
+      "patterns": [
+        "_examples/rest/go.sum",
+        "_examples/versions/go.sum"
+      ]
+    }
+  ],
+  "instruction_files": [],
+  "notes": []
+}

@@ -1,0 +1,126 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "java",
+      "version": "8",
+      "sources": [
+        "pom.xml"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "build",
+      "run": "mvn package",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test",
+      "run": "mvn test",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test-single",
+      "run": "mvn test -pl <module> -am -Dtest=ClassName#method -Dsurefire.failIfNoSpecifiedTests=false",
+      "dir": ".",
+      "source": "mvn convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "lint",
+      "run": "mvn spotless:check",
+      "dir": ".",
+      "source": "pom.xml",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "format",
+      "run": "mvn spotless:apply",
+      "dir": ".",
+      "source": "pom.xml",
+      "evidence": [
+        "declared"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "check",
+      "run": "mvn -B verify",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "workspace": {
+    "kind": "workspace",
+    "manager": "maven",
+    "count": 7,
+    "members": [
+      {
+        "dir": "extras",
+        "name": "gson-extras",
+        "ecosystem": "java"
+      },
+      {
+        "dir": "gson",
+        "name": "gson",
+        "ecosystem": "java"
+      },
+      {
+        "dir": "metrics",
+        "name": "gson-metrics",
+        "ecosystem": "java"
+      },
+      {
+        "dir": "proto",
+        "name": "proto",
+        "ecosystem": "java"
+      },
+      {
+        "dir": "test-graal-native-image",
+        "name": "test-graal-native-image",
+        "ecosystem": "java"
+      },
+      {
+        "dir": "test-jpms",
+        "name": "test-jpms",
+        "ecosystem": "java"
+      },
+      {
+        "dir": "test-shrinker",
+        "name": "test-shrinker",
+        "ecosystem": "java"
+      }
+    ],
+    "omitted": 0
+  },
+  "do_not_edit": [],
+  "instruction_files": [],
+  "notes": []
+}

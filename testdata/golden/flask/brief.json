@@ -1,0 +1,99 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "python",
+      "version": ">=3.11",
+      "sources": [
+        "pyproject.toml"
+      ]
+    }
+  ],
+  "package_managers": [
+    {
+      "name": "uv",
+      "ecosystem": "python",
+      "source": "uv.lock",
+      "avoid": [
+        "pip"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "kind": "install",
+      "run": "uv sync",
+      "dir": ".",
+      "source": "uv convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "test",
+      "run": "uv run tox",
+      "dir": ".",
+      "source": "pyproject.toml, CI",
+      "evidence": [
+        "ci",
+        "declared"
+      ],
+      "verified": true,
+      "note": "runs the tox envs"
+    },
+    {
+      "kind": "test-single",
+      "run": "uv run pytest <file>::<test_name>",
+      "dir": ".",
+      "source": "pytest convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "lint",
+      "run": "uv run ruff check .",
+      "dir": ".",
+      "source": "ruff convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "format",
+      "run": "uv run ruff format .",
+      "dir": ".",
+      "source": "ruff convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "typecheck",
+      "run": "uv run mypy .",
+      "dir": ".",
+      "source": "mypy convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    }
+  ],
+  "ecosystems": [],
+  "do_not_edit": [
+    {
+      "pattern": "uv.lock",
+      "reason": "lockfile",
+      "patterns": [
+        "uv.lock"
+      ]
+    }
+  ],
+  "instruction_files": [],
+  "notes": []
+}

@@ -1,0 +1,72 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "elixir",
+      "version": "~> 1.15",
+      "sources": [
+        "mix.exs"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "install",
+      "run": "mix deps.get",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test",
+      "run": "mix test",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test-single",
+      "run": "mix test <file>:<line>",
+      "dir": ".",
+      "source": "mix convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false,
+      "note": "replace <file>:<line>, e.g. test/x_test.exs:42"
+    },
+    {
+      "kind": "format",
+      "run": "mix format --check-formatted",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "do_not_edit": [
+    {
+      "pattern": "mix.lock",
+      "reason": "lockfile",
+      "patterns": [
+        "mix.lock"
+      ]
+    }
+  ],
+  "instruction_files": [],
+  "notes": []
+}

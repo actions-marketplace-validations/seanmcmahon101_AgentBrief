@@ -1,0 +1,5 @@
+CLAUDE.md:1: warning: CLAUDE.md does not import AGENTS.md, so Claude Code will not read it [agents-md-not-loaded]
+  add `@AGENTS.md` as the first line (`agentbrief sync` does this)
+0 errors, 1 warning
+note: AGENTS.md has no AgentBrief block, so only hand-written instructions were checked; run `agentbrief sync` to add one
+exit code: 0

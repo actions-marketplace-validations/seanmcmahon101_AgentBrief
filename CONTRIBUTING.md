@@ -16,6 +16,13 @@ make check
 
 If you change what AgentBrief would generate for this repository, run `go run ./cmd/agentbrief sync` and commit the updated `AGENTS.md`, or CI will fail with `stale-block`.
 
+## Golden outputs
+
+`testdata/golden/` holds brief, JSON, check and scoped output for the pinned benchmark corpus (`bench/corpus.sh`, at `$AGENTBRIEF_CORPUS`).
+`make golden` regenerates it and fails on any difference; `make golden-update` rewrites it.
+Behaviour changes must come with an intentional golden update: run `make golden-update`, then review the diff of `testdata/golden` line by line before committing.
+An unexplained change in a repo you did not target is a regression, not noise.
+
 ## Ground rules
 
 - Never execute anything from a scanned repository, including `git`. Detectors only parse files.

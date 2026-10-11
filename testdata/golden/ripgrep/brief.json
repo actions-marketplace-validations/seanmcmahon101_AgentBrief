@@ -1,0 +1,130 @@
+{
+  "schema": "agentbrief/brief/v1",
+  "scope": ".",
+  "toolchain": [
+    {
+      "name": "rust",
+      "version": ">=1.96",
+      "sources": [
+        "Cargo.toml"
+      ]
+    }
+  ],
+  "package_managers": [],
+  "commands": [
+    {
+      "kind": "build",
+      "run": "cargo build --workspace",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test",
+      "run": "cargo test --workspace",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci",
+        "convention"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "test-single",
+      "run": "cargo test -p <crate> <test_name>",
+      "dir": ".",
+      "source": "cargo convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false,
+      "note": "replace <crate> and <test_name>"
+    },
+    {
+      "kind": "lint",
+      "run": "cargo clippy --all-targets --workspace",
+      "dir": ".",
+      "source": "cargo convention, unverified",
+      "evidence": [
+        "convention"
+      ],
+      "verified": false
+    },
+    {
+      "kind": "format",
+      "run": "cargo fmt --all --check",
+      "dir": ".",
+      "source": "CI",
+      "evidence": [
+        "ci"
+      ],
+      "verified": true
+    }
+  ],
+  "ecosystems": [],
+  "workspace": {
+    "kind": "workspace",
+    "manager": "cargo",
+    "count": 11,
+    "members": [
+      {
+        "dir": "crates/cli",
+        "name": "grep-cli",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "crates/globset",
+        "name": "globset",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "crates/grep",
+        "name": "grep",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "crates/ignore",
+        "name": "ignore",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "crates/index",
+        "name": "grep-index",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "crates/matcher",
+        "name": "grep-matcher",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "crates/pcre2",
+        "name": "grep-pcre2",
+        "ecosystem": "rust"
+      },
+      {
+        "dir": "crates/printer",
+        "name": "grep-printer",
+        "ecosystem": "rust"
+      }
+    ],
+    "omitted": 3
+  },
+  "do_not_edit": [
+    {
+      "pattern": "Cargo.lock",
+      "reason": "lockfile",
+      "patterns": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ]
+    }
+  ],
+  "instruction_files": [],
+  "notes": []
+}
