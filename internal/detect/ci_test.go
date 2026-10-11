@@ -178,3 +178,32 @@ func TestCICap(t *testing.T) {
 		t.Errorf("len = %d", len(f.CI))
 	}
 }
+
+func TestCIEnvSubstitution(t *testing.T) {
+	wf := `env:
+  CARGO: cargo
+  FLAGS: ""
+  DYN: ${{ matrix.x }}
+jobs:
+  b:
+    env:
+      CARGO: cross
+    steps:
+      - run: ${{ env.CARGO }} test ${{ env.FLAGS }} --workspace
+      - run: ${{ env.DYN }} test
+        env:
+          LOCAL: x
+      - run: ${{ env.LOCAL }} build
+        env:
+          LOCAL: make
+`
+	f := runOnly(map[string]string{".github/workflows/x.yml": wf}, detectCI)
+	var got []string
+	for _, s := range f.CI {
+		got = append(got, s.Run)
+	}
+	want := []string{"cross test --workspace", "${{ env.DYN }} test", "make build"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %q", got)
+	}
+}

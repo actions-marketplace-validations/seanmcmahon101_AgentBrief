@@ -14,7 +14,7 @@ func finalizeWith(cmds []model.Command, steps ...model.CIStep) *Facts {
 		f.AddCommand(c)
 	}
 	f.CI = steps
-	finalizeCI(scan.FromMap(nil), f)
+	finalizeCI(scan.FromMap(map[string]string{"web/x": ""}), f)
 	return f
 }
 
@@ -92,18 +92,51 @@ func TestFinalizeDirs(t *testing.T) {
 	}
 }
 
-func TestFinalizeConventionWithFlagsAddsExactCI(t *testing.T) {
-	f := finalizeWith([]model.Command{conv("test", "cargo test"), conv("install", "pnpm install")},
-		step("cargo test --workspace --all-features"), step("pnpm install --frozen-lockfile"))
+func TestFinalizeExtraFlagsCorroborateBase(t *testing.T) {
+	f := finalizeWith([]model.Command{conv("test", "cargo test"), conv("install", "pnpm install"), conv("install", "uv sync")},
+		step("cargo test --workspace --all-features"), step("pnpm install --frozen-lockfile"), step("uv sync --locked --extra all"),
+		step("uv sync --no-dev --group tests"))
 	got := cmdSet(f)
-	if c, ok := got[".|test|cargo test --workspace --all-features"]; !ok || c.Evidence[0] != "ci" || c.Source.Line != 7 {
-		t.Errorf("missing exact CI test command: %v", joinKeys(got))
+	if !hasCI(got[".|test|cargo test"]) || !hasCI(got[".|install|uv sync"]) {
+		t.Errorf("base commands should be corroborated: %v", joinKeys(got))
 	}
-	if _, ok := got[".|install|pnpm install --frozen-lockfile"]; !ok {
-		t.Errorf("missing exact CI install: %v", joinKeys(got))
+	if _, ok := got[".|test|cargo test --workspace --all-features"]; ok {
+		t.Error("extra flags must not add a near-duplicate")
 	}
-	if hasCI(got[".|test|cargo test"]) {
-		t.Error("convention command must stay convention-only")
+	if c, ok := got[".|install|pnpm install --frozen-lockfile"]; !ok || c.Evidence[0] != "ci" {
+		t.Errorf("frozen-lockfile install should be kept: %v", joinKeys(got))
+	}
+	if hasCI(got[".|install|pnpm install"]) {
+		t.Error("base pnpm install should not be marked when the strict form is added")
+	}
+	if _, ok := got[".|install|uv sync --no-dev --group tests"]; ok {
+		t.Error("restricted install added")
+	}
+	// Without a project install, a restricted CI install is still the only fact.
+	f = finalizeWith(nil, step("uv sync --no-dev"))
+	if len(f.Commands) != 1 {
+		t.Errorf("got %+v", f.Commands)
+	}
+	// Restricted install does not corroborate the base.
+	f = finalizeWith([]model.Command{conv("install", "uv sync")}, step("uv sync --no-dev"))
+	if hasCI(f.Commands[0]) || len(f.Commands) != 1 {
+		t.Errorf("got %+v", f.Commands)
+	}
+}
+
+func TestFinalizeScriptEquivalence(t *testing.T) {
+	c := decl("test", "scripts/test")
+	d := decl("lint", "bash scripts/lint.sh")
+	for _, ci := range []string{"scripts/test", "./scripts/test", "bash scripts/test.sh", "sh scripts/test.sh", "uv run bash scripts/test.sh", "scripts/test --cov"} {
+		if f := finalizeWith([]model.Command{c}, step(ci)); !hasCI(f.Commands[0]) {
+			t.Errorf("%q should corroborate scripts/test", ci)
+		}
+	}
+	if f := finalizeWith([]model.Command{d}, step("./scripts/lint")); !hasCI(f.Commands[0]) {
+		t.Error("lint.sh")
+	}
+	if f := finalizeWith([]model.Command{c}, step("scripts/test-cov")); hasCI(f.Commands[0]) {
+		t.Error("different script matched")
 	}
 }
 
@@ -201,5 +234,16 @@ func TestFinalizeUvFlags(t *testing.T) {
 	}
 	if f := finalizeWith([]model.Command{c}, step("uv run --directory=sub pytest")); hasCI(f.Commands[0]) {
 		t.Error("--directory changes where the command runs")
+	}
+}
+
+func TestFinalizeSkipsForeignDirsAndInstallers(t *testing.T) {
+	// finalizeWith uses an empty repo, so any non-root dir is "foreign".
+	if f := finalizeWith(nil, step("cd base && uv sync")); len(f.Commands) != 0 {
+		t.Errorf("foreign dir added: %+v", f.Commands)
+	}
+	f := finalizeWith([]model.Command{conv("install", "uv sync")}, step("pip install -e ."))
+	if len(f.Commands) != 1 {
+		t.Errorf("pip install added next to uv: %+v", f.Commands)
 	}
 }

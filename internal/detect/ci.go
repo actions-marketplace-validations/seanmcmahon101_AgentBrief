@@ -107,12 +107,44 @@ func ciDir(d string) string {
 	return d
 }
 
+// envMap reads a literal `env:` mapping; values holding expressions are
+// dropped because we cannot resolve them.
+func envMap(n *yaml.Node) map[string]string {
+	out := map[string]string{}
+	if n == nil || n.Kind != yaml.MappingNode {
+		return out
+	}
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		if v := n.Content[i+1]; v.Kind == yaml.ScalarNode && !strings.Contains(v.Value, "${{") {
+			out[n.Content[i].Value] = v.Value
+		}
+	}
+	return out
+}
+
+var envExpr = regexp.MustCompile(`\$\{\{\s*env\.(\w+)\s*\}\}`)
+
+// substEnv replaces ${{ env.X }} where X is a literal env value defined at
+// workflow, job or step level (innermost wins). Other expressions stay.
+func substEnv(run string, envs ...map[string]string) string {
+	return envExpr.ReplaceAllStringFunc(run, func(m string) string {
+		name := envExpr.FindStringSubmatch(m)[1]
+		for i := len(envs) - 1; i >= 0; i-- {
+			if v, ok := envs[i][name]; ok {
+				return v
+			}
+		}
+		return m
+	})
+}
+
 func (c *ciCollector) githubWorkflow(r *scan.Repo, file string) {
 	root := yamlRoot(r.ReadString(file))
 	jobs := ymap(root, "jobs")
 	if jobs == nil || jobs.Kind != yaml.MappingNode {
 		return
 	}
+	wfEnv := envMap(ymap(root, "env"))
 	wfDir := yscalar(ymap(ymap(ymap(root, "defaults"), "run"), "working-directory"))
 	for i := 0; i+1 < len(jobs.Content); i += 2 {
 		id, job := jobs.Content[i].Value, jobs.Content[i+1]
@@ -120,17 +152,18 @@ func (c *ciCollector) githubWorkflow(r *scan.Repo, file string) {
 		if jobDir == "" {
 			jobDir = wfDir
 		}
+		jobEnv := envMap(ymap(job, "env"))
 		steps := ymap(job, "steps")
 		if steps == nil || steps.Kind != yaml.SequenceNode {
 			continue
 		}
 		for _, step := range steps.Content {
-			c.githubStep(file, id, jobDir, step)
+			c.githubStep(file, id, jobDir, step, wfEnv, jobEnv)
 		}
 	}
 }
 
-func (c *ciCollector) githubStep(file, job, jobDir string, step *yaml.Node) {
+func (c *ciCollector) githubStep(file, job, jobDir string, step *yaml.Node, wfEnv, jobEnv map[string]string) {
 	if uses := yscalar(ymap(step, "uses")); uses != "" {
 		c.setupAction(file, uses, ymap(step, "with"))
 		return
@@ -156,6 +189,7 @@ func (c *ciCollector) githubStep(file, job, jobDir string, step *yaml.Node) {
 	if runNode.Style&(yaml.LiteralStyle|yaml.FoldedStyle) != 0 {
 		first++ // content starts after the "|" line
 	}
+	run = substEnv(run, wfEnv, jobEnv, envMap(ymap(step, "env")))
 	for _, cmd := range ciSplitCommands(run, first) {
 		c.add("github-actions", job, cmd.text, dir, model.Source{Path: file, Line: cmd.line})
 	}

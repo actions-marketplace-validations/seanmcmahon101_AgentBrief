@@ -22,7 +22,7 @@ type ciCandidate struct {
 
 // finalizeCI marks commands that CI also runs, then adds well-known CI
 // invocations that no detector produced.
-func finalizeCI(_ *scan.Repo, f *Facts) {
+func finalizeCI(r *scan.Repo, f *Facts) {
 	var cands []ciCandidate
 	for _, step := range f.CI {
 		cands = append(cands, ciCandidates(step)...)
@@ -30,7 +30,9 @@ func finalizeCI(_ *scan.Repo, f *Facts) {
 	existing := len(f.Commands) // detector-made commands; CI-only additions come after
 	var additions []pendingCI
 	for _, c := range cands {
-		matchedExact := false
+		kind := ciKind(c.canon)
+		restricted := kind == model.KindInstall && ciRestrictsDeps(c.canon)
+		matched := false
 		for i := 0; i < existing; i++ {
 			cmd := &f.Commands[i]
 			if cmd.Dir != c.dir || strings.ContainsAny(cmd.Run, "<>") {
@@ -40,17 +42,35 @@ func finalizeCI(_ *scan.Repo, f *Facts) {
 			if !hasTokenPrefix(c.canon, ct) {
 				continue
 			}
-			if len(ct) == len(c.canon) || hasEvidence(cmd, model.EvidenceDeclared) {
-				cmd.Evidence = mergeEvidence(cmd.Evidence, []string{model.EvidenceCI})
-				matchedExact = matchedExact || len(ct) == len(c.canon)
+			if restricted && len(ct) != len(c.canon) {
+				// `uv sync --no-dev ...` is a narrower install than the
+				// project's own; do not let it vouch for the base command.
+				matched = true
+				continue
 			}
-			// Otherwise: a convention command that CI runs with extra flags.
-			// CI's exact string is the more useful fact, so it is added below.
+			if kind == model.KindInstall && ciStrictInstall(c.canon) && len(ct) != len(c.canon) {
+				continue // kept as its own, more specific, fact below
+			}
+			// CI runs the command, possibly with extra flags: corroborate
+			// the base command rather than adding a near-duplicate.
+			cmd.Evidence = mergeEvidence(cmd.Evidence, []string{model.EvidenceCI})
+			matched = true
 		}
-		if matchedExact {
+		if matched {
 			continue
 		}
-		if kind := ciKind(c.canon); kind != "" && !ciUnsafe(c.display) {
+		if kind != "" && !ciUnsafe(c.display) {
+			// A cd into a directory that is not in the repo (a second
+			// checkout, say) says nothing about this repository.
+			if c.dir != "." && !r.IsDir(c.dir) {
+				continue
+			}
+			if kind == model.KindInstall && hasOtherInstaller(f, c.dir, existing, c.canon[0]) {
+				continue
+			}
+			if restricted && hasKindIn(f, model.KindInstall, c.dir, existing) {
+				continue
+			}
 			additions = append(additions, pendingCI{kind, c})
 		}
 	}
@@ -79,6 +99,58 @@ const maxCIOnlyPerKind = 3
 type pendingCI struct {
 	kind string
 	c    ciCandidate
+}
+
+// hasKindIn reports whether one of the first n commands has this kind and dir.
+func hasKindIn(f *Facts, kind, dir string, n int) bool {
+	for _, c := range f.Commands[:n] {
+		if c.Kind == kind && c.Dir == dir {
+			return true
+		}
+	}
+	return false
+}
+
+var restrictingFlags = []string{"--no-dev", "--only", "--production", "--prod", "--omit=dev", "--no-default-groups"}
+
+// ciRestrictsDeps reports whether an install skips part of the dependencies.
+func ciRestrictsDeps(canon []string) bool {
+	for _, t := range canon {
+		for _, r := range restrictingFlags {
+			if t == r || strings.HasPrefix(t, r+"=") || (r == "--only" && strings.HasPrefix(t, "--only-")) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// ciStrictInstall marks installs whose CI form is materially different from
+// the plain command (lockfile-enforcing), worth keeping as their own fact.
+func ciStrictInstall(canon []string) bool {
+	for _, t := range canon {
+		if t == "--frozen-lockfile" || t == "--immutable" {
+			return true
+		}
+	}
+	return false
+}
+
+// hasOtherInstaller reports whether the project already has an install
+// command from a different tool (pip in CI next to uv in the repo).
+func hasOtherInstaller(f *Facts, dir string, n int, tool string) bool {
+	other := false
+	for _, c := range f.Commands[:n] {
+		if c.Kind != model.KindInstall || c.Dir != dir {
+			continue
+		}
+		t := finCanon(shellFields(c.Run))
+		if len(t) > 0 && t[0] == tool {
+			return false
+		}
+		other = true
+	}
+	return other
 }
 
 func hasCommand(f *Facts, kind, dir, run string) bool {
@@ -276,8 +348,15 @@ func finCanon(toks []string) []string {
 	if len(toks) >= 3 && (toks[0] == "python" || toks[0] == "python3") && toks[1] == "-m" {
 		toks = toks[2:]
 	}
+	if len(toks) >= 2 && (toks[0] == "bash" || toks[0] == "sh" || toks[0] == "zsh") && !strings.HasPrefix(toks[1], "-") {
+		toks = toks[1:]
+	}
 	if len(toks) == 0 {
 		return toks
+	}
+	if strings.Contains(strings.TrimPrefix(toks[0], "./"), "/") {
+		// scripts/test, ./scripts/test and scripts/test.sh are one script.
+		toks[0] = strings.TrimSuffix(strings.TrimSuffix(strings.TrimPrefix(toks[0], "./"), ".sh"), ".bash")
 	}
 	switch toks[0] {
 	case "npm":
