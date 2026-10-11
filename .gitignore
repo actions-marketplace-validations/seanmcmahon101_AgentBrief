@@ -1,0 +1,6 @@
+/agentbrief
+/dist/
+/bench/results/raw/
+*.test
+*.out
+coverage.txt
