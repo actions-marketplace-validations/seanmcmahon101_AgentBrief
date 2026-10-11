@@ -205,6 +205,11 @@ func (c *checker) checkSpanPath(f model.InstructionFile, line int, span string) 
 	}
 	segs := strings.Split(strings.TrimSuffix(trim, "/"), "/")
 	hasExt := knownExts[strings.ToLower(path.Ext(trim))]
+	// `./main`, `./bin/tool`: an extension-less executable is usually a build
+	// output that does not exist until built, so it is not judged.
+	if strings.HasPrefix(p, "./") && !hasExt && path.Ext(trim) == "" && !strings.HasSuffix(p, "/") {
+		return
+	}
 	// Module-like specifiers (`react-dom/client`): only judge if the first segment is a real top-level dir.
 	if len(segs) > 1 && !hasExt && !strings.HasSuffix(p, "/") && !strings.HasPrefix(p, "./") && !strings.HasPrefix(p, "../") {
 		if !c.idx.topLevel(segs[0]) {
@@ -226,3 +231,57 @@ func (c *checker) checkSpanPath(f model.InstructionFile, line int, span string) 
 }
 
 var _ = os.Stat
+
+var proseTokenRe = regexp.MustCompile(`[^\s"'()<>\[\],;]+`)
+
+// checkProsePaths flags directory-style references in plain prose (outside
+// code spans and links), e.g. "see internal/ghost/". It is deliberately
+// narrow: the token must contain a slash, end with "/" or a known extension,
+// and start with a top-level directory that really exists, so "and/or" and
+// "client/server" are never judged. Always a warning.
+func (c *checker) checkProsePaths(f model.InstructionFile, it mdItem) {
+	stripped, _ := splitSpans(it.full)
+	stripped = linkRe.ReplaceAllString(stripped, " ")
+	if refRe.MatchString(stripped) {
+		return
+	}
+	for _, loc := range proseTokenRe.FindAllStringIndex(stripped, -1) {
+		tok := stripped[loc[0]:loc[1]]
+		tok = strings.TrimRight(strings.TrimLeft(tok, "*_"), "*_.:!?")
+		if strings.HasSuffix(tok, ".") || strings.Contains(tok, "://") || strings.HasPrefix(tok, "//") {
+			continue
+		}
+		if !strings.Contains(tok, "/") || len(tok) > 120 || !pathCharsRe.MatchString(tok) {
+			continue
+		}
+		if strings.Contains(tok, ":") || strings.Contains(tok, "#") || strings.Contains(tok, "@") || strings.Contains(tok, "~") {
+			continue
+		}
+		if skipPrefix(stripped[:loc[0]]) {
+			continue
+		}
+		rel := strings.TrimPrefix(tok, "./")
+		dirLike := strings.HasSuffix(rel, "/")
+		if !dirLike && !knownExts[strings.ToLower(path.Ext(rel))] {
+			continue
+		}
+		segs := strings.Split(strings.TrimSuffix(rel, "/"), "/")
+		if len(segs) < 2 || segs[0] == "" || segs[0] == ".." || strings.HasPrefix(segs[0], ".") {
+			continue
+		}
+		if !c.idx.topLevel(segs[0]) || !c.isDir(segs[0]) {
+			continue
+		}
+		clean := strings.TrimSuffix(rel, "/")
+		if isGeneratedPath(rel) || spanPlaceholderProse(clean) || strings.ContainsAny(clean, "*{}$|") || strings.Contains(clean, "..") {
+			continue
+		}
+		if c.existsAny(f, clean, false) {
+			continue
+		}
+		c.add(model.Finding{Rule: RuleMissingPath, Severity: model.SeverityWarning, Path: f.Path, Line: it.line,
+			Message: "`" + tok + "` is mentioned but does not exist in the repository"})
+	}
+}
+
+func spanPlaceholderProse(p string) bool { return pathPlaceholder(p) }

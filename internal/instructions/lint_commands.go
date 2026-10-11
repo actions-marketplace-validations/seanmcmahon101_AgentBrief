@@ -211,11 +211,20 @@ type cmdCtx struct {
 	file model.InstructionFile
 	line int
 	text string // full command segment text for messages
+	cwd  string // directory set by a preceding `cd` ("" none, "?" unknown)
 }
 
 func (c *checker) lintCommandText(f model.InstructionFile, line int, s string) {
 	for _, toks := range segments(s) {
-		x := cmdCtx{c: c, file: f, line: line, text: strings.Join(toks, " ")}
+		if toks[0] == "cd" || toks[0] == "pushd" {
+			c.cwd = nextCwd(c.cwd, toks)
+			continue
+		}
+		x := cmdCtx{c: c, file: f, line: line, text: strings.Join(toks, " "), cwd: c.cwd}
+		x.pathCommand(toks)
+		if !strings.Contains(s, "COMPOSE_") {
+			x.inventoryCommand(toks)
+		}
 		switch toks[0] {
 		case "npm", "pnpm", "yarn", "bun":
 			x.jsCommand(toks[0], toks[1:])
@@ -452,7 +461,7 @@ func commonScriptName(n string) bool {
 // ---- make ------------------------------------------------------------------
 
 func (x cmdCtx) makeCommand(args []string) {
-	dir := ""
+	dir, explicit := "", false
 	var targets []string
 	for i := 0; i < len(args); i++ {
 		a := args[i]
@@ -461,12 +470,26 @@ func (x cmdCtx) makeCommand(args []string) {
 			i = len(args)
 		case a == "-C" || a == "--directory":
 			if i+1 < len(args) {
-				dir = path.Clean(strings.TrimPrefix(args[i+1], "./"))
+				d := args[i+1]
+				if isPlaceholder(d) || strings.ContainsAny(d, "$~") {
+					return
+				}
+				dir = path.Join(dir, strings.TrimPrefix(d, "./"))
+				explicit = true
 				i++
 			}
 		case strings.HasPrefix(a, "--directory="):
-			dir = path.Clean(strings.TrimPrefix(a[len("--directory="):], "./"))
-		case a == "-f" || a == "--file" || a == "--makefile" || a == "-I" || a == "-o" || a == "-W":
+			d := a[len("--directory="):]
+			if isPlaceholder(d) || strings.ContainsAny(d, "$~") {
+				return
+			}
+			dir = path.Join(dir, strings.TrimPrefix(d, "./"))
+			explicit = true
+		case a == "-f" || a == "--file" || a == "--makefile" || strings.HasPrefix(a, "--file=") || strings.HasPrefix(a, "--makefile="):
+			return // a custom makefile: the root Makefile says nothing about it
+		case strings.HasPrefix(a, "-f") && len(a) > 2 && !strings.HasPrefix(a, "--"):
+			return
+		case a == "-I" || a == "-o" || a == "-W":
 			i++
 		case a == "-j" || a == "-l":
 			if i+1 < len(args) && regexp.MustCompile(`^\d+$`).MatchString(args[i+1]) {
@@ -482,11 +505,64 @@ func (x cmdCtx) makeCommand(args []string) {
 			targets = append(targets, a)
 		}
 	}
+	// After `cd sub && make x` the Makefile that counts is sub/Makefile.
+	switch x.cwd {
+	case "?":
+		return
+	case "":
+	default:
+		dir = path.Join(x.cwd, dir)
+	}
+	dir = path.Clean(dir)
 	if dir == "." {
 		dir = ""
 	}
+	if dir != "" {
+		resolved, ok := x.findDir(dir)
+		if !ok {
+			if explicit && !isGeneratedPath(dir+"/") && !strings.HasPrefix(dir, "..") {
+				x.reportPath(model.SeverityError, fmt.Sprintf("`%s` uses `-C %s`, but directory `%s` does not exist", x.text, dir, dir))
+			}
+			return
+		}
+		dir = resolved
+		x.makeIn(dir, targets)
+		return
+	}
 	for _, t := range targets {
 		x.checkTarget("make", "make", "target", []string{"Makefile", "makefile", "GNUmakefile"}, []string{"include ", "-include", "sinclude"}, t, dir)
+	}
+}
+
+// makeIn checks targets against the Makefile of one specific directory only.
+func (x cmdCtx) makeIn(dir string, targets []string) {
+	var text string
+	found := false
+	for _, n := range []string{"Makefile", "makefile", "GNUmakefile"} {
+		if x.c.exists(path.Join(dir, n)) {
+			found = true
+			text += x.c.readCached(path.Join(dir, n)) + "\n"
+		}
+	}
+	if !found {
+		return
+	}
+	for _, t := range targets {
+		if isPlaceholder(t) || strings.Contains(t, "%") || x.c.tix.has("make", t, dir) || wordIn(text, t) {
+			continue
+		}
+		skip := false
+		for _, m := range []string{"include ", "-include", "sinclude"} {
+			skip = skip || strings.Contains(text, m)
+		}
+		if skip {
+			continue
+		}
+		sug := ""
+		if s := closest(t, x.c.tix.names("make", dir)); s != "" {
+			sug = fmt.Sprintf("did you mean `make -C %s %s`?", dir, s)
+		}
+		x.report(fmt.Sprintf("`%s` refers to target `%s`, which is not defined in the Makefile of `%s`", x.text, t, dir), sug)
 	}
 }
 

@@ -40,6 +40,10 @@ type checker struct {
 	out  []model.Finding
 	// textCache caches file reads for manifest lookups.
 	textCache map[string]string
+	// cargoText caches the concatenated Cargo manifests (see cargoManifestText).
+	cargoText *string
+	// cwd is the directory set by a preceding `cd` in the current fence ("?" = unknown).
+	cwd string
 }
 
 // Check lints the instruction files of the repository at root against repo.
