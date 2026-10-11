@@ -130,7 +130,7 @@ Three workflows:
 | Command | Purpose |
 |---|---|
 | `agentbrief [brief] [PATH] [--json] [--all]` | Print the facts block (default command). With `PATH`, scope to the project that owns it: its own commands first, then root commands that still apply. `--json` emits schema `agentbrief/brief/v1`; `--all` with `--json` prints the full repository model. |
-| `agentbrief sync [--dry-run] [--no-imports]` | Write or refresh the managed block in `AGENTS.md`. Idempotent: unchanged files are not rewritten. Text outside the markers is never touched. `--no-imports` leaves `CLAUDE.md` / `GEMINI.md` alone. |
+| `agentbrief sync [--dry-run] [--no-imports]` | Write or refresh the managed block in `AGENTS.md`. Idempotent: unchanged files are not rewritten. In `AGENTS.md` only the text between the markers changes; the one other edit is a single `@AGENTS.md` line added at the top of an existing root `CLAUDE.md` / `GEMINI.md`, which `--no-imports` skips. |
 | `agentbrief check [--json] [--strict]` | Verify the block is current and lint instruction files. `--json` emits schema `agentbrief/check/v1`. `--strict` makes warnings fail. |
 | `agentbrief version` | Print the version. |
 | `-C DIR` (all commands) | Repository root. Default: the nearest ancestor containing `.git`, otherwise the current directory. |
@@ -299,7 +299,7 @@ Repository contents are treated as untrusted.
 - Files matching a sensitive-file list (`.env*`, private keys, certificates, credentials) are never read.
 - Symlinks are not followed. Reads are capped at 1 MiB.
 - Every repository-derived string that reaches output is length-capped and passed through secret redaction. Command lines are capped at 160 characters.
-- No free-form prose (README text, task descriptions) is copied into the generated block; only identifiers, paths, versions and command lines, which are validated before use. This limits prompt-injection and secret-leak surface.
+- No free-form prose (README text, task descriptions) is copied into the generated block; only identifiers, paths, versions and command lines. These are validated when the facts are built, so a value that fails (a version like `20 ; curl …`, a package named like an instruction) is dropped from every output, JSON included. This limits prompt-injection and secret-leak surface.
 - `sync` writes only `AGENTS.md`, `CLAUDE.md` and `GEMINI.md` at the root, and changes only the text between its markers plus the single import line.
 
 See [SECURITY.md](SECURITY.md) to report a vulnerability.

