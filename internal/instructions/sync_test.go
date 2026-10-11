@@ -3,6 +3,7 @@ package instructions
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -155,7 +156,7 @@ func TestSyncSymlinkAndMode(t *testing.T) {
 		t.Fatal(err)
 	}
 	fi, _ := os.Stat(filepath.Join(root, "AGENTS.md"))
-	if fi.Mode().Perm() != 0o600 {
+	if runtime.GOOS != "windows" && fi.Mode().Perm() != 0o600 { // Windows has no Unix permission bits
 		t.Errorf("mode %v", fi.Mode())
 	}
 	for _, f := range res.Files {
