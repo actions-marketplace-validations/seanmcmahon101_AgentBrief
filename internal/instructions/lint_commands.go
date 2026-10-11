@@ -202,8 +202,6 @@ var composerBuiltins = set(`about archive audit browse bump check-platform-reqs 
 // Well-known binaries that `pnpm X` / `yarn X` / `bun X` fall back to.
 var knownBins = set(`vitest jest tsc eslint prettier playwright tsx ts-node turbo nx next vite webpack rollup esbuild biome oxlint prisma drizzle-kit tailwindcss storybook cypress mocha ava nodemon rimraf concurrently husky lint-staged changeset changesets wrangler expo astro nuxt nuxi tsup unbuild vue-tsc stylelint knip depcheck madge typedoc jiti swc babel parcel gulp grunt eslint_d tsdx ng nest remix svelte-kit sv wxt zx cross-env dotenv sst cdk serverless netlify vercel firebase supabase tauri electron electron-builder electron-forge lerna rush bit pm2 ts-prune ts-unused-exports commitlint standard-version semantic-release release-it np`)
 
-var placeholderOK = regexp.MustCompile(`^[a-z][a-z0-9]*$`)
-
 // ---- main entry ------------------------------------------------------------
 
 type cmdCtx struct {

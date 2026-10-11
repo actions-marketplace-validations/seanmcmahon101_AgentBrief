@@ -25,5 +25,8 @@ jobs:
       - name: gofmt
         if: runner.os != 'Windows'
         run: test -z "$(gofmt -l .)"
+      - name: staticcheck
+        if: runner.os == 'Linux'
+        run: go run honnef.co/go/tools/cmd/staticcheck@2025.1.1 ./...
       - name: AgentBrief checks its own AGENTS.md
         run: go run ./cmd/agentbrief check

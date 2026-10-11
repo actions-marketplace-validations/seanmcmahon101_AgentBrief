@@ -31,9 +31,8 @@ func ciIsRelease(run string) bool {
 }
 
 type ciCollector struct {
-	f       *Facts
-	seenTC  map[string]bool
-	skipped int
+	f      *Facts
+	seenTC map[string]bool
 }
 
 func detectCI(r *scan.Repo, f *Facts) {

@@ -407,8 +407,6 @@ func (x cmdCtx) composeCommand(toks []string) {
 	}
 }
 
-var composeNames = []string{"compose.yaml", "compose.yml", "docker-compose.yaml", "docker-compose.yml"}
-
 // composeServices unions the service names of the compose files in the
 // candidate directories. ok=false when nothing can be judged.
 func (x cmdCtx) composeServices() (map[string]bool, bool) {

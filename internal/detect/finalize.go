@@ -185,15 +185,6 @@ func ciRelevance(c ciCandidate) int {
 	return 1
 }
 
-func hasEvidence(c *model.Command, ev string) bool {
-	for _, e := range c.Evidence {
-		if e == ev {
-			return true
-		}
-	}
-	return false
-}
-
 // hasTokenPrefix reports whether prefix is a token-wise prefix of tokens, so
 // "cargo test" matches "cargo test --workspace" but "make test" does not
 // match "make test-integration".

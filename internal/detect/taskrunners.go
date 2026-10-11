@@ -161,7 +161,6 @@ type mkTarget struct {
 }
 
 var (
-	mkAssignRe  = regexp.MustCompile(`^[\w.\-${}()@/ ]*?[:+?!]*=`)
 	mkDefineRe  = regexp.MustCompile(`^(?:(?:export|override|private)\s+)*define\s`)
 	mkCondRe    = regexp.MustCompile(`^(?:ifeq|ifneq|ifdef|ifndef|else|endif)\b`)
 	mkIncludeRe = regexp.MustCompile(`^(?:-include|sinclude|include)\s+(.*)$`)
@@ -652,18 +651,19 @@ func taskfileEntry(v *yaml.Node) (body, desc string, internal bool) {
 
 // firstCmd returns the first plain-string command of a cmds sequence.
 func firstCmd(seq *yaml.Node) string {
-	for _, c := range seq.Content {
-		if c.Kind == yaml.ScalarNode {
-			return truncate(strings.Join(strings.Fields(c.Value), " "), 120)
-		}
-		if c.Kind == yaml.MappingNode {
-			if n := yamlKey(c, "cmd"); n != nil {
-				return truncate(strings.Join(strings.Fields(n.Value), " "), 120)
-			}
-		}
-		return "" // first command is a task call or other non-string
+	if len(seq.Content) == 0 {
+		return ""
 	}
-	return ""
+	c := seq.Content[0]
+	if c.Kind == yaml.ScalarNode {
+		return truncate(strings.Join(strings.Fields(c.Value), " "), 120)
+	}
+	if c.Kind == yaml.MappingNode {
+		if n := yamlKey(c, "cmd"); n != nil {
+			return truncate(strings.Join(strings.Fields(n.Value), " "), 120)
+		}
+	}
+	return "" // the first command is a task call or another non-string form
 }
 
 func yamlKey(m *yaml.Node, key string) *yaml.Node {
