@@ -1,9 +1,12 @@
 package scan
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
+	"syscall"
 	"testing"
 )
 
@@ -33,9 +36,6 @@ func TestOpenHonoursGitignore(t *testing.T) {
 	write(t, root, "pkg/gen/x.go", "")
 	write(t, root, "pkg/main.go", "")
 	write(t, root, "pkg/other/gen/y.go", "")
-	if err := os.Symlink(filepath.Join(root, "main.go"), filepath.Join(root, "link.go")); err != nil {
-		t.Fatal(err)
-	}
 	r, err := Open(root, Options{})
 	if err != nil {
 		t.Fatal(err)
@@ -89,5 +89,28 @@ func TestSize(t *testing.T) {
 	}
 	if FromMap(map[string]string{"x": "abc"}).Size("x") != 3 {
 		t.Error("mem size")
+	}
+}
+
+func TestOpenDoesNotFollowSymlinks(t *testing.T) {
+	root := t.TempDir()
+	outside := t.TempDir()
+	write(t, root, "main.go", "")
+	write(t, outside, "external.go", "must not read")
+	if err := os.Symlink(filepath.Join(outside, "external.go"), filepath.Join(root, "link.go")); err != nil {
+		if runtime.GOOS == "windows" && errors.Is(err, syscall.Errno(1314)) {
+			t.Skip("Windows account lacks symlink creation privilege")
+		}
+		t.Fatal(err)
+	}
+	r, err := Open(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(r.Files(), []string{"main.go"}) {
+		t.Fatalf("followed symlink: %v", r.Files())
+	}
+	if _, err := r.Read("link.go"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("symlink read: %v", err)
 	}
 }
