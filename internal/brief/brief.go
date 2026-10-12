@@ -29,7 +29,7 @@ type Brief struct {
 	Schema string `json:"schema"`
 	// Scope is "." for the whole repo or the directory the brief is scoped to.
 	Scope string `json:"scope"`
-	// Project is the project that owns Scope (nil for the repo root scope).
+	// Project is the selected project (nil for root or manifestless scopes).
 	Project *ProjectRef `json:"project,omitempty"`
 
 	Toolchain       []Tool    `json:"toolchain"`
@@ -77,8 +77,12 @@ type Command struct {
 	Dir      string   `json:"dir"`
 	Label    string   `json:"source"` // short provenance label, e.g. "package.json, CI"
 	Evidence []string `json:"evidence"`
-	// Verified is true when the command is declared in the repo or run in CI.
+	// Verified records a discovered manifest/task declaration or CI evidence.
+	// A workflow preference alone does not establish this evidence.
 	Verified bool `json:"verified"`
+	// Preferred records maintainer intent, not successful execution.
+	Preferred bool          `json:"preferred,omitempty"`
+	Source    *model.Source `json:"declaration,omitempty"`
 	// Adapted is true when Run was rewritten for the scoped project (e.g. cargo -p).
 	Adapted bool `json:"adapted,omitempty"`
 	// Alternate is a second declared command of another runner for the same kind.
@@ -191,6 +195,7 @@ func Build(repo *model.Repo, scope string) Brief {
 	b.DoNotEdit = buildDoNotEdit(repo, pdir)
 	b.InstructionFiles = buildInstructionList(repo, pdir)
 	b.Notes = buildNotes(repo)
+	b.applyWorkflows(repo, scope, pdir)
 	return b
 }
 

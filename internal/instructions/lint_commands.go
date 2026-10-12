@@ -310,12 +310,15 @@ func (x cmdCtx) jsCommand(tool string, args []string) {
 		case strings.Contains(a, "="):
 			if k, v, _ := strings.Cut(a, "="); k == "--filter" || k == "--workspace" {
 				filter = v
+			} else if valueFlags[k] {
+				x.cwd = nextCwd(x.cwd, []string{"cd", v})
 			}
 			args = args[1:]
 		case filterFlags[a] && len(args) > 1:
 			filter = args[1]
 			args = args[2:]
 		case valueFlags[a] && len(args) > 1:
+			x.cwd = nextCwd(x.cwd, []string{"cd", args[1]})
 			args = args[2:]
 		default:
 			args = args[1:]
@@ -345,12 +348,18 @@ func (x cmdCtx) jsCommand(tool string, args []string) {
 			if (filterFlags[a] || valueFlags[a]) && !strings.Contains(a, "=") && len(rest) > 1 {
 				if filterFlags[a] {
 					filter = rest[1]
+				} else {
+					x.cwd = nextCwd(x.cwd, []string{"cd", rest[1]})
 				}
 				rest = rest[2:]
 				continue
 			}
-			if k, v, ok := strings.Cut(a, "="); ok && (k == "--filter" || k == "--workspace") {
-				filter = v
+			if k, v, ok := strings.Cut(a, "="); ok {
+				if k == "--filter" || k == "--workspace" {
+					filter = v
+				} else if valueFlags[k] {
+					x.cwd = nextCwd(x.cwd, []string{"cd", v})
+				}
 			}
 			rest = rest[1:]
 		}
@@ -408,6 +417,19 @@ func (x cmdCtx) checkScript(tool, prefix, name, filter string, strict bool) {
 	}
 	// resolve a package filter
 	dir := ""
+	if c.workflowCommand && filter == "" {
+		bases := x.pathBases()
+		if len(bases) != 1 {
+			return
+		}
+		dir = bases[0]
+		for !c.exists(path.Join(dir, "package.json")) {
+			if dir == "." {
+				return
+			}
+			dir = path.Dir(dir)
+		}
+	}
 	if f := strings.TrimPrefix(filter, "./"); f != "" && !strings.ContainsAny(f, "*{}![]") && !strings.Contains(f, "...") {
 		for _, p := range c.repo.Projects {
 			if p.Name == f || p.Dir == f {
@@ -525,6 +547,10 @@ func (x cmdCtx) makeCommand(args []string) {
 		}
 		dir = resolved
 		x.makeIn(dir, targets)
+		return
+	}
+	if x.c.workflowCommand {
+		x.makeIn(".", targets)
 		return
 	}
 	for _, t := range targets {

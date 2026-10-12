@@ -17,8 +17,11 @@ type Source struct {
 	Line int    `json:"line,omitempty"`
 }
 
-// Evidence levels, strongest first.
+// Evidence labels. Maintainer intent is separate from discovered evidence,
+// whose strength descends from CI to declared to convention.
 const (
+	// EvidenceMaintainer: explicitly selected in .agentbrief.yaml; not executed.
+	EvidenceMaintainer = "maintainer"
 	// EvidenceCI: the command (or one equivalent to it) is run by a CI workflow.
 	EvidenceCI = "ci"
 	// EvidenceDeclared: the command is defined in a manifest or task file.
@@ -61,6 +64,9 @@ type Repo struct {
 	CI              []CIStep          `json:"ci"`
 	Instructions    []InstructionFile `json:"instruction_files"`
 	Notes           []Note            `json:"notes"`
+	// Workflow scope is applicability, separate from command working directory.
+	Workflows      []Workflow `json:"workflows,omitempty"`
+	ConfigFindings []Finding  `json:"config_findings,omitempty"`
 
 	// Stats about the scan itself; useful for debugging and benchmarks.
 	Stats ScanStats `json:"stats"`
@@ -108,6 +114,13 @@ type Command struct {
 	Evidence []string `json:"evidence"`       // Evidence* constants, strongest first
 	Source   Source   `json:"source"`         // where it was declared
 	Note     string   `json:"note,omitempty"` // short qualifier, e.g. "append a file path"
+}
+
+// Workflow selects commands for a subtree, even without a package manifest.
+type Workflow struct {
+	Scope    string    `json:"scope"`
+	Commands []Command `json:"commands"`
+	Source   Source    `json:"source"`
 }
 
 // Task is a raw entry from a task inventory: a package.json script, Makefile

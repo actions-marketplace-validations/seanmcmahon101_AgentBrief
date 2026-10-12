@@ -45,6 +45,7 @@ Usage:
 Global flag:
   -C DIR    repository root (default: nearest parent containing .git, else cwd)
 
+Optional .agentbrief.yaml selects scoped workflows; see docs/workflows.md.
 AgentBrief reads manifests, lockfiles, task runners and CI files (never running
 anything), and writes only commands and versions it can source. 'check' exits
 1 on errors (or warnings with --strict), 2 on usage errors.
@@ -86,8 +87,8 @@ const usageCheck = `Usage: agentbrief check [-C DIR] [--json] [--strict]
 Verify the AgentBrief block is current and lint every agent-instruction file
 (AGENTS.md, CLAUDE.md, Cursor/Copilot/Windsurf/... rules).
 
-Rules: stale-block, unknown-script, missing-path, wrong-package-manager,
-agents-md-not-loaded, oversized.
+Rules: invalid-config, stale-block, unknown-script, missing-path, wrong-package-manager,
+agents-md-not-loaded, stale-version, oversized.
 
   --json     machine-readable findings (schema agentbrief/check/v1)
   --strict   treat warnings as failures
@@ -317,6 +318,9 @@ func runBrief(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
+	if err := workflowError(root, repo); err != nil {
+		return fail(stderr, err)
+	}
 	if *all {
 		if err := writeJSON(stdout, repo); err != nil {
 			return fail(stderr, err)
@@ -355,6 +359,9 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
+	if err := workflowError(root, repo); err != nil {
+		return fail(stderr, err)
+	}
 	res, err := instructions.Sync(root, repo, instructions.SyncOptions{DryRun: *dry, NoImports: *noImports})
 	if err != nil {
 		return fail(stderr, err)
@@ -382,12 +389,13 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 }
 
 type checkOutput struct {
-	Schema       string          `json:"schema"`
-	Findings     []model.Finding `json:"findings"`
-	ManagedBlock bool            `json:"managed_block"`
-	FilesChecked int             `json:"files_checked"`
-	Errors       int             `json:"errors"`
-	Warnings     int             `json:"warnings"`
+	Schema           string          `json:"schema"`
+	Findings         []model.Finding `json:"findings"`
+	ManagedBlock     bool            `json:"managed_block"`
+	FilesChecked     int             `json:"files_checked"`
+	WorkflowsChecked int             `json:"workflows_checked,omitempty"`
+	Errors           int             `json:"errors"`
+	Warnings         int             `json:"warnings"`
 }
 
 func runCheck(args []string, stdout, stderr io.Writer) int {
@@ -413,7 +421,7 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 	if findings == nil {
 		findings = []model.Finding{}
 	}
-	out := checkOutput{Schema: CheckSchema, Findings: findings, FilesChecked: len(repo.Instructions)}
+	out := checkOutput{Schema: CheckSchema, Findings: findings, FilesChecked: len(repo.Instructions), WorkflowsChecked: len(repo.Workflows)}
 	if b, err := os.ReadFile(filepath.Join(root, "AGENTS.md")); err == nil {
 		_, ferr := instructions.FindBlock(string(b))
 		out.ManagedBlock = ferr == nil
@@ -442,7 +450,11 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 		}
 		switch {
 		case len(findings) == 0:
-			fmt.Fprintf(stdout, "ok: %s checked, no problems found\n", plural(len(repo.Instructions), "instruction file"))
+			if len(repo.Workflows) > 0 {
+				fmt.Fprintf(stdout, "ok: %s and %s checked, no problems found\n", plural(len(repo.Instructions), "instruction file"), plural(len(repo.Workflows), "workflow"))
+			} else {
+				fmt.Fprintf(stdout, "ok: %s checked, no problems found\n", plural(len(repo.Instructions), "instruction file"))
+			}
 		default:
 			fmt.Fprintf(stdout, "%s, %s\n", plural(out.Errors, "error"), plural(out.Warnings, "warning"))
 		}
@@ -474,4 +486,13 @@ func isBareWord(s string) bool {
 		}
 	}
 	return true
+}
+
+func workflowError(root string, repo *model.Repo) error {
+	for _, f := range instructions.CheckWorkflows(root, repo) {
+		if f.Severity == model.SeverityError {
+			return errors.New("invalid .agentbrief.yaml workflows; run `agentbrief check` for diagnostics")
+		}
+	}
+	return nil
 }

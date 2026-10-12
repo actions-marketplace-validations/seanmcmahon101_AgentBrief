@@ -7,8 +7,10 @@ Instruction files for coding agents are usually right on the day they are writte
 - **`agentbrief check`** fails CI when an instruction file tells agents to run a script, target, crate, task or service that no longer exists, points at a missing path, names the wrong package manager or a runtime version that disagrees with the repo's pin, or isn't loaded by Claude Code at all. It works on any instruction file, however it was written.
 - **`agentbrief sync`** writes a small managed block of verified facts into `AGENTS.md` (package manager and toolchain, the exact install / build / test / single-test / lint commands, files not to edit), each with its source. `check` fails when the block is out of date, so this part of your instructions cannot rot.
 - **`agentbrief brief <path> --json`** gives an agent the same facts on demand, scoped to the package it is about to change.
+- **Optional [maintainer-selected workflows](docs/workflows.md)** preserve your actual build/test wrappers and working directories, including subtrees without manifests. Declare them once in `.agentbrief.yaml`; briefs use them and `check` catches stale references.
 
 - [Catching drift](#catching-drift)
+- [Maintainer-selected workflows](#maintainer-selected-workflows)
 - [The facts block](#the-facts-block)
 - [Should I use this, or just ask an agent to write AGENTS.md?](#should-i-use-this-or-just-ask-an-agent-to-write-agentsmd)
 - [Install](#install) / [Usage](#usage) / [For coding agents](#for-coding-agents) / [CI and pre-commit](#ci-and-pre-commit)
@@ -40,6 +42,27 @@ AGENTS.md:5: error: the AgentBrief block no longer matches the repository [stale
   run `agentbrief sync` and commit the result
 1 error, 0 warnings
 ```
+
+## Maintainer-selected workflows
+
+If your preferred command is `npm run test:focused -- <file>` rather than raw
+Vitest, declare that choice in an optional root `.agentbrief.yaml`:
+
+```yaml
+version: 1
+workflows:
+  - scope: .
+    commands:
+      - kind: test-single
+        run: npm run test:focused -- <file>
+```
+
+Scopes can also select subsystem or website commands independently of package
+boundaries. Every command retains its own working directory. Selected commands
+are labelled `maintainer` and execution remains unverified. `check` validates
+these declarations even without a managed block; `brief` and `sync` refuse known
+invalid declarations. See [workflow configuration](docs/workflows.md) for
+precedence, generated paths, JSON evidence, and static-analysis limits.
 
 ## The facts block
 Running `agentbrief` in a checkout of [Vite](https://github.com/vitejs/vite) (shallow clone, 2026-10-11, output verbatim):
@@ -146,7 +169,7 @@ If you are an agent working in a repository that uses AgentBrief:
 
 - Read `AGENTS.md` first. The block between the `agentbrief` markers lists the package manager, the commands to use and the files not to edit by hand.
 - In a monorepo, run `agentbrief brief <dir> --json` for the package you are about to change, before running its build or tests. Commands whose `dir` is `.` run from the repo root; others run from the given directory.
-- Prefer commands with `"verified": true`. Commands labelled `convention` are the usual commands for the tool and have not been confirmed against the repository.
+- Use maintainer-selected commands (`"preferred": true`) when supplied. Otherwise, prefer commands with `"verified": true`, which confirms repository evidence rather than successful execution. Commands labelled `convention` are the usual commands for the tool and have not been confirmed against the repository.
 - If `check` reports an unknown script, trust the repository's manifest over the instruction file.
 
 Excerpt of `agentbrief brief packages/vite --json` in Vite (trimmed with `…`):
@@ -251,6 +274,7 @@ Instruction files that `check` lints include `AGENTS.md`, `CLAUDE.md`, `GEMINI.m
 
 | Rule | Severity | Meaning |
 |---|---|---|
+| `invalid-config` | error | `.agentbrief.yaml` has malformed or unsupported workflow declarations. |
 | `stale-block` | error | The managed block differs from what `sync` would write now. |
 | `unknown-script` | error | An instruction file tells agents to run a script, target or task that does not exist: `npm run X` / `pnpm X` / `yarn X` / `bun run X`, `make X` (including `make -C dir X`), `just X`, `task X`, `mise run X`, `composer X`, `poe X`, `tox -e X`, `nox -s X`, `cargo … -p X` (workspace crates), `docker compose up X` (services). Warning instead of error when the inventory may be incomplete. |
 | `missing-path` | error for Markdown links and paths inside commands; warning for code spans and prose | A referenced repository path does not exist: Markdown links, code spans that look like paths, and path arguments of commands such as `pytest tests/x.py`, `python scripts/x.py`, `bash scripts/x.sh`, `go test ./pkg/...`. |
@@ -269,6 +293,7 @@ The parentheses after each command say where it came from:
 |---|---|
 | `package.json`, `Makefile`, `pom.xml` … (a file name) | **Declared**: the command is defined in that file (a script, target, recipe or plugin configuration). |
 | `CI` | A CI workflow runs this command. Shown together with the file when both apply, for example `(package.json, CI)`. |
+| `.agentbrief.yaml, maintainer-selected; execution unverified` | **Maintainer choice**: explicit scoped preference; not executed. JSON includes `preferred: true` and declaration file/line. |
 | `… convention, unverified` | **Convention**: the standard command for that tool (for example `cargo test`), inferred from the tool being present. Not confirmed anywhere in the repository. |
 
 When several candidates exist for one kind of command, the best is shown in this order: declared and run in CI; declared; run in CI; convention. At equal evidence, the repository's own task runner wins over the raw tool. Convention-only commands are shown only when nothing better exists.

@@ -44,13 +44,14 @@ type checker struct {
 	cargoText *string
 	// cwd is the directory set by a preceding `cd` in the current fence ("?" = unknown).
 	cwd string
+	// workflowCommand has an explicit working directory, unlike prose.
+	workflowCommand bool
 }
 
 // Check lints the instruction files of the repository at root against repo.
 func Check(root string, repo *model.Repo, opts CheckOptions) []model.Finding {
-	c := &checker{root: root, repo: repo, seen: map[string]bool{}, textCache: map[string]string{}}
-	c.tix = newTaskIndex(repo)
-	c.idx = &pathIndex{root: root}
+	c := newChecker(root, repo)
+	c.checkWorkflows()
 
 	files := append([]model.InstructionFile(nil), repo.Instructions...)
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
@@ -237,4 +238,38 @@ func (c *checker) importsReach(from, text, target string, texts map[string]strin
 		}
 	}
 	return false
+}
+
+// CheckWorkflows validates explicit policy using the same lints as check.
+// Brief and sync use this to refuse commands already known to be invalid.
+func CheckWorkflows(root string, repo *model.Repo) []model.Finding {
+	c := newChecker(root, repo)
+	c.checkWorkflows()
+	return c.out
+}
+
+func newChecker(root string, repo *model.Repo) *checker {
+	c := &checker{root: root, repo: repo, seen: map[string]bool{}, textCache: map[string]string{}}
+	c.tix = newTaskIndex(repo)
+	c.idx = &pathIndex{root: root}
+	return c
+}
+
+func (c *checker) checkWorkflows() {
+	for _, finding := range c.repo.ConfigFindings {
+		c.add(finding)
+	}
+	for _, workflow := range c.repo.Workflows {
+		for _, command := range workflow.Commands {
+			file := model.InstructionFile{Path: command.Source.Path, Scope: "."}
+			c.workflowCommand = true
+			c.cwd = command.Dir
+			c.lintCommandText(file, command.Source.Line, command.Run)
+			c.cwd = ""
+			c.workflowCommand = false
+			file.Scope = command.Dir
+			wp := &wrongPM{c: c, f: file, reported: map[string]bool{}}
+			wp.scan(mdItem{line: command.Source.Line, kind: itemSpan, text: command.Run, full: command.Run})
+		}
+	}
 }

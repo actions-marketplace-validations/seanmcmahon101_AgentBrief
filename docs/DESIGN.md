@@ -66,6 +66,30 @@ Non-goals:
 - Nested per-package `AGENTS.md` generation. It may come later; in v1 the
   per-package detail is served on demand by `brief <path>`.
 
+## Maintainer workflow policy
+
+The optional root `.agentbrief.yaml` supplies explicit, scoped operational
+choices when detection cannot establish maintainer intent. See
+[workflows.md](workflows.md) for the version-1 format.
+
+Workflow scope is applicability; each command has an independent working
+directory. Most-specific matching choices win per command kind. Ancestor policy
+preserves a nested package's own detected commands unless explicitly overridden
+at that package or deeper. Directories without manifests can have workflows.
+
+The workflow detector parses and validates policy once through `scan.Repo`,
+retaining declaration lines and rejecting ambiguous/partial configurations.
+`model.Repo.Workflows` stays separate from discovered commands. Brief curation
+applies preferences; instruction checking validates them with existing lints.
+Brief and sync refuse known-invalid declarations. Nothing executes repository
+commands. No configuration means unchanged discovery and output.
+
+Selected commands use `maintainer` evidence, `preferred: true`, and an exact
+`declaration`. They retain `verified: false`; preference establishes neither CI
+coverage nor successful execution. Generated patterns extend existing sourced
+path rules. Invalid configuration produces `invalid-config`, never a partially
+applied policy or a parser diagnostic containing untrusted input values.
+
 ## Commands
 
 ```
@@ -120,7 +144,9 @@ The rules:
   to `agentbrief brief`.
 - **Provenance.** The source is shown in parentheses. `CI` means a CI workflow runs
   the command.
-- **One command per kind** in the block: the best one. The order of preference is:
+- **One command per kind** in the block: the best one. An explicit maintainer
+  workflow selects the command for its scope. Otherwise, the order of preference
+  is:
   1. declared and run in CI
   2. declared
   3. run in CI
@@ -141,6 +167,7 @@ The rules:
 
 | Rule | Severity | What it means |
 |---|---|---|
+| `invalid-config` | error | The optional workflow configuration is malformed or unsupported. |
 | `stale-block` | error | The managed block differs from what `sync` would write now. |
 | `unknown-script` | error | An instruction file tells agents to run a script, target or task that does not exist: `npm run X` / `pnpm X` / `yarn X` / `bun run X`, `make X` (including `make -C dir X`), `just X`, `task X`, `mise run X`, `composer X`, `poe X`, `tox -e X`, `nox -s X`, `cargo … -p X` (workspace crates), `docker compose up X` (services). Warning instead of error when the inventory may be incomplete. |
 | `missing-path` | error for Markdown links and paths inside commands; warning for code spans and prose | A referenced repository path does not exist: Markdown links, code spans that look like paths, and path arguments of commands such as `pytest tests/x.py`, `python scripts/x.py`, `bash scripts/x.sh`, `go test ./pkg/...`. |

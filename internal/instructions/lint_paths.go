@@ -99,7 +99,7 @@ func (c *checker) baseDirs(f model.InstructionFile, forLink bool) []string {
 	if f.Scope != "" && f.Scope != fd {
 		dirs = append(dirs, f.Scope)
 	}
-	if !forLink {
+	if !forLink && fd != "." && f.Scope != "." {
 		dirs = append(dirs, ".")
 	}
 	return dirs

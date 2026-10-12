@@ -179,6 +179,8 @@ func (b Brief) body(maxNotes int) string {
 			s += " (" + codeSpan(b.Project.Name) + ")"
 		}
 		line("%s", s)
+	} else if b.Scope != "." && validPath(b.Scope) {
+		line("- Scope: %s", codeSpan(b.Scope))
 	}
 	if len(parts) > 0 {
 		s := "- Toolchain: " + strings.Join(parts, ", ") + "."
