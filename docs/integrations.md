@@ -36,6 +36,10 @@ Gemini CLI reads `GEMINI.md` by default. Either set `context.fileName` in its se
   #   working-directory: path/to/repo
 ```
 
+The optional `version` input accepts a release tag, `main`, `latest`, or a full
+commit SHA. Use a commit pin for exact revision testing. Unsupported refs fail;
+`main` bypasses mutable Go module-proxy caching.
+
 Without the action:
 
 ```yaml

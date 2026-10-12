@@ -9,7 +9,7 @@ inputs:
     description: Arguments passed to agentbrief (default runs the drift check).
     default: check
   version:
-    description: AgentBrief version to install, e.g. v0.1.0. Defaults to the ref the action is used at.
+    description: Release tag, main, latest, or full commit SHA to install. Defaults to the action ref.
     default: ""
   working-directory:
     description: Repository root to check.
@@ -27,8 +27,14 @@ runs:
         VERSION: ${{ inputs.version }}
         ACTION_REF: ${{ github.action_ref }}
       run: |
-        v="${VERSION:-$ACTION_REF}"
-        case "$v" in v[0-9]*|main) ;; *) v=latest ;; esac
+        v="${VERSION:-${ACTION_REF:-latest}}"
+        if [[ ! "$v" =~ ^(v[0-9][0-9A-Za-z.+-]*|main|latest|[0-9a-fA-F]{40})$ ]]; then
+          echo "Unsupported AgentBrief version: use a release tag, main, latest, or full commit SHA." >&2
+          exit 1
+        fi
+        # Mutable branch lookups may lag in the module proxy. Immutable tags
+        # and commit SHAs retain normal checksum/proxy behavior.
+        if [[ "$v" == main ]]; then export GOPROXY=direct; fi
         go install "github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@$v"
     - name: Run agentbrief
       shell: bash

@@ -288,7 +288,7 @@ jobs:
       - uses: seanmcmahon101/AgentBrief@v0.1.0
 ```
 
-The action installs the matching AgentBrief version and runs `agentbrief check`. Pass `with: { args: "check --strict" }` to fail on warnings too (a `CLAUDE.md` that does not import `AGENTS.md`, a wrong package manager or runtime version in the instructions, an oversized file). Without `--strict`, warnings are printed and the step passes.
+The action installs the matching AgentBrief version and runs `agentbrief check`. The optional `version` input accepts a release tag, `main`, `latest`, or a full commit SHA. Commit pins test an exact revision; explicit `main` installs bypass mutable module-proxy caching. Unsupported refs fail rather than silently installing another version. Pass `with: { args: "check --strict" }` to fail on warnings too (a `CLAUDE.md` that does not import `AGENTS.md`, a wrong package manager or runtime version in the instructions, an oversized file). Without `--strict`, warnings are printed and the step passes.
 
 [pre-commit](https://pre-commit.com) (`.pre-commit-config.yaml`):
 
