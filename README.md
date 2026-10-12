@@ -285,7 +285,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: seanmcmahon101/AgentBrief@v0.1.0
+      - uses: seanmcmahon101/AgentBrief@v0.2.0
 ```
 
 The action installs the matching AgentBrief version and runs `agentbrief check`. The optional `version` input accepts a release tag, `main`, `latest`, or a full commit SHA. Commit pins test an exact revision; explicit `main` installs bypass mutable module-proxy caching. Unsupported refs fail rather than silently installing another version. Pass `with: { args: "check --strict" }` to fail on warnings too (a `CLAUDE.md` that does not import `AGENTS.md`, a wrong package manager or runtime version in the instructions, an oversized file). Without `--strict`, warnings are printed and the step passes.
@@ -295,7 +295,7 @@ The action installs the matching AgentBrief version and runs `agentbrief check`.
 ```yaml
 repos:
   - repo: https://github.com/seanmcmahon101/AgentBrief
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: agentbrief-check
       # - id: agentbrief-sync   # optional: refresh the AGENTS.md block on every commit

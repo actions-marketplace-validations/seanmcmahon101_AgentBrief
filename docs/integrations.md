@@ -30,7 +30,7 @@ Gemini CLI reads `GEMINI.md` by default. Either set `context.fileName` in its se
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: seanmcmahon101/AgentBrief@v0.1.0
+- uses: seanmcmahon101/AgentBrief@v0.2.0
   # with:
   #   args: check --strict        # fail on warnings too
   #   working-directory: path/to/repo
@@ -46,7 +46,7 @@ Without the action:
 - uses: actions/setup-go@v5
   with:
     go-version: stable
-- run: go install github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@v0.1.0
+- run: go install github.com/seanmcmahon101/AgentBrief/cmd/agentbrief@v0.2.0
 - run: agentbrief check
 ```
 
@@ -57,7 +57,7 @@ Use `agentbrief check --json` if you want to post findings elsewhere; the schema
 ```yaml
 repos:
   - repo: https://github.com/seanmcmahon101/AgentBrief
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: agentbrief-check
       - id: agentbrief-sync   # optional
