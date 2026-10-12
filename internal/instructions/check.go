@@ -44,14 +44,14 @@ type checker struct {
 	cargoText *string
 	// cwd is the directory set by a preceding `cd` in the current fence ("?" = unknown).
 	cwd string
-	// workflowCommand has an explicit working directory, unlike prose.
-	workflowCommand bool
+	// policyCommand has an explicit working directory, unlike prose.
+	policyCommand bool
 }
 
 // Check lints the instruction files of the repository at root against repo.
 func Check(root string, repo *model.Repo, opts CheckOptions) []model.Finding {
 	c := newChecker(root, repo)
-	c.checkWorkflows()
+	c.checkPolicy()
 
 	files := append([]model.InstructionFile(nil), repo.Instructions...)
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
@@ -240,11 +240,11 @@ func (c *checker) importsReach(from, text, target string, texts map[string]strin
 	return false
 }
 
-// CheckWorkflows validates explicit policy using the same lints as check.
-// Brief and sync use this to refuse commands already known to be invalid.
-func CheckWorkflows(root string, repo *model.Repo) []model.Finding {
+// CheckPolicy validates explicit policy using the same lints as check.
+// Brief, sync and plan use this to refuse commands already known to be invalid.
+func CheckPolicy(root string, repo *model.Repo) []model.Finding {
 	c := newChecker(root, repo)
-	c.checkWorkflows()
+	c.checkPolicy()
 	return c.out
 }
 
@@ -255,21 +255,29 @@ func newChecker(root string, repo *model.Repo) *checker {
 	return c
 }
 
-func (c *checker) checkWorkflows() {
+func (c *checker) checkPolicy() {
 	for _, finding := range c.repo.ConfigFindings {
 		c.add(finding)
 	}
 	for _, workflow := range c.repo.Workflows {
 		for _, command := range workflow.Commands {
-			file := model.InstructionFile{Path: command.Source.Path, Scope: "."}
-			c.workflowCommand = true
-			c.cwd = command.Dir
-			c.lintCommandText(file, command.Source.Line, command.Run)
-			c.cwd = ""
-			c.workflowCommand = false
-			file.Scope = command.Dir
-			wp := &wrongPM{c: c, f: file, reported: map[string]bool{}}
-			wp.scan(mdItem{line: command.Source.Line, kind: itemSpan, text: command.Run, full: command.Run})
+			c.checkPolicyCommand(command)
 		}
 	}
+	for _, check := range c.repo.Checks {
+		c.checkPolicyCommand(check.Command)
+	}
+}
+
+// Preferences and validation checks share the same static command boundary.
+func (c *checker) checkPolicyCommand(command model.Command) {
+	file := model.InstructionFile{Path: command.Source.Path, Scope: "."}
+	c.policyCommand = true
+	c.cwd = command.Dir
+	c.lintCommandText(file, command.Source.Line, command.Run)
+	c.cwd = ""
+	c.policyCommand = false
+	file.Scope = command.Dir
+	wp := &wrongPM{c: c, f: file, reported: map[string]bool{}}
+	wp.scan(mdItem{line: command.Source.Line, kind: itemSpan, text: command.Run, full: command.Run})
 }

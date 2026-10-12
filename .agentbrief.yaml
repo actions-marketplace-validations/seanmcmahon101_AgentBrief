@@ -1,0 +1,14 @@
+version: 1
+checks:
+  - id: tests
+    kind: test
+    run: go test ./...
+    paths: [cmd/**, internal/**, go.mod, go.sum]
+  - id: vet
+    kind: lint
+    run: go vet ./...
+    paths: [cmd/**, internal/**, go.mod, go.sum]
+  - id: policy
+    kind: check
+    run: go run ./cmd/agentbrief check
+    paths: [AGENTS.md, .agentbrief.yaml, README.md, docs/**]

@@ -1,0 +1,25 @@
+version: 1
+checks:
+  - id: build
+    kind: build
+    run: pnpm run build
+  - id: integration-serve
+    kind: test
+    run: pnpm run test-serve
+    paths: [packages/vite/**, playground/**, vitest.config.e2e.ts]
+    requires: [build]
+  - id: integration-build
+    kind: test
+    run: pnpm run test-build
+    paths: [packages/vite/**, playground/**, vitest.config.e2e.ts]
+    requires: [build]
+  - id: unit
+    kind: test
+    run: pnpm run test-unit
+    paths: [packages/vite/**, vitest.config.ts]
+    requires: [build]
+  - id: docs
+    kind: check
+    run: pnpm run test-docs
+    paths: [docs/**]
+    requires: [build]

@@ -417,7 +417,7 @@ func (x cmdCtx) checkScript(tool, prefix, name, filter string, strict bool) {
 	}
 	// resolve a package filter
 	dir := ""
-	if c.workflowCommand && filter == "" {
+	if c.policyCommand && filter == "" {
 		bases := x.pathBases()
 		if len(bases) != 1 {
 			return
@@ -549,7 +549,7 @@ func (x cmdCtx) makeCommand(args []string) {
 		x.makeIn(dir, targets)
 		return
 	}
-	if x.c.workflowCommand {
+	if x.c.policyCommand {
 		x.makeIn(".", targets)
 		return
 	}

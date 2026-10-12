@@ -7,10 +7,12 @@ Instruction files for coding agents are usually right on the day they are writte
 - **`agentbrief check`** fails CI when an instruction file tells agents to run a script, target, crate, task or service that no longer exists, points at a missing path, names the wrong package manager or a runtime version that disagrees with the repo's pin, or isn't loaded by Claude Code at all. It works on any instruction file, however it was written.
 - **`agentbrief sync`** writes a small managed block of verified facts into `AGENTS.md` (package manager and toolchain, the exact install / build / test / single-test / lint commands, files not to edit), each with its source. `check` fails when the block is out of date, so this part of your instructions cannot rot.
 - **`agentbrief brief <path> --json`** gives an agent the same facts on demand, scoped to the package it is about to change.
+- **`agentbrief plan <changed-files> --json`** selects maintainer-declared validation checks and their prerequisites, explains each selection, and flags unmapped files. It never runs commands or claims test coverage. See [validation plans](docs/plans.md).
 - **Optional [maintainer-selected workflows](docs/workflows.md)** preserve your actual build/test wrappers and working directories, including subtrees without manifests. Declare them once in `.agentbrief.yaml`; briefs use them and `check` catches stale references.
 
 - [Catching drift](#catching-drift)
 - [Maintainer-selected workflows](#maintainer-selected-workflows)
+- [Validation plans](#validation-plans) / [Where this is useful](#where-this-is-useful)
 - [The facts block](#the-facts-block)
 - [Should I use this, or just ask an agent to write AGENTS.md?](#should-i-use-this-or-just-ask-an-agent-to-write-agentsmd)
 - [Install](#install) / [Usage](#usage) / [For coding agents](#for-coding-agents) / [CI and pre-commit](#ci-and-pre-commit)
@@ -63,6 +65,57 @@ are labelled `maintainer` and execution remains unverified. `check` validates
 these declarations even without a managed block; `brief` and `sync` refuse known
 invalid declarations. See [workflow configuration](docs/workflows.md) for
 precedence, generated paths, JSON evidence, and static-analysis limits.
+
+## Validation plans
+
+A frontier agent can understand a command without knowing whether maintainers
+require it for a particular change. Declare file-to-check mappings and
+prerequisites alongside workflow preferences:
+
+```yaml
+version: 1
+checks:
+  - id: build
+    kind: build
+    run: pnpm run build
+  - id: integration
+    kind: test
+    run: pnpm run test-serve
+    paths: [playground/**]
+    requires: [build]
+```
+
+```sh
+agentbrief plan playground/assets/__tests__/assets.spec.ts --json --strict
+```
+
+The plan puts `build` before `integration`, keeps exact commands and working
+directories, and cites both command and matching-pattern declarations.
+Overlapping checks accumulate; shared prerequisites appear once. Deleted paths
+are accepted; supply both names for renames. Unmapped files remain explicit
+unknowns. `--strict` fails incomplete declared mappings; it does not certify
+coverage. `check` catches stale configured command references even when no
+managed block exists.
+
+See [the full contract](docs/plans.md) for file-list/NUL input, exclusions,
+exit codes, and limitations.
+
+## Where this is useful
+
+We reproduced these operational cases on pinned public-repository snapshots:
+
+| Repository | Concrete workflow issue | What the example policy lets AB preserve |
+|---|---|---|
+| [Vite](https://github.com/vitejs/vite) | Integration tests require a build and have separate serve/build modes; docs have their own check. | Select both integration modes after one shared build, or select the docs workflow. |
+| [Ruff](https://github.com/astral-sh/ruff) | Lint-rule changes involve tests and generation; documentation has a separate preparation/build sequence. | Keep those sequences explicit and flag declared generated outputs. |
+| [FastAPI](https://github.com/fastapi/fastapi) | Its test wrapper sets an import path and includes additional script tests. | Preserve the actual wrapper for framework and documentation-example changes. |
+
+**These are tested example policies, not upstream adoption or endorsements.**
+[Sources, pinned revisions, policies and reproduction instructions](examples/case-studies/README.md)
+are included. Six static selection scenarios passed, and all three planted
+command-drift cases were detected and caused plan refusal. Repository commands
+were not executed. This demonstrates selection and drift checking; it does not
+measure frontier-agent speed, task success or actual test coverage.
 
 ## The facts block
 Running `agentbrief` in a checkout of [Vite](https://github.com/vitejs/vite) (shallow clone, 2026-10-11, output verbatim):
@@ -132,7 +185,7 @@ make build        # writes ./agentbrief
 
 ## Usage
 
-Three workflows:
+Four workflows:
 
 1. **First time.** Run `agentbrief sync` at the repository root and commit the result. It creates `AGENTS.md` (or updates only the managed block in an existing one) and adds `@AGENTS.md` to an existing root `CLAUDE.md` / `GEMINI.md`.
    ```console
@@ -144,6 +197,7 @@ Three workflows:
    Preview with `agentbrief sync --dry-run`.
 2. **In CI.** Run `agentbrief check`. It exits non-zero when the block is stale or an instruction file references scripts or paths that no longer exist.
 3. **For agents, on demand.** `agentbrief brief <path> --json` returns the facts for the package that owns `<path>`.
+4. **Before completing a change.** `agentbrief plan <changed-files> --json --strict` selects configured checks and their prerequisites. Review unmatched paths and execute appropriate checks yourself.
 
 ### Commands
 
@@ -152,6 +206,7 @@ Three workflows:
 | `agentbrief [brief] [PATH] [--json] [--all]` | Print the facts block (default command). With `PATH`, scope to the project that owns it: its own commands first, then root commands that still apply. `--json` emits schema `agentbrief/brief/v1`; `--all` with `--json` prints the full repository model. |
 | `agentbrief sync [--dry-run] [--no-imports]` | Write or refresh the managed block in `AGENTS.md`. Idempotent: unchanged files are not rewritten. In `AGENTS.md` only the text between the markers changes; the one other edit is a single `@AGENTS.md` line added at the top of an existing root `CLAUDE.md` / `GEMINI.md`, which `--no-imports` skips. |
 | `agentbrief check [--json] [--strict]` | Verify the block is current and lint instruction files. `--json` emits schema `agentbrief/check/v1`. `--strict` makes warnings fail. |
+| `agentbrief plan PATH... [--json] [--strict]` | Select declared checks for changed filenames, including prerequisites. `--files-from FILE` (or `-` for stdin) accepts lists; `--null` accepts NUL delimiters. JSON schema `agentbrief/plan/v1`. |
 | `agentbrief version` | Print the version. |
 | `-C DIR` (all commands) | Repository root. Default: the nearest ancestor containing `.git`, otherwise the current directory. |
 
@@ -160,7 +215,7 @@ Three workflows:
 | Code | Meaning |
 |---|---|
 | 0 | Success / `check` found no errors |
-| 1 | `check` found errors (or warnings with `--strict`) |
+| 1 | `check` found errors (or warnings with `--strict`), or `plan --strict` found incomplete declared mappings |
 | 2 | Usage or I/O error (for example `-C` pointing at a missing directory) |
 
 ## For coding agents
@@ -170,6 +225,7 @@ If you are an agent working in a repository that uses AgentBrief:
 - Read `AGENTS.md` first. The block between the `agentbrief` markers lists the package manager, the commands to use and the files not to edit by hand.
 - In a monorepo, run `agentbrief brief <dir> --json` for the package you are about to change, before running its build or tests. Commands whose `dir` is `.` run from the repo root; others run from the given directory.
 - Use maintainer-selected commands (`"preferred": true`) when supplied. Otherwise, prefer commands with `"verified": true`, which confirms repository evidence rather than successful execution. Commands labelled `convention` are the usual commands for the tool and have not been confirmed against the repository.
+- Before finishing, supply the actual changed filenames to `agentbrief plan --json`. Follow prerequisites and working directories, inspect unmatched files and protected-path notices, and run the checks yourself. Even `mapping_complete: true` leaves test coverage unknown.
 - If `check` reports an unknown script, trust the repository's manifest over the instruction file.
 
 Excerpt of `agentbrief brief packages/vite --json` in Vite (trimmed with `…`):
@@ -300,7 +356,9 @@ When several candidates exist for one kind of command, the best is shown in this
 
 ## Evaluation
 
-All numbers come from runs in [`bench/`](bench/), which holds the harness, the hand-written ground truth, every graded result and a plain-language write-up ([`bench/results/FINDINGS.md`](bench/results/FINDINGS.md)).
+The historical benchmark below predates maintainer workflow policies and validation plans. The [new case studies](examples/case-studies/README.md) test static selection and drift, without measuring agent outcomes.
+
+The benchmark numbers come from runs in [`bench/`](bench/), which holds the harness, the hand-written ground truth, every graded result and a plain-language write-up ([`bench/results/FINDINGS.md`](bench/results/FINDINGS.md)).
 
 **Accuracy of the facts block.** An independent reviewer judged every command AgentBrief emitted for 17 real repositories (Node, Python, Go, Rust, Java, Ruby, PHP, .NET, Elixir; monorepos and polyglot repos): 94 of 105 correct (89%). The remaining 11 were convention commands that the repository does not actually use (for example `go vet` as the lint command where none is configured); they are labelled `convention, unverified` in the output. On the 8 benchmark repositories the block had about 48 of 50 commands correct.
 
@@ -333,6 +391,8 @@ Repository contents are treated as untrusted.
 See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 ## Limitations
+
+- **Validation plans require explicit mappings.** They do not discover transitive source dependencies, prove tests sufficient, or establish that the caller supplied all changed files. The public examples are partial policies, not complete CI replacements.
 
 - **Static analysis only.** Commands are read from files, never run. A command that looks right can still fail at runtime.
 - **Convention commands are unverified.** They are labelled as such; treat them as defaults.

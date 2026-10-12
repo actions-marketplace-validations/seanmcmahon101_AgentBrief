@@ -200,24 +200,27 @@ func MatchPath(pattern, name string) bool {
 }
 
 func matchSegs(pat, name []string) bool {
-	for len(pat) > 0 {
-		if pat[0] == "**" {
-			for i := 0; i <= len(name); i++ {
-				if matchSegs(pat[1:], name[i:]) {
-					return true
+	// Dynamic programming bounds repeated ** patterns to O(pattern * path)
+	// rather than recursively exploring exponentially many partitions.
+	prev := make([]bool, len(name)+1)
+	prev[0] = true
+	for _, seg := range pat {
+		next := make([]bool, len(name)+1)
+		if seg == "**" {
+			next[0] = prev[0]
+			for j := 1; j <= len(name); j++ {
+				next[j] = prev[j] || next[j-1]
+			}
+		} else {
+			for j := 1; j <= len(name); j++ {
+				if prev[j-1] {
+					next[j], _ = path.Match(seg, name[j-1])
 				}
 			}
-			return false
 		}
-		if len(name) == 0 {
-			return false
-		}
-		if ok, _ := path.Match(pat[0], name[0]); !ok {
-			return false
-		}
-		pat, name = pat[1:], name[1:]
+		prev = next
 	}
-	return len(name) == 0
+	return prev[len(name)]
 }
 
 // FromMap builds an in-memory Repo from relative path -> contents.

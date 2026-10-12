@@ -1,0 +1,11 @@
+version: 1
+workflows:
+  - scope: .
+    commands:
+      - kind: test
+        run: bash scripts/test.sh
+checks:
+  - id: tests
+    kind: test
+    run: bash scripts/test.sh
+    paths: [fastapi/**, tests/**, docs_src/**, scripts/tests/**, scripts/test.sh]

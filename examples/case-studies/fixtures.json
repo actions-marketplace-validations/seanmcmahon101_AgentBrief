@@ -1,0 +1,97 @@
+[
+  {
+    "name": "vite",
+    "repository": "https://github.com/vitejs/vite",
+    "commit": "3b72997d42e7dd2b31898d0e68461e3025e836b6",
+    "sources": {
+      "CONTRIBUTING.md": "3d56eb2a4a34bfa5731e7388f46e2ed750969cc0a12ca3071a1c3b34ce1fe8a1",
+      "package.json": "bac5bf2beb640d76b03d7f89c09e1d21c7437748f02170155820034d9ea68143"
+    },
+    "cases": [
+      {
+        "name": "playground integration",
+        "paths": [
+          "playground/assets/__tests__/assets.spec.ts"
+        ],
+        "steps": [
+          "build",
+          "integration-build",
+          "integration-serve"
+        ]
+      },
+      {
+        "name": "documentation",
+        "paths": [
+          "docs/guide/api-plugin.md"
+        ],
+        "steps": [
+          "build",
+          "docs"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ruff",
+    "repository": "https://github.com/astral-sh/ruff",
+    "commit": "eb625e43e489bc090aae9c4aa4a407cf389f65d0",
+    "sources": {
+      "CONTRIBUTING.md": "dc570c14c627ff0b1731fcfae3760e650c02dffd5af792e653439c2acbcde358",
+      ".github/workflows/ci.yaml": "99bb20d14d94eebfe317032a9b33c0f90dbf068689e8427853a81d6e7e0f3434",
+      ".cargo/config.toml": "1f0fadea61300f67aabdf33a4607532ed22d4ef729028bdb2a0464c2575dee0c",
+      "scripts/generate_mkdocs.py": "63fc95f911a8a95db67200366a2499b167fe5f34cae230633b6594d8f51586ee"
+    },
+    "cases": [
+      {
+        "name": "lint rule",
+        "paths": [
+          "crates/ruff_linter/src/codes.rs"
+        ],
+        "steps": [
+          "rule-tests",
+          "rule-generation"
+        ]
+      },
+      {
+        "name": "generated documentation",
+        "paths": [
+          "docs/configuration.md"
+        ],
+        "steps": [
+          "docs-readme",
+          "docs-generate",
+          "docs"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "fastapi",
+    "repository": "https://github.com/fastapi/fastapi",
+    "commit": "f5c6e9b4f9cadc1bf0f9a1fd672e621206b63007",
+    "sources": {
+      "scripts/test.sh": "92e8fb04ed92c89dcba54e1d5f3781c1aeae887df7f34f55c6896fa877644b3d",
+      "pyproject.toml": "1e1dd3dc00bf7707a9f5fa5ea5296f5b1dd752428339b9717c87d70c6432abdc"
+    },
+    "cases": [
+      {
+        "name": "framework source",
+        "paths": [
+          "fastapi/applications.py"
+        ],
+        "steps": [
+          "tests"
+        ]
+      },
+      {
+        "name": "documentation examples",
+        "paths": [
+          "docs_src/query_params/tutorial001_py310.py"
+        ],
+        "steps": [
+          "tests"
+        ]
+      }
+    ]
+  }
+]

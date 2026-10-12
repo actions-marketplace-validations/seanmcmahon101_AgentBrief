@@ -1,0 +1,233 @@
+{
+  "scope": "Static plan selection and planted drift; no repository commands or agent trials.",
+  "repositories": [
+    {
+      "repository": "https://github.com/vitejs/vite",
+      "commit": "3b72997d42e7dd2b31898d0e68461e3025e836b6",
+      "baseline_commands": [
+        {
+          "kind": "install",
+          "run": "pnpm install",
+          "dir": "."
+        },
+        {
+          "kind": "build",
+          "run": "pnpm build",
+          "dir": "."
+        },
+        {
+          "kind": "test",
+          "run": "pnpm test",
+          "dir": "."
+        },
+        {
+          "kind": "test-single",
+          "run": "pnpm exec vitest run <file> -t \"<name>\"",
+          "dir": "."
+        },
+        {
+          "kind": "lint",
+          "run": "pnpm lint",
+          "dir": "."
+        },
+        {
+          "kind": "format",
+          "run": "pnpm format",
+          "dir": "."
+        },
+        {
+          "kind": "typecheck",
+          "run": "pnpm typecheck",
+          "dir": "."
+        },
+        {
+          "kind": "dev",
+          "run": "pnpm dev",
+          "dir": "."
+        }
+      ],
+      "cases": [
+        {
+          "name": "playground integration",
+          "paths": [
+            "playground/assets/__tests__/assets.spec.ts"
+          ],
+          "steps": [
+            "build",
+            "integration-build",
+            "integration-serve"
+          ],
+          "mapping_complete": true,
+          "coverage": "unknown",
+          "executed": false,
+          "protected_paths": []
+        },
+        {
+          "name": "documentation",
+          "paths": [
+            "docs/guide/api-plugin.md"
+          ],
+          "steps": [
+            "build",
+            "docs"
+          ],
+          "mapping_complete": true,
+          "coverage": "unknown",
+          "executed": false,
+          "protected_paths": []
+        }
+      ],
+      "drift": {
+        "detected_rules": [
+          "unknown-script"
+        ],
+        "plan_refused": true
+      }
+    },
+    {
+      "repository": "https://github.com/astral-sh/ruff",
+      "commit": "eb625e43e489bc090aae9c4aa4a407cf389f65d0",
+      "baseline_commands": [
+        {
+          "kind": "install",
+          "run": "uv sync",
+          "dir": "."
+        },
+        {
+          "kind": "build",
+          "run": "cargo build --workspace",
+          "dir": "."
+        },
+        {
+          "kind": "test",
+          "run": "cargo nextest run",
+          "dir": "."
+        },
+        {
+          "kind": "test-single",
+          "run": "cargo nextest run <test_name>",
+          "dir": "."
+        },
+        {
+          "kind": "lint",
+          "run": "cargo clippy --workspace --all-targets --all-features --locked",
+          "dir": "."
+        },
+        {
+          "kind": "format",
+          "run": "cargo fmt --all --check",
+          "dir": "."
+        }
+      ],
+      "cases": [
+        {
+          "name": "lint rule",
+          "paths": [
+            "crates/ruff_linter/src/codes.rs"
+          ],
+          "steps": [
+            "rule-tests",
+            "rule-generation"
+          ],
+          "mapping_complete": true,
+          "coverage": "unknown",
+          "executed": false,
+          "protected_paths": []
+        },
+        {
+          "name": "generated documentation",
+          "paths": [
+            "docs/configuration.md"
+          ],
+          "steps": [
+            "docs-readme",
+            "docs-generate",
+            "docs"
+          ],
+          "mapping_complete": true,
+          "coverage": "unknown",
+          "executed": false,
+          "protected_paths": [
+            "docs/configuration.md"
+          ]
+        }
+      ],
+      "drift": {
+        "detected_rules": [
+          "missing-path"
+        ],
+        "plan_refused": true
+      }
+    },
+    {
+      "repository": "https://github.com/fastapi/fastapi",
+      "commit": "f5c6e9b4f9cadc1bf0f9a1fd672e621206b63007",
+      "baseline_commands": [
+        {
+          "kind": "install",
+          "run": "uv sync",
+          "dir": "."
+        },
+        {
+          "kind": "test",
+          "run": "bash scripts/test.sh",
+          "dir": "."
+        },
+        {
+          "kind": "test-single",
+          "run": "uv run pytest <file>::<test_name>",
+          "dir": "."
+        },
+        {
+          "kind": "lint",
+          "run": "bash scripts/lint.sh",
+          "dir": "."
+        },
+        {
+          "kind": "format",
+          "run": "bash scripts/format.sh",
+          "dir": "."
+        },
+        {
+          "kind": "typecheck",
+          "run": "uv run mypy .",
+          "dir": "."
+        }
+      ],
+      "cases": [
+        {
+          "name": "framework source",
+          "paths": [
+            "fastapi/applications.py"
+          ],
+          "steps": [
+            "tests"
+          ],
+          "mapping_complete": true,
+          "coverage": "unknown",
+          "executed": false,
+          "protected_paths": []
+        },
+        {
+          "name": "documentation examples",
+          "paths": [
+            "docs_src/query_params/tutorial001_py310.py"
+          ],
+          "steps": [
+            "tests"
+          ],
+          "mapping_complete": true,
+          "coverage": "unknown",
+          "executed": false,
+          "protected_paths": []
+        }
+      ],
+      "drift": {
+        "detected_rules": [
+          "missing-path"
+        ],
+        "plan_refused": true
+      }
+    }
+  ]
+}

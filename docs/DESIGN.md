@@ -81,7 +81,7 @@ The workflow detector parses and validates policy once through `scan.Repo`,
 retaining declaration lines and rejecting ambiguous/partial configurations.
 `model.Repo.Workflows` stays separate from discovered commands. Brief curation
 applies preferences; instruction checking validates them with existing lints.
-Brief and sync refuse known-invalid declarations. Nothing executes repository
+Brief, sync and plan refuse known-invalid declarations. Nothing executes repository
 commands. No configuration means unchanged discovery and output.
 
 Selected commands use `maintainer` evidence, `preferred: true`, and an exact
@@ -90,12 +90,33 @@ coverage nor successful execution. Generated patterns extend existing sourced
 path rules. Invalid configuration produces `invalid-config`, never a partially
 applied policy or a parser diagnostic containing untrusted input values.
 
+## Change-aware validation policy
+
+Optional `checks` in the same version-1 configuration declare named commands,
+root-relative path selectors, per-check exclusions and prerequisite ids.
+[plans.md](plans.md) specifies the contract. Parsing validates references and an
+acyclic graph atomically; command parsing and static checking share the same
+owner as workflow preferences. A check without selectors is prerequisite-only.
+
+`internal/plan` consumes parsed policy and caller-supplied canonical filenames.
+It accumulates directly matching checks, closes over prerequisites, and orders
+them deterministically. Selection reasons retain pattern declaration sources.
+Missing/deleted filenames are valid. No configuration means unmatched paths,
+rather than inferred test coverage.
+
+`mapping_complete` means every supplied path matched policy and the scan was
+not truncated. `coverage: "unknown"` and `executed: false` remain explicit.
+Protected-path matches are advisory; policy changes are flagged for review.
+AgentBrief never invokes Git to obtain changes. The CLI accepts positional
+filenames or bounded newline/NUL file lists; incomplete input is refused.
+
 ## Commands
 
 ```
 agentbrief [brief] [PATH] [--json] [--all]    print the brief (default command)
 agentbrief sync [--dry-run] [--no-imports]    write/refresh the managed block in AGENTS.md
 agentbrief check [--json] [--strict]          verify the block is current; lint instruction files
+agentbrief plan PATH... [--json] [--strict]  select declared validation checks
 agentbrief version
 ```
 
@@ -190,6 +211,7 @@ internal/scan         read-only, safety-filtered view of the repository (gitigno
 internal/redact       secret redaction for any string that reaches output
 internal/detect       ecosystem detectors -> model.Repo (one file per ecosystem, registered via init)
 internal/model        the fact types and JSON schema (agentbrief/v1)
+internal/plan         declared change-to-check matching, prerequisite ordering, explanations
 internal/brief        curation (pick best facts, scope to a path) and rendering (Markdown block, JSON)
 internal/instructions discover instruction files, managed-block read/write, sync, check rules
 ```

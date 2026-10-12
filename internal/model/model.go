@@ -65,8 +65,9 @@ type Repo struct {
 	Instructions    []InstructionFile `json:"instruction_files"`
 	Notes           []Note            `json:"notes"`
 	// Workflow scope is applicability, separate from command working directory.
-	Workflows      []Workflow `json:"workflows,omitempty"`
-	ConfigFindings []Finding  `json:"config_findings,omitempty"`
+	Workflows      []Workflow        `json:"workflows,omitempty"`
+	Checks         []ValidationCheck `json:"checks,omitempty"`
+	ConfigFindings []Finding         `json:"config_findings,omitempty"`
 
 	// Stats about the scan itself; useful for debugging and benchmarks.
 	Stats ScanStats `json:"stats"`
@@ -121,6 +122,24 @@ type Workflow struct {
 	Scope    string    `json:"scope"`
 	Commands []Command `json:"commands"`
 	Source   Source    `json:"source"`
+}
+
+// PathSelector is a root-anchored file pattern with its declaration source.
+type PathSelector struct {
+	Pattern string `json:"pattern"`
+	Source  Source `json:"source"`
+}
+
+// ValidationCheck declares when to run a command and which checks precede it.
+// A check without Paths is prerequisite-only. Mapping is maintainer intent,
+// not proof that its command tests every affected behavior.
+type ValidationCheck struct {
+	ID       string         `json:"id"`
+	Command  Command        `json:"command"`
+	Paths    []PathSelector `json:"paths"`
+	Exclude  []PathSelector `json:"exclude"`
+	Requires []string       `json:"requires"`
+	Source   Source         `json:"source"`
 }
 
 // Task is a raw entry from a task inventory: a package.json script, Makefile

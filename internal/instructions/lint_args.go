@@ -89,6 +89,18 @@ func (x cmdCtx) findDir(rel string) (string, bool) {
 // pathBases returns the directories relative paths in the command resolve
 // against, honouring a preceding `cd`. nil means "unknown, do not judge".
 func (x cmdCtx) pathBases() []string {
+	if x.c.policyCommand {
+		if x.cwd == "?" {
+			return nil
+		}
+		if x.cwd == "" {
+			return []string{"."}
+		}
+		if x.c.isDir(x.cwd) {
+			return []string{x.cwd}
+		}
+		return nil
+	}
 	switch x.cwd {
 	case "":
 		return x.c.baseDirs(x.file, false)
@@ -231,7 +243,20 @@ func (x cmdCtx) checkPathArg(raw string, o pathOpts) {
 	if (explicit || parentExists || (strings.Contains(clean, "/") && x.c.idx.topLevel(first))) && !(!explicit && x.c.idx.suffixMatch(clean)) {
 		sev = model.SeverityError
 	}
-	if x.c.ignored(clean) {
+	if x.c.policyCommand {
+		// Explicit policy is an exact command, rather than an illustrative
+		// reference that might use a repository-wide shorthand.
+		sev = model.SeverityError
+	}
+	ignored := false
+	if x.c.policyCommand {
+		for _, base := range bases {
+			ignored = ignored || x.c.ignored(path.Join(base, clean))
+		}
+	} else {
+		ignored = x.c.ignored(clean)
+	}
+	if ignored {
 		return
 	}
 	x.reportPath(sev, fmt.Sprintf("`%s` refers to `%s`, which does not exist in the repository", x.text, raw))

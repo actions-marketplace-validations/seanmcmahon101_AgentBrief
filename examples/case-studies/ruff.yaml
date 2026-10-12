@@ -1,0 +1,27 @@
+version: 1
+checks:
+  - id: rule-tests
+    kind: test
+    run: cargo test -p ruff_linter
+    paths: [crates/ruff_linter/**]
+  - id: rule-generation
+    kind: generate
+    run: cargo dev generate-all
+    paths: [crates/ruff_linter/**]
+    requires: [rule-tests]
+  - id: docs-readme
+    kind: generate
+    run: uv run scripts/transform_readme.py --target mkdocs
+  - id: docs-generate
+    kind: generate
+    run: uv run scripts/generate_mkdocs.py
+    requires: [docs-readme]
+  - id: docs
+    kind: check
+    run: uv run --only-group=docs mkdocs build --strict -f mkdocs.yml
+    paths: [docs/**, mkdocs.yml]
+    requires: [docs-generate]
+generated:
+  - docs/configuration.md
+  - docs/rules/**
+  - ruff.schema.json

@@ -10,7 +10,6 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/seanmcmahon101/AgentBrief/internal/model"
-	"github.com/seanmcmahon101/AgentBrief/internal/redact"
 	"github.com/seanmcmahon101/AgentBrief/internal/scan"
 )
 
@@ -44,9 +43,9 @@ func detectWorkflows(r *scan.Repo, f *Facts) {
 		return
 	}
 	root := doc.Content[0]
-	fields, ok := workflowMapping(root, "version", "workflows", "generated")
+	fields, ok := workflowMapping(root, "version", "workflows", "generated", "checks")
 	if !ok || fields["version"] == nil || fields["version"].Tag != "!!int" || fields["version"].Value != "1" {
-		fail(root.Line, "expected version: 1 and only workflows/generated fields")
+		fail(root.Line, "expected version: 1 and only workflows/generated/checks fields")
 		return
 	}
 	// Invalid configurations are atomic: never silently apply a partial policy.
@@ -71,19 +70,13 @@ func detectWorkflows(r *scan.Repo, f *Facts) {
 			kinds := map[string]bool{}
 			for _, cn := range commands.Content {
 				cm, ok := workflowMapping(cn, "kind", "run", "dir")
-				kind, validKind := workflowString(cm["kind"])
-				run, validRun := workflowString(cm["run"])
-				dir, validDir := workflowPath(cm["dir"], ".")
-				if !ok || !validKind || !workflowKind(kind) || kinds[kind] || !validRun || strings.TrimSpace(run) != run || !model.ValidCommand(run) || !validDir || !r.IsDir(dir) {
+				cmd, valid := workflowCommand(cm, r)
+				if !ok || !valid || kinds[cmd.Kind] {
 					fail(cn.Line, "command needs a unique supported kind, a single-line run (1-160 bytes), and an existing repository dir")
 					return
 				}
-				kinds[kind] = true
-				w.Commands = append(w.Commands, model.Command{
-					Kind: kind, Run: redact.String(run), Dir: dir,
-					Evidence: []string{model.EvidenceMaintainer},
-					Source:   model.Source{Path: WorkflowFile, Line: cm["run"].Line},
-				})
+				kinds[cmd.Kind] = true
+				w.Commands = append(w.Commands, cmd)
 			}
 			sort.Slice(w.Commands, func(i, j int) bool { return w.Commands[i].Kind < w.Commands[j].Kind })
 			workflows = append(workflows, w)
@@ -103,6 +96,12 @@ func detectWorkflows(r *scan.Repo, f *Facts) {
 			generated = append(generated, model.PathRule{Pattern: pattern, Reason: "generated", Source: model.Source{Path: WorkflowFile, Line: node.Line}})
 		}
 	}
+	checks, valid := validationChecks(fields["checks"], r)
+	if !valid {
+		fail(fields["checks"].Line, "checks need unique ids, valid commands/path patterns, known prerequisites, and no dependency cycles")
+		return
+	}
+	f.Checks = checks
 	sort.Slice(workflows, func(i, j int) bool { return workflows[i].Scope < workflows[j].Scope })
 	f.Workflows = workflows
 	for _, rule := range generated {

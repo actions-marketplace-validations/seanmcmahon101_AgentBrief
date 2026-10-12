@@ -40,6 +40,7 @@ Usage:
   agentbrief [brief] [PATH] [--json] [--all]   print the brief (default command)
   agentbrief sync [--dry-run] [--no-imports]   write/refresh the facts block in AGENTS.md
   agentbrief check [--json] [--strict]         fail if the block or instruction files are stale
+  agentbrief plan PATH... [--json] [--strict] select declared checks for changed files
   agentbrief version
 
 Global flag:
@@ -99,6 +100,10 @@ Exit: 0 clean, 1 errors (or warnings with --strict), 2 usage/IO error.
 
 // Main runs the CLI. args includes the program name (like os.Args).
 func Main(args []string, stdout, stderr io.Writer) int {
+	return mainWithInput(args, os.Stdin, stdout, stderr)
+}
+
+func mainWithInput(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) > 0 {
 		args = args[1:]
 	}
@@ -113,6 +118,8 @@ func Main(args []string, stdout, stderr io.Writer) int {
 				fmt.Fprint(stdout, usageSync)
 			case "check":
 				fmt.Fprint(stdout, usageCheck)
+			case "plan":
+				fmt.Fprint(stdout, usagePlan)
 			default:
 				fmt.Fprint(stdout, usageMain)
 			}
@@ -123,6 +130,8 @@ func Main(args []string, stdout, stderr io.Writer) int {
 	case "version":
 		fmt.Fprintf(stdout, "agentbrief %s\n", versionString())
 		return ExitOK
+	case "plan":
+		return runPlan(rest, stdin, stdout, stderr)
 	case "sync":
 		return runSync(rest, stdout, stderr)
 	case "check":
@@ -147,7 +156,7 @@ func splitCommand(args []string) (string, []string) {
 				// top-level help unless a subcommand follows
 				for _, b := range args[i+1:] {
 					switch b {
-					case "brief", "sync", "check":
+					case "brief", "sync", "check", "plan":
 						return b, append(append([]string(nil), args[:i]...), append([]string{"-h"}, args[i+1:]...)...)
 					}
 				}
@@ -155,7 +164,7 @@ func splitCommand(args []string) (string, []string) {
 			}
 		default:
 			switch a {
-			case "brief", "sync", "check", "version", "help":
+			case "brief", "sync", "check", "plan", "version", "help":
 				rest := append(append([]string(nil), args[:i]...), args[i+1:]...)
 				if a == "help" {
 					// keep positional topic only
@@ -309,7 +318,7 @@ func runBrief(args []string, stdout, stderr io.Writer) int {
 	if len(pos) == 1 {
 		if scope, err = resolveScope(root, base, pos[0]); err != nil {
 			if isBareWord(pos[0]) {
-				return fail(stderr, fmt.Errorf("%q is neither a command nor an existing path (commands: brief, sync, check, version, help)", pos[0]))
+				return fail(stderr, fmt.Errorf("%q is neither a command nor an existing path (commands: brief, sync, check, plan, version, help)", pos[0]))
 			}
 			return fail(stderr, err)
 		}
@@ -318,7 +327,7 @@ func runBrief(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
-	if err := workflowError(root, repo); err != nil {
+	if err := policyError(root, repo); err != nil {
 		return fail(stderr, err)
 	}
 	if *all {
@@ -359,7 +368,7 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
-	if err := workflowError(root, repo); err != nil {
+	if err := policyError(root, repo); err != nil {
 		return fail(stderr, err)
 	}
 	res, err := instructions.Sync(root, repo, instructions.SyncOptions{DryRun: *dry, NoImports: *noImports})
@@ -394,6 +403,7 @@ type checkOutput struct {
 	ManagedBlock     bool            `json:"managed_block"`
 	FilesChecked     int             `json:"files_checked"`
 	WorkflowsChecked int             `json:"workflows_checked,omitempty"`
+	ChecksChecked    int             `json:"checks_checked,omitempty"`
 	Errors           int             `json:"errors"`
 	Warnings         int             `json:"warnings"`
 }
@@ -421,7 +431,7 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 	if findings == nil {
 		findings = []model.Finding{}
 	}
-	out := checkOutput{Schema: CheckSchema, Findings: findings, FilesChecked: len(repo.Instructions), WorkflowsChecked: len(repo.Workflows)}
+	out := checkOutput{Schema: CheckSchema, Findings: findings, FilesChecked: len(repo.Instructions), WorkflowsChecked: len(repo.Workflows), ChecksChecked: len(repo.Checks)}
 	if b, err := os.ReadFile(filepath.Join(root, "AGENTS.md")); err == nil {
 		_, ferr := instructions.FindBlock(string(b))
 		out.ManagedBlock = ferr == nil
@@ -450,7 +460,9 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 		}
 		switch {
 		case len(findings) == 0:
-			if len(repo.Workflows) > 0 {
+			if len(repo.Checks) > 0 {
+				fmt.Fprintf(stdout, "ok: %s, %s and %s checked, no problems found\n", plural(len(repo.Instructions), "instruction file"), plural(len(repo.Workflows), "workflow"), plural(len(repo.Checks), "validation check"))
+			} else if len(repo.Workflows) > 0 {
 				fmt.Fprintf(stdout, "ok: %s and %s checked, no problems found\n", plural(len(repo.Instructions), "instruction file"), plural(len(repo.Workflows), "workflow"))
 			} else {
 				fmt.Fprintf(stdout, "ok: %s checked, no problems found\n", plural(len(repo.Instructions), "instruction file"))
@@ -459,7 +471,11 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stdout, "%s, %s\n", plural(out.Errors, "error"), plural(out.Warnings, "warning"))
 		}
 		if !out.ManagedBlock {
-			fmt.Fprintln(stdout, "note: AGENTS.md has no AgentBrief block, so only hand-written instructions were checked; run `agentbrief sync` to add one")
+			if len(repo.Workflows)+len(repo.Checks) > 0 {
+				fmt.Fprintln(stdout, "note: AGENTS.md has no AgentBrief block; instruction files and declared policy were checked")
+			} else {
+				fmt.Fprintln(stdout, "note: AGENTS.md has no AgentBrief block, so only hand-written instructions were checked; run `agentbrief sync` to add one")
+			}
 		}
 	}
 	if out.Errors > 0 || (*strict && out.Warnings > 0) {
@@ -488,10 +504,10 @@ func isBareWord(s string) bool {
 	return true
 }
 
-func workflowError(root string, repo *model.Repo) error {
-	for _, f := range instructions.CheckWorkflows(root, repo) {
+func policyError(root string, repo *model.Repo) error {
+	for _, f := range instructions.CheckPolicy(root, repo) {
 		if f.Severity == model.SeverityError {
-			return errors.New("invalid .agentbrief.yaml workflows; run `agentbrief check` for diagnostics")
+			return errors.New("invalid .agentbrief.yaml policy; run `agentbrief check` for diagnostics")
 		}
 	}
 	return nil

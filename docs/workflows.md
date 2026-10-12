@@ -73,6 +73,13 @@ Each scope and each command kind within that scope must be unique. Unknown
 fields, aliases, multiple YAML documents, multiline commands, and commands over
 160 bytes are rejected. The configuration uses the normal 1 MiB file-read cap.
 
+## Validation checks
+
+The same version-1 file can declare named checks with path selectors and
+prerequisites. See [validation plans](plans.md). Checks do not change brief
+selection; they are selected on demand by `agentbrief plan <changed-files>`.
+Their commands share workflow validation and provenance rules.
+
 ## Evidence and drift checking
 
 Selected commands carry `evidence: ["maintainer"]`, `preferred: true`, and a
@@ -90,8 +97,7 @@ package's command. Make checks likewise honor the selected working directory.
 
 A renamed wrapper therefore produces a finding at its configuration line.
 Changing the configured root command after syncing produces `stale-block`.
-Malformed configuration produces an `invalid-config` error. `brief` and
-`sync` refuse malformed policy or commands the checker already knows are
+Malformed configuration produces an `invalid-config` error. `brief`, `sync` and `plan` refuse malformed policy or commands the checker already knows are
 invalid; sync leaves existing instruction files untouched.
 
 These are static checks. Unknown tools, dynamic targets, configuration-dependent
